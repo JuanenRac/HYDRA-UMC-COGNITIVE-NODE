@@ -99,7 +99,7 @@ agire come un'unica unità cognitiva sulla stessa scheda fisica:
 * **Perché `family-status` legge il manifest proprio di ciascun figlio
   invece di un elenco mantenuto a mano.** `hydra-umc.project.json` è già
   l'unica fonte di verità di cui si fidano dashboard e updater di tutto
-  l'ecosistema (vedi `SONNET/BIBLIA HYDRA-UMC`) - un secondo elenco qui
+  l'ecosistema - un secondo elenco qui
   andrebbe fuori sincrono non appena la maturità reale di un figlio
   cambiasse e nessuno si ricordasse di aggiornarlo.
 * **Perché un figlio senza checkout locale è un "non trovato" reale e
@@ -291,3 +291,14 @@ Questo progetto fa parte di un ecosistema robotico più ampio dello stesso autor
 
 ## 📜 LICENZA
 GPL-3.0 - Vedere LICENSE per i dettagli.
+
+## 🛠️ BUILD & RUN
+
+Usa il controllo di compilazione senza versionamento prima di una compilazione di rilascio:
+
+| Azione | Windows | Linux / macOS |
+|---|---|---|
+| Controllo di compilazione (senza modificare versione o CHANGELOG) | `build-test.bat` | `./build-test.sh` |
+| Esecuzione / sviluppo (se disponibile) | `run*.bat` o `dev*.bat` | `./run*.sh` o `./dev*.sh` |
+
+`build-test.bat` e `build-test.sh` compilano o convalidano lo stack del progetto senza incrementare `hydra-umc.project.json` né modificare `CHANGELOG.md`. Possono creare solo i normali output del compilatore. Gli script esistenti `build*.bat`, `build*.sh`, `run*` e `dev*` mantengono il comportamento specifico di versione o esecuzione; usali quando tale comportamento è necessario.

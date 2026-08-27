@@ -93,8 +93,8 @@ unit on the same physical board:
   orchestrator then turns into physical robot commands.
 * **Why `family-status` reads each child's own manifest instead of a
   hand-maintained list.** `hydra-umc.project.json` is already the single
-  source of truth the ecosystem-wide dashboard and updater trust (see
-  `SONNET/BIBLIA HYDRA-UMC`) - a second list here would drift the moment
+  source of truth the ecosystem-wide dashboard and updater trust - a second
+  list here would drift the moment
   a child's real maturity changed and nobody remembered to update it.
 * **Why a missing sibling checkout is a real, honest "not found", not an
   error.** An integration hub genuinely doesn't know whether a developer
@@ -281,3 +281,14 @@ This project is part of a larger robotics ecosystem by the same author (JuanenRa
 
 ## 📜 LICENSE
 GPL-3.0 - See LICENSE for details.
+
+## 🛠️ BUILD & RUN
+
+Use the non-versioning build check before a release build:
+
+| Action | Windows | Linux / macOS |
+|---|---|---|
+| Build check (no version or CHANGELOG change) | `build-test.bat` | `./build-test.sh` |
+| Run / development (when provided) | `run*.bat` or `dev*.bat` | `./run*.sh` or `./dev*.sh` |
+
+`build-test.bat` and `build-test.sh` compile or validate the project stack without incrementing `hydra-umc.project.json` or modifying `CHANGELOG.md`. They may create normal compiler output only. Existing `build*.bat`, `build*.sh`, `run*` and `dev*` scripts retain their project-specific, versioned or runtime behavior; use them when that behavior is required.

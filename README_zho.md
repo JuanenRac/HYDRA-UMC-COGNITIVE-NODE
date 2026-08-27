@@ -68,7 +68,7 @@ flowchart TB
 * **为何入口点今天只打印身份/版本/角色。** 这是脚手架（scaffolding）阶段：证明该包在实际目标 Python 版本上能够正确安装、编译并被导入，是后续添加真正的 LLM/VLA/语音编排逻辑的前提条件，并使那部分后续工作与打包相关的问题相互隔离。
 * **为何 `docker-compose.yml` 在子项目拥有 Dockerfile 之前就已存在。** 现在决定并记录集成契约（哪个服务依赖哪个服务、每个服务需要哪些设备/卷挂载），避免这一形态日后被临时拼凑出来，尽管在每个子项目发布各自的 Dockerfile 之前，`docker compose up` 尚无法完全成功。
 * **这如何融入生态系统的其余部分。** 本节点位于感知层（HYDRA-UMC-VISION-NODE，Hailo-8）之上一层，任务编排层（HYDRA-UMC-ORCHESTRATOR）之下一层：它将语音/文本指令和检测结果转化为语义决策，编排器随后将这些决策转化为物理机器人指令。
-* **为何 `family-status` 读取每个子项目自身的清单，而不是一份手工维护的列表。** `hydra-umc.project.json` 已经是整个生态系统仪表盘和更新器都信任的唯一真相来源（见 `SONNET/BIBLIA HYDRA-UMC`）——在这里再维护第二份列表，只要某个子项目的真实成熟度发生变化而没人记得同步更新，就会立刻产生偏差。
+* **为何 `family-status` 读取每个子项目自身的清单，而不是一份手工维护的列表。** `hydra-umc.project.json` 已经是整个生态系统仪表盘和更新器都信任的唯一真相来源。再维护第二份列表会在某个子项目的真实成熟度变化时立刻产生偏差。
 * **为何缺少某个兄弟项目的本地检出会得到一个真实、诚实的"未找到"，而非一个错误。** 一个集成中枢真的无法预先知道开发者是否在本地检出了全部 4 个子项目——`manifest.py` 对每一种真实的失败情形（仓库缺失、清单缺失、JSON 格式错误）都返回 `None`，让 `family-status` 清楚地报告出来，而不是直接崩溃。
 
 ---
@@ -231,3 +231,14 @@ run.bat family-status
 
 ## 📜 许可证
 GPL-3.0 —— 详见 LICENSE。
+
+## 🛠️ BUILD & RUN
+
+请在发布构建前使用不改动版本的构建检查：
+
+| 操作 | Windows | Linux / macOS |
+|---|---|---|
+| 构建检查（不修改版本或 CHANGELOG） | `build-test.bat` | `./build-test.sh` |
+| 运行 / 开发（如提供） | `run*.bat` 或 `dev*.bat` | `./run*.sh` 或 `./dev*.sh` |
+
+`build-test.bat` 和 `build-test.sh` 会编译或验证项目技术栈，但不会递增 `hydra-umc.project.json`，也不会修改 `CHANGELOG.md`。它们仅可能生成正常的编译器输出。现有的 `build*.bat`、`build*.sh`、`run*` 和 `dev*` 脚本保留各自的版本化或运行时行为；需要该行为时请使用它们。

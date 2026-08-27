@@ -102,7 +102,7 @@ zu agieren:
 * **Warum `family-status` das eigene Manifest jedes Kindes liest, statt
   einer von Hand gepflegten Liste.** `hydra-umc.project.json` ist bereits
   die einzige Quelle der Wahrheit, der das ökosystemweite Dashboard und
-  der Updater vertrauen (siehe `SONNET/BIBLIA HYDRA-UMC`) - eine zweite
+  der Updater vertrauen - eine zweite
   Liste hier würde in dem Moment auseinanderdriften, in dem sich der
   echte Reifegrad eines Kindes ändert und niemand daran denkt, sie zu
   aktualisieren.
@@ -295,3 +295,14 @@ Dieses Projekt ist Teil eines größeren Robotik-Ökosystems desselben Autors (J
 
 ## 📜 LIZENZ
 GPL-3.0 - Siehe LICENSE für Details.
+
+## 🛠️ BUILD & RUN
+
+Verwenden Sie den Build-Check ohne Versionierung vor einem Release-Build:
+
+| Aktion | Windows | Linux / macOS |
+|---|---|---|
+| Build-Check (ohne Änderung von Version oder CHANGELOG) | `build-test.bat` | `./build-test.sh` |
+| Ausführung / Entwicklung (falls vorhanden) | `run*.bat` oder `dev*.bat` | `./run*.sh` oder `./dev*.sh` |
+
+`build-test.bat` und `build-test.sh` kompilieren oder validieren den Projekt-Stack, ohne `hydra-umc.project.json` zu erhöhen oder `CHANGELOG.md` zu verändern. Sie dürfen nur normale Compiler-Ausgaben erzeugen. Die vorhandenen Skripte `build*.bat`, `build*.sh`, `run*` und `dev*` behalten ihr projektbezogenes Versions- oder Laufzeitverhalten bei; verwenden Sie sie, wenn dieses Verhalten benötigt wird.
