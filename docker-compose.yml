@@ -1,0 +1,74 @@
+# =============================================================================
+# HYDRA-UMC-COGNITIVE-NODE - docker-compose.yml
+# Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
+# GPL-3.0 - see LICENSE
+#
+# Integration map for the Cognitive AI Node (Hailo-10 + CM5). This node is
+# a real integration repo (not documentation-only): it owns the HydraOS
+# image (os/) and the quantized LLM/VLA weights (models/) shared by its
+# four children, and this file documents/reserves how those four children
+# attach to it as sibling services on the same physical board.
+#
+# STATUS: scaffolding stage. The four child images referenced below
+# (hydra-umc-vla-engine, hydra-umc-voice-ui, hydra-umc-semantic-planner,
+# hydra-umc-docs-qa) do not have published Dockerfiles/images yet - each
+# child currently only ships a Python entry point (see their own
+# build.sh/run.sh). `docker compose up` will NOT work for real until each
+# child publishes a Dockerfile and pushes an image; until then, run each
+# service directly with its own run.sh/run.bat during development. This
+# file exists so the wiring is decided and documented now, not invented
+# later - the Dockerfile follow-up for each child is tracked separately.
+# =============================================================================
+version: "3.9"
+
+services:
+  cognitive-node:
+    build: .
+    image: hydra-umc-cognitive-node:1.0.0
+    container_name: hydra-umc-cognitive-node
+    devices:
+      - /dev/hailo0:/dev/hailo0   # Hailo-10 NPU passthrough (CM5 host)
+    volumes:
+      - ./models:/opt/hydra/models:ro   # shared quantized LLM/VLA weights
+      - ./os:/opt/hydra/os:ro           # HydraOS image/config reference
+    depends_on:
+      - voice-ui
+      - semantic-planner
+      - vla-engine
+      - docs-qa
+    restart: unless-stopped
+
+  # Speech-to-Action pipeline (STT/TTS). Feeds recognized intent to the
+  # semantic-planner service. See ../HYDRA-UMC-VOICE-UI.
+  voice-ui:
+    build: ../HYDRA-UMC-VOICE-UI
+    image: hydra-umc-voice-ui:1.0.0
+    container_name: hydra-umc-voice-ui
+    restart: unless-stopped
+
+  # LLM-based mission planner and semantic error recovery. Consumes
+  # voice-ui intents and vla-engine action tokens, drives the
+  # HYDRA-ORCHESTRATOR. See ../HYDRA-UMC-SEMANTIC-PLANNER.
+  semantic-planner:
+    build: ../HYDRA-UMC-SEMANTIC-PLANNER
+    image: hydra-umc-semantic-planner:1.0.0
+    container_name: hydra-umc-semantic-planner
+    restart: unless-stopped
+
+  # Vision-Language-Action engine: camera frames + text -> action tokens.
+  # See ../HYDRA-UMC-VLA-ENGINE.
+  vla-engine:
+    build: ../HYDRA-UMC-VLA-ENGINE
+    image: hydra-umc-vla-engine:1.0.0
+    container_name: hydra-umc-vla-engine
+    devices:
+      - /dev/hailo0:/dev/hailo0
+    restart: unless-stopped
+
+  # RAG technical assistant grounded in the ecosystem's own docs. See
+  # ../HYDRA-UMC-DOCS-QA.
+  docs-qa:
+    build: ../HYDRA-UMC-DOCS-QA
+    image: hydra-umc-docs-qa:1.0.0
+    container_name: hydra-umc-docs-qa
+    restart: unless-stopped
