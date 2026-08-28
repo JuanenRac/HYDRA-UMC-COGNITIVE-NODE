@@ -50,3 +50,39 @@ def test_family_status_missing_children(tmp_path: Path, capsys: pytest.CaptureFi
     assert exit_code == 1
     assert "NOT FOUND" in captured.out
     assert "4 of 4 children not found" in captured.out
+
+
+def test_family_status_reports_shared_model_weights(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    # This machine's own real HYDRA-UMC-COGNITIVE-NODE checkout has an
+    # empty models/ directory (no weights provisioned) - a real, honest
+    # degradation signal the text output must surface, not silently omit.
+    main(["family-status", "--workspace", str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert "Shared model weights: MISSING" in captured.out
+
+
+def test_family_status_json_real_schema(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    for child in ("HYDRA-UMC-VLA-ENGINE", "HYDRA-UMC-VOICE-UI", "HYDRA-UMC-SEMANTIC-PLANNER", "HYDRA-UMC-DOCS-QA"):
+        _write_manifest(tmp_path, child)
+
+    exit_code = main(["family-status", "--workspace", str(tmp_path), "--json"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    result = json.loads(captured.out)
+    assert result["schema_version"] == "1.0"
+    assert result["all_children_present"] is True
+    assert len(result["children"]) == 4
+    assert "shared_models" in result
+
+
+def test_family_status_json_reflects_missing_children_in_exit_code(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    exit_code = main(["family-status", "--workspace", str(tmp_path), "--json"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    result = json.loads(captured.out)
+    assert result["all_children_present"] is False

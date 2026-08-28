@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "ecosystem": "HYDRA-UMC",
   "name": "HYDRA-UMC-COGNITIVE-NODE",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "role": "service",
   "stack": "python",
   "technologies": [
@@ -11,11 +11,11 @@
     "Hailo-10"
   ],
   "deployment_target": "cm5",
-  "maturity": "functional",
+  "maturity": "established",
   "family": "Cognitive AI Node",
   "parent": null,
   "build": "",
-  "notes": "Real v0 family-readiness check (`family-status` subcommand): reads each of the 4 real children's own hydra-umc.project.json and reports presence/version/maturity. Honest for an integration hub that runs no model itself - real LLM/VLA/voice orchestration stays future work, blocked on the children themselves.",
+  "notes": "Real v0 family-readiness check (`family-status [--json]` subcommand): reads each of the 4 real children's own hydra-umc.project.json and reports presence/version/maturity through a real, versioned JSON schema. Sibling manifest reads are bounded (64 KiB) against a corrupted/oversized file. Also honestly reports this node's own shared model-weights directory (models/) as present/missing - real degradation-awareness for an integration hub that runs no model itself. Real LLM/VLA/voice orchestration stays future work, blocked on the children themselves.",
   "native_version": {
     "file": "pyproject.toml",
     "pattern": "^version\\s*=\\s*\"(\\d+)\\.(\\d+)\\.(\\d+)\""

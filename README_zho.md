@@ -36,6 +36,8 @@ NPU（40 TOPS）驱动，它能直接在边缘端实现复杂的语义推理、�
   一起。真实的 `family-status` 检查会读取每个子项目自身的真实清单，报告
   其是否存在/版本/成熟度。*（已实现为真实的就绪检查——见下方"构建与
   运行"）*
+* 🔒 **版本化状态模式 + 资源受限的清单读取：** `family-status --json` 会打印真实的、版本化的、机器可读的结果；任何超过 64 KiB 的兄弟清单（损坏或恶意的检出）都会降级为"未找到"，而不会被无限制地读取。*（已实现）*
+* 🪫 **共享模型权重降级检查：** `family-status` 会诚实地报告本节点自身的 `models/` 目录中是否真的存在真实权重，而不仅仅是兄弟仓库是否已被检出。*（已实现）*
 * 📦 **里程表式版本管理：** 每次真实构建都会自动递增 `pyproject.toml`
   自身的版本号（`bump_version.py`）——无需手动编辑版本号。
 
@@ -70,6 +72,8 @@ flowchart TB
 * **这如何融入生态系统的其余部分。** 本节点位于感知层（HYDRA-UMC-VISION-NODE，Hailo-8）之上一层，任务编排层（HYDRA-UMC-ORCHESTRATOR）之下一层：它将语音/文本指令和检测结果转化为语义决策，编排器随后将这些决策转化为物理机器人指令。
 * **为何 `family-status` 读取每个子项目自身的清单，而不是一份手工维护的列表。** `hydra-umc.project.json` 已经是整个生态系统仪表盘和更新器都信任的唯一真相来源。再维护第二份列表会在某个子项目的真实成熟度变化时立刻产生偏差。
 * **为何缺少某个兄弟项目的本地检出会得到一个真实、诚实的"未找到"，而非一个错误。** 一个集成中枢真的无法预先知道开发者是否在本地检出了全部 4 个子项目——`manifest.py` 对每一种真实的失败情形（仓库缺失、清单缺失、JSON 格式错误）都返回 `None`，让 `family-status` 清楚地报告出来，而不是直接崩溃。
+* **为何兄弟清单的读取被限制在 64 KiB 以内。** 本生态系统中每一份真实的清单大小都在几百字节到几 KiB 之间——一个清单被替换成超大文件的、损坏或恶意的检出，绝不能让一次常规的就绪检查无限制地将数据加载到内存中。它会像任何其他格式错误的清单一样降级为 `None`。
+* **为何 `family-status` 会报告 `models/`，即使本节点自身并不运行任何模型。** "兄弟仓库已被检出"和"它们所需的共享权重确实存在"是两个不同的真实事实——`models.py` 的 `check_shared_models()` 会诚实地检查后者（为空但存在也算作缺失），而不是让操作者仅凭子项目的存在就假定就绪。
 
 ---
 
@@ -78,10 +82,11 @@ flowchart TB
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
-│   ├── manifest.py                 # 真实的、具防御性的兄弟项目自身清单读取器
-│   ├── family.py                    # 对 4 个真实子项目的真实家族就绪检查
-│   └── main.py                        # 入口点 + 真实的 `family-status` 子命令
-├── tests/                          # 真实测试：清单读取、家族状态、端到端 CLI
+│   ├── manifest.py                 # 真实的、具防御性的兄弟项目自身清单读取器（64 KiB 上限）
+│   ├── models.py                   # 对本节点自身共享模型权重目录的真实检查
+│   ├── family.py                    # 真实的家族就绪检查 + 版本化 JSON 模式
+│   └── main.py                        # 入口点 + 真实的 `family-status [--json]` 子命令
+├── tests/                          # 真实测试：清单读取、模型、家族状态、端到端 CLI
 ├── docs/                           # 文档与架构
 ├── os/                             # CM5 的 HydraOS 镜像/配置
 ├── models/                         # Hailo-10 优化后的权重（LLM/VLA，由 4 个子项目共享）
@@ -132,9 +137,38 @@ Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-U
 ```bash
 ./run.sh family-status
 ./run.sh family-status --workspace /path/to/some/other/checkout
+./run.sh family-status --json
 
 # Windows
 run.bat family-status
+```
+
+`family-status` 始终也会报告本节点自身的共享模型权重——开发机器上真实的、
+空的 `models/` 会被诚实地报告为 `MISSING`，绝不会被静默忽略：
+
+```text
+Cognitive AI Node family status (workspace: /path/to/workspace):
+  HYDRA-UMC-VLA-ENGINE: v0.0.4, maturity=functional, role=service
+  ...
+
+Shared model weights: MISSING (.../HYDRA-UMC-COGNITIVE-NODE/models) - this node's own os/models weights have not been provisioned on this machine; children that need them will run in their own honest degraded/no-hardware mode.
+
+All 4 children present.
+```
+
+`--json` 则会打印相同的真实数据，形式是一个版本化的、机器可读的对象：
+
+```bash
+$ ./run.sh family-status --json
+{
+  "schema_version": "1.0",
+  "shared_models": { "present": false, "path": ".../models" },
+  "children": [
+    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.0.4", "maturity": "functional", "role": "service" },
+    ...
+  ],
+  "all_children_present": true
+}
 ```
 
 默认使用本仓库自身的父目录——这正是本生态系统任何真实检出已经在使用的

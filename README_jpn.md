@@ -38,6 +38,8 @@
   自身の実際のマニフェストを読み取り、存在/バージョン/成熟度を報告します。
   *（実際のレディネスチェックとして実装済み——下記の「ビルドと実行」を
   参照）*
+* 🔒 **バージョン管理されたステータススキーマ + リソース制限付きマニフェスト読み込み：** `family-status --json` は実際の、バージョン管理された機械可読の結果を出力します。64 KiB を超える兄弟プロジェクトのマニフェスト（破損または悪意のあるチェックアウト）は、無制限に読み込まれるのではなく「見つかりません」に縮退します。*（実装済み）*
+* 🪫 **共有モデル重みの縮退チェック：** `family-status` は、本ノード自身の `models/` ディレクトリに実際に重みが存在するかどうかを正直に報告します。兄弟リポジトリがチェックアウトされているかどうかだけではありません。*（実装済み）*
 * 📦 **オドメーター式バージョン管理：** 実際のビルドのたびに
   `pyproject.toml` 自身のバージョンが自動的に増加します
   （`bump_version.py`）——手動でのバージョン編集は不要です。
@@ -74,6 +76,8 @@ flowchart TB
 * **エコシステムの他の部分との関係。** 本ノードは、知覚層（HYDRA-UMC-VISION-NODE、Hailo-8）の 1 つ上の層、ミッションオーケストレーション（HYDRA-UMC-ORCHESTRATOR）の 1 つ下の層に位置します：音声/テキストによる指示や検知結果を意味的な決定へと変換し、オーケストレーターがそれを物理的なロボットコマンドへと変換します。
 * **`family-status` が手作業で管理するリストではなく、各子プロジェクト自身のマニフェストを読み取る理由。** `hydra-umc.project.json` は、エコシステム全体のダッシュボードとアップデーターがすでに信頼している唯一の真実の情報源です。ここに第 2 のリストを持つと、子プロジェクトの実際の成熟度が変わった瞬間、すぐに食い違いが生じてしまいます。
 * **兄弟プロジェクトのローカルチェックアウトが見つからない場合、エラーではなく実際の正直な「見つかりません」になる理由。** 統合ハブは、開発者が実際に 4 つの子プロジェクトすべてをローカルにチェックアウトしているかどうかを本当には知り得ません——`manifest.py` は実際に起こりうるあらゆる失敗（リポジトリなし、マニフェストなし、不正な JSON）に対して `None` を返すため、`family-status` はクラッシュする代わりにそれを明確に報告します。
+* **兄弟プロジェクトのマニフェスト読み込みが 64 KiB に制限されている理由。** このエコシステム内の実際のマニフェストは、どれも数百バイトから数 KiB 程度です——マニフェストが巨大なファイルに置き換えられた、破損または悪意のあるチェックアウトによって、通常のレディネスチェックが無制限の量のデータをメモリに読み込んでしまうことは決してあってはなりません。他の不正な形式のマニフェストと同様に `None` に縮退します。
+* **本ノード自身はモデルを一切実行しないにもかかわらず、`family-status` が `models/` を報告する理由。** 「兄弟リポジトリがチェックアウトされている」ことと「それらが必要とする共有の重みが実際に存在する」ことは、2 つの異なる実際の事実です——`models.py` の `check_shared_models()` は、子プロジェクトの存在だけからレディネスを推測させるのではなく、後者を正直にチェックします（空だが存在する場合も「なし」として扱われます）。
 
 ---
 
@@ -82,10 +86,11 @@ flowchart TB
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
-│   ├── manifest.py                 # 兄弟プロジェクト自身のマニフェストの実際の防御的リーダー
-│   ├── family.py                    # 4 つの実際の子プロジェクトに対する実際のファミリーレディネスチェック
-│   └── main.py                        # エントリポイント + 実際の `family-status` サブコマンド
-├── tests/                          # 実際のテスト：マニフェスト読み込み、ファミリーステータス、エンドツーエンド CLI
+│   ├── manifest.py                 # 兄弟プロジェクト自身のマニフェストの実際の防御的リーダー（64 KiB 上限）
+│   ├── models.py                   # 本ノード自身の共有モデル重みディレクトリに対する実際のチェック
+│   ├── family.py                    # 実際のファミリーレディネスチェック + バージョン管理された JSON スキーマ
+│   └── main.py                        # エントリポイント + 実際の `family-status [--json]` サブコマンド
+├── tests/                          # 実際のテスト：マニフェスト読み込み、モデル、ファミリーステータス、エンドツーエンド CLI
 ├── docs/                           # ドキュメントとアーキテクチャ
 ├── os/                             # CM5 向けの HydraOS イメージ/設定
 ├── models/                         # Hailo-10 最適化済みの重み（LLM/VLA、4 つの子プロジェクトで共有）
@@ -139,9 +144,40 @@ Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-U
 ```bash
 ./run.sh family-status
 ./run.sh family-status --workspace /path/to/some/other/checkout
+./run.sh family-status --json
 
 # Windows
 run.bat family-status
+```
+
+`family-status` は、本ノード自身の共有モデル重みについても常に報告します
+——開発マシン上の実際の空の `models/` は正直に `MISSING` として報告され、
+黙って無視されることはありません：
+
+```text
+Cognitive AI Node family status (workspace: /path/to/workspace):
+  HYDRA-UMC-VLA-ENGINE: v0.0.4, maturity=functional, role=service
+  ...
+
+Shared model weights: MISSING (.../HYDRA-UMC-COGNITIVE-NODE/models) - this node's own os/models weights have not been provisioned on this machine; children that need them will run in their own honest degraded/no-hardware mode.
+
+All 4 children present.
+```
+
+`--json` は、代わりに同じ実際のデータをバージョン管理された機械可読の
+オブジェクトとして出力します：
+
+```bash
+$ ./run.sh family-status --json
+{
+  "schema_version": "1.0",
+  "shared_models": { "present": false, "path": ".../models" },
+  "children": [
+    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.0.4", "maturity": "functional", "role": "service" },
+    ...
+  ],
+  "all_children_present": true
+}
 ```
 
 デフォルトでは、本リポジトリ自身の親ディレクトリを使用します——これは

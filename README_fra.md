@@ -34,6 +34,8 @@ Il transforme les instructions humaines de haut niveau en séquences robotiques 
   vrai contrôle `family-status` lit le manifeste réel de chaque enfant
   pour signaler présence/version/maturité. *(implémenté comme un vrai
   contrôle de disponibilité - voir BUILD ET EXÉCUTION ci-dessous)*
+* 🔒 **Schéma de statut versionné + lectures de manifeste à ressources limitées :** `family-status --json` affiche un résultat réel, versionné et lisible par machine ; tout manifeste d'un frère dépassant 64 Kio (un checkout corrompu ou malveillant) se dégrade en « non trouvé » plutôt que d'être lu sans limite. *(implémenté)*
+* 🪫 **Contrôle de dégradation des poids de modèle partagés :** `family-status` signale honnêtement si le répertoire `models/` propre à ce nœud contient réellement de vrais poids, et pas seulement si les dépôts frères sont clonés. *(implémenté)*
 * 📦 **Versionnage compteur kilométrique :** Chaque build réel incrémente
   automatiquement la version de `pyproject.toml` (`bump_version.py`) - pas
   de modification manuelle de version.
@@ -110,6 +112,20 @@ une seule unité cognitive sur la même carte physique :
   `manifest.py` renvoie `None` pour chaque échec réel (dépôt absent,
   manifeste absent, JSON malformé) afin que `family-status` le signale
   clairement plutôt que de planter.
+* **Pourquoi les lectures de manifeste d'un frère sont plafonnées à
+  64 Kio.** Chaque manifeste réel de cet écosystème pèse de quelques
+  centaines d'octets à quelques Kio - un checkout corrompu ou malveillant
+  dont le manifeste aurait été remplacé par un fichier surdimensionné ne
+  doit jamais faire charger en mémoire une quantité illimitée de données
+  par un simple contrôle de disponibilité de routine. Il se dégrade en
+  `None`, comme tout autre manifeste malformé.
+* **Pourquoi `family-status` signale `models/` alors que ce nœud
+  n'exécute lui-même aucun modèle.** « Les dépôts frères sont clonés »
+  et « les poids partagés dont ils auraient besoin sont réellement
+  présents » sont deux faits réels distincts - `check_shared_models()`
+  de `models.py` vérifie honnêtement le second (vide mais présent compte
+  comme manquant) plutôt que de laisser un opérateur présumer de la
+  disponibilité à partir de la seule présence des enfants.
 
 ---
 
@@ -118,10 +134,11 @@ une seule unité cognitive sur la même carte physique :
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
-│   ├── manifest.py                 # Lecteur réel et défensif du manifeste propre d'un frère
-│   ├── family.py                    # Vrai contrôle de disponibilité de famille sur les 4 enfants réels
-│   └── main.py                        # Point d'entrée + sous-commande réelle `family-status`
-├── tests/                          # Tests réels : lecture de manifeste, statut de famille, CLI de bout en bout
+│   ├── manifest.py                 # Lecteur réel et défensif du manifeste propre d'un frère (plafonné à 64 Kio)
+│   ├── models.py                   # Contrôle réel du répertoire de poids de modèle partagés propre à ce nœud
+│   ├── family.py                    # Vrai contrôle de disponibilité de famille + schéma JSON versionné
+│   └── main.py                        # Point d'entrée + sous-commande réelle `family-status [--json]`
+├── tests/                          # Tests réels : lecture de manifeste, modèles, statut de famille, CLI de bout en bout
 ├── docs/                           # Documentation et architecture
 ├── os/                             # Image/configuration HydraOS pour le CM5
 ├── models/                         # Poids optimisés Hailo-10 (LLM/VLA, partagés par les 4 enfants)
@@ -176,9 +193,40 @@ vrai checkout local :
 ```bash
 ./run.sh family-status
 ./run.sh family-status --workspace /chemin/vers/un/autre/checkout
+./run.sh family-status --json
 
 # Windows
 run.bat family-status
+```
+
+`family-status` signale toujours aussi les poids de modèle partagés
+propres à ce nœud - un `models/` réel et vide sur une machine de
+développement est honnêtement `MISSING`, jamais ignoré en silence :
+
+```text
+Cognitive AI Node family status (workspace: /path/to/workspace):
+  HYDRA-UMC-VLA-ENGINE: v0.0.4, maturity=functional, role=service
+  ...
+
+Shared model weights: MISSING (.../HYDRA-UMC-COGNITIVE-NODE/models) - this node's own os/models weights have not been provisioned on this machine; children that need them will run in their own honest degraded/no-hardware mode.
+
+All 4 children present.
+```
+
+`--json` affiche à la place les mêmes données réelles sous forme d'un
+objet versionné et lisible par machine :
+
+```bash
+$ ./run.sh family-status --json
+{
+  "schema_version": "1.0",
+  "shared_models": { "present": false, "path": ".../models" },
+  "children": [
+    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.0.4", "maturity": "functional", "role": "service" },
+    ...
+  ],
+  "all_children_present": true
+}
 ```
 
 Par défaut, utilise le propre répertoire parent de ce dépôt - la même

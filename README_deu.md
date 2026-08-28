@@ -35,6 +35,8 @@ Er transformiert hochgradige menschliche Anweisungen in logische Robotersequenze
   Manifest jedes Kindes, um Präsenz/Version/Reifegrad zu melden.
   *(implementiert als echte Bereitschaftsprüfung - siehe BUILD UND
   AUSFÜHRUNG unten)*
+* 🔒 **Versioniertes Status-Schema + ressourcenbeschränkte Manifest-Lesevorgänge:** `family-status --json` gibt ein echtes, versioniertes, maschinenlesbares Ergebnis aus; jedes Geschwister-Manifest, das größer als 64 KiB ist (ein beschädigtes oder manipuliertes Checkout), degradiert zu "nicht gefunden", statt unbegrenzt eingelesen zu werden. *(implementiert)*
+* 🪫 **Degradationsprüfung für gemeinsam genutzte Modellgewichte:** `family-status` meldet ehrlich, ob das eigene `models/`-Verzeichnis dieses Knotens tatsächlich echte Gewichte enthält - nicht nur, ob die Geschwister-Repos ausgecheckt sind. *(implementiert)*
 * 📦 **Kilometerzähler-Versionierung:** Jeder echte Build erhöht
   automatisch die Version in `pyproject.toml` (`bump_version.py`) - keine
   manuellen Versionsänderungen.
@@ -112,6 +114,20 @@ zu agieren:
   hat - `manifest.py` gibt für jeden echten Fehlerfall (fehlendes Repo,
   fehlendes Manifest, fehlerhaftes JSON) `None` zurück, sodass
   `family-status` dies klar meldet, statt abzustürzen.
+* **Warum Manifest-Lesevorgänge von Geschwistern auf 64 KiB begrenzt
+  sind.** Jedes echte Manifest in diesem Ökosystem ist einige hundert
+  Byte bis wenige KiB groß - ein beschädigtes oder manipuliertes
+  Checkout, dessen Manifest durch eine überdimensionierte Datei ersetzt
+  wurde, darf eine routinemäßige Bereitschaftsprüfung niemals dazu
+  bringen, eine unbegrenzte Menge an Daten in den Speicher zu laden. Es
+  degradiert zu `None`, genau wie jedes andere fehlerhafte Manifest.
+* **Warum `family-status` `models/` meldet, obwohl dieser Knoten selbst
+  kein Modell ausführt.** "Die Geschwister-Repos sind ausgecheckt" und
+  "die gemeinsam genutzten Gewichte, die sie bräuchten, sind tatsächlich
+  vorhanden" sind zwei unterschiedliche echte Fakten -
+  `check_shared_models()` in `models.py` prüft den zweiten ehrlich (leer,
+  aber vorhanden zählt als fehlend), statt einen Betreiber allein aus der
+  Präsenz der Kinder auf Bereitschaft schließen zu lassen.
 
 ---
 
@@ -120,10 +136,11 @@ zu agieren:
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
-│   ├── manifest.py                 # Echter, defensiver Leser für das eigene Manifest eines Geschwisters
-│   ├── family.py                    # Echte Familien-Bereitschaftsprüfung über die 4 echten Kinder
-│   └── main.py                        # Einstiegspunkt + echtes Subcommand `family-status`
-├── tests/                          # Echte Tests: Manifest-Lesen, Familienstatus, End-to-End-CLI
+│   ├── manifest.py                 # Echter, defensiver Leser für das eigene Manifest eines Geschwisters (64 KiB Grenze)
+│   ├── models.py                   # Echte Prüfung des eigenen Verzeichnisses mit gemeinsam genutzten Modellgewichten dieses Knotens
+│   ├── family.py                    # Echte Familien-Bereitschaftsprüfung + versioniertes JSON-Schema
+│   └── main.py                        # Einstiegspunkt + echtes Subcommand `family-status [--json]`
+├── tests/                          # Echte Tests: Manifest-Lesen, Modelle, Familienstatus, End-to-End-CLI
 ├── docs/                           # Dokumentation und Architektur
 ├── os/                             # HydraOS-Image/Konfiguration für die CM5
 ├── models/                         # Hailo-10-optimierte Gewichte (LLM/VLA, von den 4 Kindern gemeinsam genutzt)
@@ -177,9 +194,41 @@ echten lokalen Checkout:
 ```bash
 ./run.sh family-status
 ./run.sh family-status --workspace /pfad/zu/einem/anderen/checkout
+./run.sh family-status --json
 
 # Windows
 run.bat family-status
+```
+
+`family-status` meldet immer auch die eigenen gemeinsam genutzten
+Modellgewichte dieses Knotens - ein echtes, leeres `models/` auf einer
+Entwicklungsmaschine ist ehrlich `MISSING`, niemals stillschweigend
+ignoriert:
+
+```text
+Cognitive AI Node family status (workspace: /path/to/workspace):
+  HYDRA-UMC-VLA-ENGINE: v0.0.4, maturity=functional, role=service
+  ...
+
+Shared model weights: MISSING (.../HYDRA-UMC-COGNITIVE-NODE/models) - this node's own os/models weights have not been provisioned on this machine; children that need them will run in their own honest degraded/no-hardware mode.
+
+All 4 children present.
+```
+
+`--json` gibt stattdessen dieselben echten Daten als versioniertes,
+maschinenlesbares Objekt aus:
+
+```bash
+$ ./run.sh family-status --json
+{
+  "schema_version": "1.0",
+  "shared_models": { "present": false, "path": ".../models" },
+  "children": [
+    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.0.4", "maturity": "functional", "role": "service" },
+    ...
+  ],
+  "all_children_present": true
+}
 ```
 
 Standardmäßig wird das eigene übergeordnete Verzeichnis dieses Repos

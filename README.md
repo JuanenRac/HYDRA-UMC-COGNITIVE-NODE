@@ -34,6 +34,8 @@ It transforms high-level human instructions into logical robotic sequences, mana
   check reads each real child's own manifest to report presence/version/
   maturity. *(implemented as a real readiness check - see BUILD & RUN
   below)*
+* 🔒 **Versioned status schema + resource-limited manifest reads:** `family-status --json` prints a real, versioned machine-readable result; any sibling manifest bigger than 64 KiB (a corrupted/malicious checkout) degrades to "not found" instead of being read unbounded. *(implemented)*
+* 🪫 **Shared model-weights degradation check:** `family-status` honestly reports whether this node's own `models/` directory actually has real weights in it, not just whether the sibling repos are checked out. *(implemented)*
 * 📦 **Odometer Versioning:** Every real build bumps `pyproject.toml`'s
   own version automatically (`bump_version.py`) - no manual version edits.
 
@@ -102,6 +104,18 @@ unit on the same physical board:
   `None` for every real failure mode (missing repo, missing manifest,
   malformed JSON) so `family-status` reports it plainly instead of
   crashing.
+* **Why sibling manifest reads are capped at 64 KiB.** Every real manifest
+  across this ecosystem is a few hundred bytes to a couple of KiB - a
+  corrupted or malicious checkout whose manifest has been replaced by an
+  oversized file must never make a routine readiness check load an
+  unbounded amount of data into memory. It degrades to `None`, the same
+  as any other malformed manifest.
+* **Why `family-status` reports `models/` even though this node runs no
+  model itself.** "The sibling repos are checked out" and "the shared
+  weights they'd need are actually present" are two different real
+  facts - `models.py`'s `check_shared_models()` checks the second
+  honestly (empty-but-present counts as missing) instead of letting an
+  operator assume readiness from child presence alone.
 
 ---
 
@@ -110,10 +124,11 @@ unit on the same physical board:
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
-│   ├── manifest.py                 # Real, defensive reader for a sibling's own manifest
-│   ├── family.py                    # Real family-readiness check over the 4 real children
-│   └── main.py                        # Entry point + real `family-status` subcommand
-├── tests/                          # Real tests: manifest reading, family status, end-to-end CLI
+│   ├── manifest.py                 # Real, defensive reader for a sibling's own manifest (64 KiB bound)
+│   ├── models.py                   # Real check of this node's own shared model-weights directory
+│   ├── family.py                    # Real family-readiness check + versioned JSON schema
+│   └── main.py                        # Entry point + real `family-status [--json]` subcommand
+├── tests/                          # Real tests: manifest reading, models, family status, end-to-end CLI
 ├── docs/                           # Documentation and architecture
 ├── os/                             # HydraOS image/configuration for the CM5
 ├── models/                         # Hailo-10 optimized weights (LLM/VLA, shared by the 4 children)
@@ -167,9 +182,40 @@ local checkout:
 ```bash
 ./run.sh family-status
 ./run.sh family-status --workspace /path/to/some/other/checkout
+./run.sh family-status --json
 
 # Windows
 run.bat family-status
+```
+
+`family-status` always reports this node's own shared model weights
+too - a real, empty `models/` on a dev machine is honestly `MISSING`,
+never silently ignored:
+
+```text
+Cognitive AI Node family status (workspace: /path/to/workspace):
+  HYDRA-UMC-VLA-ENGINE: v0.0.4, maturity=functional, role=service
+  ...
+
+Shared model weights: MISSING (.../HYDRA-UMC-COGNITIVE-NODE/models) - this node's own os/models weights have not been provisioned on this machine; children that need them will run in their own honest degraded/no-hardware mode.
+
+All 4 children present.
+```
+
+`--json` prints the same real data as a versioned, machine-readable
+object instead:
+
+```bash
+$ ./run.sh family-status --json
+{
+  "schema_version": "1.0",
+  "shared_models": { "present": false, "path": ".../models" },
+  "children": [
+    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.0.4", "maturity": "functional", "role": "service" },
+    ...
+  ],
+  "all_children_present": true
+}
 ```
 
 Defaults to this repo's own parent directory - the layout every real
