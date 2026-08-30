@@ -135,7 +135,7 @@ HYDRA-UMC-COGNITIVE-NODE/
 ├── images/                         # Media and diagrams
 ├── scripts/                        # Utility scripts
 ├── build/                          # Local build output (git-ignored)
-├── pyproject.toml                  # Package metadata (version 0.0.5, odometer-bumped)
+├── pyproject.toml                  # Package metadata (version odometer-bumped on every real build)
 ├── bump_version.py                 # Odometer-style version bump (used by build.sh/.bat)
 ├── docker-compose.yml              # Integration map for the 4 child services
 ├── build.sh / build.bat            # Create venv, install (with dev extras), run tests, verify import
