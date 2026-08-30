@@ -92,3 +92,12 @@ def test_manifest_right_at_the_limit_is_still_read(tmp_path: Path) -> None:
 
     assert manifest is not None
     assert manifest.name == "X"
+
+
+def test_non_text_or_empty_required_manifest_field_returns_none(tmp_path: Path) -> None:
+    repo = tmp_path / "invalid-types"
+    _write_manifest(repo, role=7)  # type: ignore[arg-type]
+    assert read_child_manifest(repo) is None
+
+    _write_manifest(repo, maturity="   ")
+    assert read_child_manifest(repo) is None

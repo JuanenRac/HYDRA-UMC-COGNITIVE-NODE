@@ -7,6 +7,9 @@ bumped manually only. See `bump_version.py`.
 
 ## [Unreleased]
 
+- **Strict child-manifest fields:** family discovery accepts `name`, `version`,
+  `maturity` and `role` only as non-empty text. Numeric, array or blank values
+  now degrade to unavailable instead of being coerced into an apparent contract.
 - **Conservative shared-model readiness:** `family-status` no longer treats
   any file or directory under `models/` as runnable weights. It reports
   `present` only for a non-empty local candidate artifact with a recognised
