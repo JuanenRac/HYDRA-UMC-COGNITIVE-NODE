@@ -5,6 +5,17 @@ version number follows this ecosystem's "odometer" scheme: PATCH +1 on
 every real build, rolling into MINOR past 9 (`0.0.9` -> `0.1.0`); MAJOR is
 bumped manually only. See `bump_version.py`.
 
+## [Unreleased]
+
+- **Conservative shared-model readiness:** `family-status` no longer treats
+  any file or directory under `models/` as runnable weights. It reports
+  `present` only for a non-empty local candidate artifact with a recognised
+  Hailo/LLM weight extension, ignores symlinks, and continues to make no
+  physical-runtime compatibility claim.
+- **Documented evidence boundary:** `docs/CLI_REFERENCE.md` now defines the
+  exact readiness criterion and distinguishes local inventory evidence from
+  Hailo-10 validation on real hardware.
+
 ## [0.0.6] - Versioned family-status schema, resource-limited manifest reads, shared-model degradation
 
 - **A real, versioned JSON schema for `family-status`** (`family.py`'s `family_status_to_dict()`, `FAMILY_STATUS_SCHEMA_VERSION`) - the one real input/output contract this integration hub has today. New `family-status --json` prints it directly; the existing human-readable table is unchanged. Every field is real data the check already computed - `schema_version`, `shared_models.{present,path}`, one entry per child (`name`/`present`/`version`/`maturity`/`role`), `all_children_present`.

@@ -109,3 +109,14 @@ actual LLM/VLA/voice orchestration described in this repo's own README
 roadmap is not implemented here — this integration hub coordinates the
 `docker-compose.yml` wiring for its children, it does not run a model
 itself.
+
+## Shared-model readiness criterion
+
+The `shared_models.present` field is deliberately conservative. It is `true`
+only when this repository's own `models/` tree contains a non-empty local
+candidate artifact with an expected weight extension (`.hef`, `.har`, `.bin`,
+`.onnx`, `.tflite`, `.gguf`, or `.safetensors`). Empty directories, `.gitkeep`,
+documentation, tokenizers, and configuration-only trees remain `false`.
+Symlinks are ignored so a local readiness check cannot escape this repository's
+models tree. This is an inventory signal only: a real Hailo-10 runtime still
+has to validate artifact compatibility on the physical target.

@@ -45,3 +45,26 @@ def test_models_directory_with_only_a_subfolder_is_present(tmp_path: Path) -> No
     status = check_shared_models(tmp_path)
 
     assert status.present is True
+
+
+def test_placeholder_and_configuration_files_do_not_claim_model_readiness(tmp_path: Path) -> None:
+    models_dir = tmp_path / "models"
+    nested = models_dir / "vla-engine"
+    nested.mkdir(parents=True)
+    (models_dir / ".gitkeep").write_text("", encoding="utf-8")
+    (nested / "README.md").write_text("weights are provisioned elsewhere", encoding="utf-8")
+    (nested / "config.json").write_text("{}", encoding="utf-8")
+
+    status = check_shared_models(tmp_path)
+
+    assert status.present is False
+
+
+def test_empty_candidate_artifact_does_not_claim_model_readiness(tmp_path: Path) -> None:
+    models_dir = tmp_path / "models"
+    models_dir.mkdir()
+    (models_dir / "model.hef").write_bytes(b"")
+
+    status = check_shared_models(tmp_path)
+
+    assert status.present is False
