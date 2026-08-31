@@ -19,6 +19,25 @@ bumped manually only. See `bump_version.py`.
   exact readiness criterion and distinguishes local inventory evidence from
   Hailo-10 validation on real hardware.
 
+## [0.0.7] - Real v0: JSON/HTTP server mode, plus CM5 deployment
+
+- **`api.py`** (new) - `GET /family-status` reaches the exact same
+  `check_family_status()`/`family_status_to_dict()` the CLI's own
+  `family-status --json` already runs - reuses that one JSON shape
+  rather than inventing a second. Real gap this closes: this project's
+  own readiness check was only ever reachable as a one-shot CLI.
+- **`main.py`** - new `serve` subcommand (`--workspace`/`--addr`/`--port`,
+  default `127.0.0.1:8096`).
+- **`systemd/hydra-umc-cognitive-node.service`** (new) - unit for
+  `HYDRA-UMC-OS/provisioning/install_cognitive_node.sh` (new, that repo).
+  `--workspace` points at a symlink to the real sibling-checkout root
+  already on the CM5, rather than a second copy - `ProtectHome` is
+  `read-only`, not the family's usual `true`, since that root lives
+  under the operator's home directory (same real lesson from
+  HYDRA-UMC-VISION-NODE's own install).
+- 6 new tests (`tests/test_api.py`, real end-to-end HTTP, reusing this
+  repo's own `tests/test_family.py` fixture shapes) - 32 total.
+
 ## [0.0.6] - Versioned family-status schema, resource-limited manifest reads, shared-model degradation
 
 - **A real, versioned JSON schema for `family-status`** (`family.py`'s `family_status_to_dict()`, `FAMILY_STATUS_SCHEMA_VERSION`) - the one real input/output contract this integration hub has today. New `family-status --json` prints it directly; the existing human-readable table is unchanged. Every field is real data the check already computed - `schema_version`, `shared_models.{present,path}`, one entry per child (`name`/`present`/`version`/`maturity`/`role`), `all_children_present`.

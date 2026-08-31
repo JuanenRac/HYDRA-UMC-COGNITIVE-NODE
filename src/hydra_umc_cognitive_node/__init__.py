@@ -18,4 +18,4 @@ are wired together on the same Hailo-10 + CM5 hardware.
 # build, rather than the more common "read version from package metadata
 # at import time" approach: this way `main.py` can print a version even
 # when the package was never installed (e.g. run straight from src/).
-__version__ = "0.0.6"
+__version__ = "0.0.7"

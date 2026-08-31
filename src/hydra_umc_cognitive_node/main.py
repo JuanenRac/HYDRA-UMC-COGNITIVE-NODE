@@ -20,6 +20,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from .api import CognitiveNodeServer
 from .family import check_family_status, family_status_to_dict
 from .models import check_shared_models
 
@@ -76,6 +77,20 @@ def _run_family_status(workspace: Path, *, as_json: bool) -> int:
     return 0
 
 
+def _run_serve(addr: str, port: int, workspace: Path) -> int:
+    server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT)
+    print(f"[cognitive-node] HTTP API listening on {addr}:{port} (workspace={workspace})")
+    print("[cognitive-node] GET /family-status, GET /stats")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+        print("[cognitive-node] shutting down")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="hydra-umc-cognitive-node", description=ROLE)
     subparsers = parser.add_subparsers(dest="command")
@@ -95,6 +110,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print a real, versioned machine-readable result instead of the human-readable table.",
     )
 
+    serve_parser = subparsers.add_parser(
+        "serve",
+        help="Run family-status as a JSON/HTTP API (GET /family-status) - the exact "
+             "same function 'family-status --json' already runs.",
+    )
+    serve_parser.add_argument("--addr", default="127.0.0.1", help="address to bind the HTTP API to")
+    serve_parser.add_argument("--port", type=int, default=8096, help="port for the HTTP API")
+    serve_parser.add_argument(
+        "--workspace",
+        type=Path,
+        default=_DEFAULT_WORKSPACE,
+        help="Default workspace for GET /family-status when it is not overridden per-request.",
+    )
+
     return parser
 
 
@@ -104,6 +133,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "family-status":
         return _run_family_status(args.workspace, as_json=args.json)
+    if args.command == "serve":
+        return _run_serve(args.addr, args.port, args.workspace)
 
     _print_identity()
     return 0
