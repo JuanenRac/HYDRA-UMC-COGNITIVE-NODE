@@ -19,6 +19,20 @@ bumped manually only. See `bump_version.py`.
   exact readiness criterion and distinguishes local inventory evidence from
   Hailo-10 validation on real hardware.
 
+## [0.0.8] - The 0.0.7 workspace approach was unreadable by its own service account
+
+- **`systemd/hydra-umc-cognitive-node.service`** - `--workspace` no
+  longer points at a symlink to the real sibling-repo checkout root.
+  Live-verified failure on the real CM5 this was first installed on:
+  that checkout root lives under the operator's own home directory,
+  itself `0700` (Debian's own default) - unreadable by this service's
+  own unprivileged account no matter how `ProtectHome` is set (see
+  HYDRA-UMC-VISION-NODE's own CHANGELOG, 0.0.6, for the full writeup -
+  same real bug, found there first). `install_cognitive_node.sh` now
+  copies out just each expected child's small `hydra-umc.project.json`
+  into a real `root:root 0755` tree under `/opt` instead - `ProtectHome`
+  reverts to this family's usual `true`.
+
 ## [0.0.7] - Real v0: JSON/HTTP server mode, plus CM5 deployment
 
 - **`api.py`** (new) - `GET /family-status` reaches the exact same
