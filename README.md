@@ -149,7 +149,7 @@ HYDRA-UMC-COGNITIVE-NODE/
 
 ---
 
-## ⚙️ BUILD & RUN
+## ⚙️ BUILD & RUN GUIDE
 
 Requires Python >= 3.10.
 
