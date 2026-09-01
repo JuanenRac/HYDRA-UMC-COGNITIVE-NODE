@@ -277,6 +277,16 @@ Workspace-Ordner). Beendet sich mit `1`, wenn ein echtes Kind fehlt.
 
 Dieses Projekt ist Teil eines größeren Robotik-Ökosystems desselben Autors (JuanenRac / Electro Hobby 3D), das Firmware, Steuerungssoftware, KI-Knoten und Flotten-Tooling umfasst.
 
+### Familie
+
+Dieser Knoten ist der Integrations-Hub (v0) für die folgenden 4 Dienste: Er besitzt das gemeinsame HydraOS-Image und die quantisierten Modellgewichte, verbindet sie in einer einzigen `docker-compose.yml` und prüft ihre Präsenz/Version/Reife über `family-status`.
+
+**Kinder:**
+- **[HYDRA-UMC-VOICE-UI](https://github.com/JuanenRac/HYDRA-UMC-VOICE-UI)** — STT/TTS-Gateway; die Spracheingabe, mit der der kognitive Workflow dieses Knotens beginnt.
+- **[HYDRA-UMC-SEMANTIC-PLANNER](https://github.com/JuanenRac/HYDRA-UMC-SEMANTIC-PLANNER)** — der LLM-Planer, der die Eingaben dieses Knotens in Missionsentscheidungen umwandelt.
+- **[HYDRA-UMC-VLA-ENGINE](https://github.com/JuanenRac/HYDRA-UMC-VLA-ENGINE)** — wandelt Daten des Vision-Knotens in Aktions-Tokens um, die der Planer dieses Knotens verarbeitet.
+- **[HYDRA-UMC-DOCS-QA](https://github.com/JuanenRac/HYDRA-UMC-DOCS-QA)** — RAG-Assistent, der die Planung dieses Knotens in technischen Handbüchern verankert.
+
 ### Direkt mit diesem Knoten verbunden
 
 - **[HYDRA-UMC-ORCHESTRATOR](https://github.com/JuanenRac/HYDRA-UMC-ORCHESTRATOR)** — gibt diesem Knoten seine Missionsaufträge.

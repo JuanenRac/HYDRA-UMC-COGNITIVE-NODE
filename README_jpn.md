@@ -210,6 +210,16 @@ $ ./run.sh family-status --json
 ファームウェア、制御ソフトウェア、AI ノード、フリート管理ツールにまたがる、
 より大きなロボティクスエコシステムの一部です。
 
+### ファミリー
+
+このノードは以下の4つのサービスの統合ハブ（v0）です。共有 HydraOS イメージと量子化モデルの重みを所有し、単一の `docker-compose.yml` でそれらを結びつけ、`family-status` を介してそれらの存在/バージョン/成熟度を確認します。
+
+**子:**
+- **[HYDRA-UMC-VOICE-UI](https://github.com/JuanenRac/HYDRA-UMC-VOICE-UI)** —— STT/TTS ゲートウェイ。このノードの認知ワークフローが始まる音声入力。
+- **[HYDRA-UMC-SEMANTIC-PLANNER](https://github.com/JuanenRac/HYDRA-UMC-SEMANTIC-PLANNER)** —— このノードの入力をミッション決定に変換する LLM プランナー。
+- **[HYDRA-UMC-VLA-ENGINE](https://github.com/JuanenRac/HYDRA-UMC-VLA-ENGINE)** —— ビジョンノードのデータを、このノードのプランナーが消費するアクショントークンに変換します。
+- **[HYDRA-UMC-DOCS-QA](https://github.com/JuanenRac/HYDRA-UMC-DOCS-QA)** —— このノードのプランニングを技術マニュアルに基づかせる RAG アシスタント。
+
 ### 本ノードに直接関連
 
 - **[HYDRA-UMC-ORCHESTRATOR](https://github.com/JuanenRac/HYDRA-UMC-ORCHESTRATOR)** —— 本ノードにミッション命令を与えます。

@@ -198,6 +198,16 @@ $ ./run.sh family-status --json
 本项目是同一作者（JuanenRac / Electro Hobby 3D）打造的更大规模机器人生态
 系统的一部分，涵盖固件、控制软件、AI 节点和车队工具。
 
+### 家族
+
+该节点是以下 4 个服务的集成中心（v0）：它拥有共享的 HydraOS 镜像和量化模型权重，通过单一的 `docker-compose.yml` 将它们连接在一起，并通过 `family-status` 检查它们的存在性/版本/成熟度。
+
+**子服务：**
+- **[HYDRA-UMC-VOICE-UI](https://github.com/JuanenRac/HYDRA-UMC-VOICE-UI)** —— STT/TTS 网关；该节点认知工作流的语音输入起点。
+- **[HYDRA-UMC-SEMANTIC-PLANNER](https://github.com/JuanenRac/HYDRA-UMC-SEMANTIC-PLANNER)** —— 将该节点的输入转换为任务决策的 LLM 规划器。
+- **[HYDRA-UMC-VLA-ENGINE](https://github.com/JuanenRac/HYDRA-UMC-VLA-ENGINE)** —— 将视觉节点的数据转换为该节点规划器所消费的动作令牌。
+- **[HYDRA-UMC-DOCS-QA](https://github.com/JuanenRac/HYDRA-UMC-DOCS-QA)** —— 将该节点的规划建立在技术手册基础上的 RAG 助手。
+
 ### 与本节点直接相关
 
 - **[HYDRA-UMC-ORCHESTRATOR](https://github.com/JuanenRac/HYDRA-UMC-ORCHESTRATOR)** —— 向本节点下达任务指令。

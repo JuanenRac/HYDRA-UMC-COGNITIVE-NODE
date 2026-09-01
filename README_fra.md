@@ -276,6 +276,16 @@ les dépôts en frères sous un même dossier de workspace). Se termine avec
 
 Ce projet fait partie d'un écosystème robotique plus large du même auteur (JuanenRac / Electro Hobby 3D), couvrant firmware, logiciel de contrôle, nœuds IA et outillage de flotte.
 
+### Famille
+
+Ce nœud est le Hub d'Intégration (v0) des 4 services suivants : il possède l'image HydraOS partagée et les poids des modèles quantifiés, les relie entre eux dans un unique `docker-compose.yml`, et vérifie leur présence/version/maturité via `family-status`.
+
+**Enfants :**
+- **[HYDRA-UMC-VOICE-UI](https://github.com/JuanenRac/HYDRA-UMC-VOICE-UI)** — passerelle STT/TTS ; l'entrée vocale à partir de laquelle démarre le flux cognitif de ce nœud.
+- **[HYDRA-UMC-SEMANTIC-PLANNER](https://github.com/JuanenRac/HYDRA-UMC-SEMANTIC-PLANNER)** — le planificateur LLM qui transforme les entrées de ce nœud en décisions de mission.
+- **[HYDRA-UMC-VLA-ENGINE](https://github.com/JuanenRac/HYDRA-UMC-VLA-ENGINE)** — transforme les données du nœud de vision en tokens d'action que consomme le planificateur de ce nœud.
+- **[HYDRA-UMC-DOCS-QA](https://github.com/JuanenRac/HYDRA-UMC-DOCS-QA)** — assistant RAG qui ancre la planification de ce nœud dans les manuels techniques.
+
 ### Directement liés à ce nœud
 
 - **[HYDRA-UMC-ORCHESTRATOR](https://github.com/JuanenRac/HYDRA-UMC-ORCHESTRATOR)** — donne à ce nœud ses ordres de mission.
