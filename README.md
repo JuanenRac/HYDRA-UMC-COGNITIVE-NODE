@@ -334,6 +334,7 @@ This node is the Integration Hub (v0) for the 4 services below: it owns the shar
 ## 👤 AUTHOR
 **JuanenRac** (Electro Hobby 3D)
 📧 electrohobby3d@gmail.com
+📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
 
 ## 📜 LICENSE
 GPL-3.0 - See LICENSE for details.

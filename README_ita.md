@@ -346,6 +346,7 @@ Questo nodo è l'Hub di Integrazione (v0) dei 4 servizi seguenti: possiede l'imm
 ## 👤 AUTORE
 **JuanenRac** (Electro Hobby 3D)
 📧 electrohobby3d@gmail.com
+📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
 
 ## 📜 LICENZA
 GPL-3.0 - Vedere LICENSE per i dettagli.

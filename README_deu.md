@@ -351,6 +351,7 @@ Dieser Knoten ist der Integrations-Hub (v0) für die folgenden 4 Dienste: Er bes
 ## 👤 AUTOR
 **JuanenRac** (Electro Hobby 3D)
 📧 electrohobby3d@gmail.com
+📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
 
 ## 📜 LIZENZ
 GPL-3.0 - Siehe LICENSE für Details.

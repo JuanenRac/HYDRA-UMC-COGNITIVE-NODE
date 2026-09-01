@@ -343,6 +343,7 @@ Este nodo es el Hub de Integración (v0) de los 4 servicios siguientes: posee la
 ## 👤 AUTOR
 **JuanenRac** (Electro Hobby 3D)
 📧 electrohobby3d@gmail.com
+📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
 
 ## 📜 LICENCIA
 GPL-3.0 - Ver archivo LICENSE para más detalles.
