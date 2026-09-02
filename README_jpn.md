@@ -89,16 +89,22 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── manifest.py                 # 兄弟プロジェクト自身のマニフェストの実際の防御的リーダー（64 KiB 上限）
 │   ├── models.py                   # 本ノード自身の共有モデル重みディレクトリに対する実際のチェック
 │   ├── family.py                    # 実際のファミリーレディネスチェック + バージョン管理された JSON スキーマ
+│   ├── api.py                         # シンプルなJSON/HTTPサーフェス(stdlibのhttp.server)。`family-status`を橋渡し
 │   └── main.py                        # エントリポイント + 実際の `family-status [--json]` サブコマンド
-├── tests/                          # 実際のテスト：マニフェスト読み込み、モデル、ファミリーステータス、エンドツーエンド CLI
+├── tests/                          # 実際のテスト：マニフェスト読み込み、モデル、ファミリーステータス、api、エンドツーエンド CLI
 ├── docs/                           # ドキュメントとアーキテクチャ
-├── os/                             # CM5 向けの HydraOS イメージ/設定
-├── models/                         # Hailo-10 最適化済みの重み（LLM/VLA、4 つの子プロジェクトで共有）
+├── os/                             # CM5 向けの HydraOS イメージ/設定 - デプロイ時に配置(gitには含まれない)
+├── models/                         # Hailo-10 最適化済みの重み（LLM/VLA、4 つの子プロジェクトで共有） - デプロイ時に配置(gitには含まれない)
 ├── images/                         # メディアと図表
-├── scripts/                        # ユーティリティスクリプト
+├── systemd/
+│   └── hydra-umc-cognitive-node.service # ローカルCM5 family-status APIのsystemdユニット
+├── tools/
+│   ├── build_test.py               # バージョンを増やさないビルドチェック
+│   └── ci_validate.py              # CI が使用するマニフェスト/CHANGELOG/ドキュメント検証
 ├── build/                          # ローカルビルド出力（git 管理外）
-├── pyproject.toml                  # パッケージメタデータ（バージョン 0.0.5、オドメーター式増加）
-├── bump_version.py                 # オドメーター式バージョンインクリメント（build.sh/.bat が使用）
+├── pyproject.toml                  # パッケージメタデータ（オドメーター式バージョン増加）
+├── bump_version.py                 # ネイティブバージョンのオドメーター式インクリメント（build.sh/.bat が使用）
+├── bump_manifest_version.py        # hydra-umc.project.json のバージョンをネイティブ版と同期(--sync)
 ├── docker-compose.yml              # 4 つの子サービスの統合マップ
 ├── build.sh / build.bat            # venv 作成、インストール（dev エクストラ付き）、テスト実行、インポート検証
 └── run.sh / run.bat                # エントリポイントを実行（引数を転送、例：`family-status`）

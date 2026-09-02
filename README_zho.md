@@ -85,16 +85,22 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── manifest.py                 # 真实的、具防御性的兄弟项目自身清单读取器（64 KiB 上限）
 │   ├── models.py                   # 对本节点自身共享模型权重目录的真实检查
 │   ├── family.py                    # 真实的家族就绪检查 + 版本化 JSON 模式
+│   ├── api.py                         # 简洁的 JSON/HTTP 接口(基于 stdlib http.server),桥接 `family-status`
 │   └── main.py                        # 入口点 + 真实的 `family-status [--json]` 子命令
-├── tests/                          # 真实测试：清单读取、模型、家族状态、端到端 CLI
+├── tests/                          # 真实测试：清单读取、模型、家族状态、api、端到端 CLI
 ├── docs/                           # 文档与架构
-├── os/                             # CM5 的 HydraOS 镜像/配置
-├── models/                         # Hailo-10 优化后的权重（LLM/VLA，由 4 个子项目共享）
+├── os/                             # CM5 的 HydraOS 镜像/配置 - 部署时填充(不在 git 中)
+├── models/                         # Hailo-10 优化后的权重（LLM/VLA，由 4 个子项目共享） - 部署时填充(不在 git 中)
 ├── images/                         # 媒体与图表
-├── scripts/                        # 实用脚本
+├── systemd/
+│   └── hydra-umc-cognitive-node.service # 本地 CM5 family-status API 的 systemd 单元
+├── tools/
+│   ├── build_test.py               # 不递增版本号的构建检查
+│   └── ci_validate.py              # CI 使用的清单/CHANGELOG/文档校验
 ├── build/                          # 本地构建输出（已被 git 忽略）
-├── pyproject.toml                  # 包元数据（版本 0.0.5，里程表式递增）
-├── bump_version.py                 # 里程表式版本递增（由 build.sh/.bat 使用）
+├── pyproject.toml                  # 包元数据（里程表式递增版本号）
+├── bump_version.py                 # 原生版本的里程表式递增（由 build.sh/.bat 使用）
+├── bump_manifest_version.py        # 将 hydra-umc.project.json 的版本与原生版本同步(--sync)
 ├── docker-compose.yml              # 4 个子服务的集成蓝图
 ├── build.sh / build.bat            # 创建 venv、安装（含 dev 附加依赖）、运行测试、验证导入
 └── run.sh / run.bat                # 运行入口点（转发参数，例如 `family-status`）

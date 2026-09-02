@@ -137,16 +137,22 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── manifest.py                 # Lecteur réel et défensif du manifeste propre d'un frère (plafonné à 64 Kio)
 │   ├── models.py                   # Contrôle réel du répertoire de poids de modèle partagés propre à ce nœud
 │   ├── family.py                    # Vrai contrôle de disponibilité de famille + schéma JSON versionné
+│   ├── api.py                         # Surface JSON/HTTP simple (http.server de stdlib) sur `family-status`
 │   └── main.py                        # Point d'entrée + sous-commande réelle `family-status [--json]`
-├── tests/                          # Tests réels : lecture de manifeste, modèles, statut de famille, CLI de bout en bout
+├── tests/                          # Tests réels : lecture de manifeste, modèles, statut de famille, api, CLI de bout en bout
 ├── docs/                           # Documentation et architecture
-├── os/                             # Image/configuration HydraOS pour le CM5
-├── models/                         # Poids optimisés Hailo-10 (LLM/VLA, partagés par les 4 enfants)
+├── os/                             # Image/configuration HydraOS pour le CM5 - peuplé au déploiement (absent de git)
+├── models/                         # Poids optimisés Hailo-10 (LLM/VLA, partagés par les 4 enfants) - peuplé au déploiement (absent de git)
 ├── images/                         # Médias et diagrammes
-├── scripts/                        # Scripts utilitaires
+├── systemd/
+│   └── hydra-umc-cognitive-node.service # Unité systemd de l'API locale family-status sur la CM5
+├── tools/
+│   ├── build_test.py               # Vérification de build sans versionnage
+│   └── ci_validate.py              # Validation manifeste/CHANGELOG/docs utilisée par CI
 ├── build/                          # Sortie de build locale (ignorée par git)
-├── pyproject.toml                  # Métadonnées du paquet (version 0.0.5, incrément type compteur kilométrique)
-├── bump_version.py                 # Incrément de version type compteur kilométrique (utilisé par build.sh/.bat)
+├── pyproject.toml                  # Métadonnées du paquet (version à incrément type compteur kilométrique)
+├── bump_version.py                 # Incrément de version native type compteur kilométrique (utilisé par build.sh/.bat)
+├── bump_manifest_version.py        # Synchronise la version de hydra-umc.project.json avec la version native (--sync)
 ├── docker-compose.yml              # Carte d'intégration des 4 services enfants
 ├── build.sh / build.bat            # Crée le venv, installe (avec extras dev), exécute les tests, vérifie l'import
 └── run.sh / run.bat                # Exécute le point d'entrée (transmet les arguments, ex. `family-status`)

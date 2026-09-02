@@ -127,16 +127,22 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── manifest.py                 # Real, defensive reader for a sibling's own manifest (64 KiB bound)
 │   ├── models.py                   # Real check of this node's own shared model-weights directory
 │   ├── family.py                    # Real family-readiness check + versioned JSON schema
+│   ├── api.py                         # Plain JSON/HTTP surface (stdlib http.server) over `family-status`
 │   └── main.py                        # Entry point + real `family-status [--json]` subcommand
-├── tests/                          # Real tests: manifest reading, models, family status, end-to-end CLI
+├── tests/                          # Real tests: manifest reading, models, family status, api, end-to-end CLI
 ├── docs/                           # Documentation and architecture
-├── os/                             # HydraOS image/configuration for the CM5
-├── models/                         # Hailo-10 optimized weights (LLM/VLA, shared by the 4 children)
+├── os/                             # HydraOS image/configuration for the CM5 - deploy-time populated (not in git)
+├── models/                         # Hailo-10 optimized weights (LLM/VLA, shared by the 4 children) - deploy-time populated (not in git)
 ├── images/                         # Media and diagrams
-├── scripts/                        # Utility scripts
+├── systemd/
+│   └── hydra-umc-cognitive-node.service # Local CM5 family-status API systemd unit
+├── tools/
+│   ├── build_test.py               # Non-versioning build/compile check
+│   └── ci_validate.py              # Manifest/CHANGELOG/docs validation used by CI
 ├── build/                          # Local build output (git-ignored)
 ├── pyproject.toml                  # Package metadata (version odometer-bumped on every real build)
-├── bump_version.py                 # Odometer-style version bump (used by build.sh/.bat)
+├── bump_version.py                 # Odometer-style native version bump (used by build.sh/.bat)
+├── bump_manifest_version.py        # Syncs hydra-umc.project.json's version to the native one (--sync)
 ├── docker-compose.yml              # Integration map for the 4 child services
 ├── build.sh / build.bat            # Create venv, install (with dev extras), run tests, verify import
 └── run.sh / run.bat                # Run the entry point (forwards args, e.g. `family-status`)
