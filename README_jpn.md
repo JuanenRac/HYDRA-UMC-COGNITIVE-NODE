@@ -90,9 +90,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── models.py                   # 本ノード自身の共有モデル重みディレクトリに対する実際のチェック
 │   ├── family.py                    # 実際のファミリーレディネスチェック + バージョン管理された JSON スキーマ
 │   ├── api.py                         # シンプルなJSON/HTTPサーフェス(stdlibのhttp.server)。`family-status`を橋渡し
-│   └── main.py                        # エントリポイント + 実際の `family-status [--json]` サブコマンド
+│   └── main.py                        # エントリポイント + 実際の `family-status [--json]` と `serve` サブコマンド
 ├── tests/                          # 実際のテスト：マニフェスト読み込み、モデル、ファミリーステータス、api、エンドツーエンド CLI
-├── docs/                           # ドキュメントとアーキテクチャ
+├── docs/
+│   └── CLI_REFERENCE.md            # 完全なコマンドリファレンス:全フラグ、実際に取得した出力、終了コード
 ├── os/                             # CM5 向けの HydraOS イメージ/設定 - デプロイ時に配置(gitには含まれない)
 ├── models/                         # Hailo-10 最適化済みの重み（LLM/VLA、4 つの子プロジェクトで共有） - デプロイ時に配置(gitには含まれない)
 ├── images/                         # メディアと図表
@@ -191,6 +192,24 @@ $ ./run.sh family-status --json
 レイアウトです（すべてのリポジトリが 1 つのワークスペースフォルダの下に
 兄弟として存在します）。実際の子プロジェクトが 1 つでも見つからない
 場合は `1` で終了します。
+
+### 🌐 HTTP API(`serve`)
+
+`serve` は、その全く同じ `family-status` チェックを、単発の CLI 呼び出し
+の代わりに小さな標準ライブラリの `http.server` として実行します——これは
+CM5 自身の `hydra-umc-cognitive-node.service` systemd ユニットが本番環境
+で実行している実際のコマンドです:
+
+```bash
+./run.sh serve --addr 127.0.0.1 --port 8096
+# GET /family-status  -> 上記の `family-status --json` と同じ JSON を返す
+# GET /stats          -> { "workspace": "<設定済みデフォルト>" }
+```
+
+`GET /family-status` はオプションの `?workspace=` 上書きを受け付けます。
+それ以外のパスは `404` を返します。完全なコマンドリファレンス(全フラグ、
+実際に取得した `-h`/`curl` の出力、終了コード表)については
+[CLI リファレンス](docs/CLI_REFERENCE.md) を参照してください。
 
 ### 🩺 トラブルシューティング
 

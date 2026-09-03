@@ -128,9 +128,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── models.py                   # Real check of this node's own shared model-weights directory
 │   ├── family.py                    # Real family-readiness check + versioned JSON schema
 │   ├── api.py                         # Plain JSON/HTTP surface (stdlib http.server) over `family-status`
-│   └── main.py                        # Entry point + real `family-status [--json]` subcommand
+│   └── main.py                        # Entry point + real `family-status [--json]` and `serve` subcommands
 ├── tests/                          # Real tests: manifest reading, models, family status, api, end-to-end CLI
-├── docs/                           # Documentation and architecture
+├── docs/
+│   └── CLI_REFERENCE.md            # Full command reference: every flag, real captured output, exit codes
 ├── os/                             # HydraOS image/configuration for the CM5 - deploy-time populated (not in git)
 ├── models/                         # Hailo-10 optimized weights (LLM/VLA, shared by the 4 children) - deploy-time populated (not in git)
 ├── images/                         # Media and diagrams
@@ -227,6 +228,24 @@ $ ./run.sh family-status --json
 Defaults to this repo's own parent directory - the layout every real
 checkout of this ecosystem already uses (all repos as siblings under one
 workspace folder). Exits `1` if any real child is missing.
+
+### 🌐 HTTP API (`serve`)
+
+`serve` runs that exact same `family-status` check as a small stdlib
+`http.server` instead of a one-shot CLI call - it is the real command the
+CM5's own `hydra-umc-cognitive-node.service` systemd unit runs in
+production:
+
+```bash
+./run.sh serve --addr 127.0.0.1 --port 8096
+# GET /family-status  -> the same JSON `family-status --json` prints above
+# GET /stats          -> { "workspace": "<configured default>" }
+```
+
+`GET /family-status` accepts an optional `?workspace=` override; any other
+path returns `404`. See [CLI Reference](docs/CLI_REFERENCE.md) for the
+full command reference: every flag, real captured `-h`/`curl` output, and
+the exit-code table.
 
 ### 🩺 Troubleshooting
 

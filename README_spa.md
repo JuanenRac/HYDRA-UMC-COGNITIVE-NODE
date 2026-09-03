@@ -135,9 +135,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── models.py                   # Chequeo real del propio directorio de pesos de modelo compartidos de este nodo
 │   ├── family.py                    # Chequeo real de disponibilidad de familia + esquema JSON versionado
 │   ├── api.py                         # Superficie JSON/HTTP plana (http.server de stdlib) sobre `family-status`
-│   └── main.py                        # Punto de entrada + subcomando real `family-status [--json]`
+│   └── main.py                        # Punto de entrada + subcomandos reales `family-status [--json]` y `serve`
 ├── tests/                          # Tests reales: lectura de manifiesto, modelos, estado de familia, api, CLI end-to-end
-├── docs/                           # Documentación y arquitectura
+├── docs/
+│   └── CLI_REFERENCE.md            # Referencia completa de comandos: cada flag, salida real capturada, códigos de salida
 ├── os/                             # Imagen/configuración de HydraOS para la CM5 - se puebla al desplegar (no está en git)
 ├── models/                         # Pesos optimizados para Hailo-10 (LLM/VLA, compartidos por los 4 hijos) - se puebla al desplegar (no está en git)
 ├── images/                         # Medios y diagramas
@@ -235,6 +236,25 @@ Por defecto usa el propio directorio padre de este repo - el mismo
 layout que ya usa cualquier checkout real de este ecosistema (todos los
 repos como hermanos bajo una misma carpeta de workspace). Sale con `1`
 si falta algún hijo real.
+
+### 🌐 API HTTP (`serve`)
+
+`serve` ejecuta esa misma comprobación `family-status` como un pequeño
+`http.server` de la biblioteca estándar en vez de una llamada CLI puntual
+- es el comando real que ejecuta en producción el propio unit systemd
+`hydra-umc-cognitive-node.service` de la CM5:
+
+```bash
+./run.sh serve --addr 127.0.0.1 --port 8096
+# GET /family-status  -> el mismo JSON que imprime `family-status --json` arriba
+# GET /stats          -> { "workspace": "<workspace configurado por defecto>" }
+```
+
+`GET /family-status` acepta un `?workspace=` opcional para sobrescribirlo;
+cualquier otra ruta devuelve `404`. Consulta la
+[Referencia de la CLI](docs/CLI_REFERENCE.md) para la referencia completa
+de comandos: cada flag, salida real capturada de `-h`/`curl`, y la tabla
+de códigos de salida.
 
 ### 🩺 Solución de problemas
 

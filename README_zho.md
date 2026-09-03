@@ -86,9 +86,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── models.py                   # 对本节点自身共享模型权重目录的真实检查
 │   ├── family.py                    # 真实的家族就绪检查 + 版本化 JSON 模式
 │   ├── api.py                         # 简洁的 JSON/HTTP 接口(基于 stdlib http.server),桥接 `family-status`
-│   └── main.py                        # 入口点 + 真实的 `family-status [--json]` 子命令
+│   └── main.py                        # 入口点 + 真实的 `family-status [--json]` 与 `serve` 子命令
 ├── tests/                          # 真实测试：清单读取、模型、家族状态、api、端到端 CLI
-├── docs/                           # 文档与架构
+├── docs/
+│   └── CLI_REFERENCE.md            # 完整命令参考:所有参数、真实抓取的输出、退出码
 ├── os/                             # CM5 的 HydraOS 镜像/配置 - 部署时填充(不在 git 中)
 ├── models/                         # Hailo-10 优化后的权重（LLM/VLA，由 4 个子项目共享） - 部署时填充(不在 git 中)
 ├── images/                         # 媒体与图表
@@ -180,6 +181,22 @@ $ ./run.sh family-status --json
 默认使用本仓库自身的父目录——这正是本生态系统任何真实检出已经在使用的
 布局（所有仓库作为兄弟项目位于同一个工作区文件夹下）。如果缺少任何真实
 子项目，将以 `1` 退出。
+
+### 🌐 HTTP API（`serve`）
+
+`serve` 会以一个小巧的标准库 `http.server` 运行完全相同的 `family-status`
+检查，而不是单次 CLI 调用——这正是 CM5 自身的 `hydra-umc-cognitive-node.service`
+systemd 单元在生产环境中实际运行的命令：
+
+```bash
+./run.sh serve --addr 127.0.0.1 --port 8096
+# GET /family-status  -> 返回与上方 `family-status --json` 相同的 JSON
+# GET /stats          -> { "workspace": "<已配置的默认值>" }
+```
+
+`GET /family-status` 接受可选的 `?workspace=` 覆盖参数；其他任何路径均返回
+`404`。完整命令参考（所有参数、真实抓取的 `-h`/`curl` 输出以及退出码表）
+请参见 [CLI 参考](docs/CLI_REFERENCE.md)。
 
 ### 🩺 故障排查
 
