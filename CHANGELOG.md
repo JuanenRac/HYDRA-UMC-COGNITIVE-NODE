@@ -19,6 +19,11 @@ bumped manually only. See `bump_version.py`.
   exact readiness criterion and distinguishes local inventory evidence from
   Hailo-10 validation on real hardware.
 
+## [0.0.9]
+
+- **`models.py`** - the shared model-weights inventory check now walks `models/` with `os.walk(followlinks=False)` instead of `Path.rglob("*")`. On every Python release this project actually declares support for (`requires-python >=3.10`, i.e. everything before 3.13), `rglob("*")` has no way to refuse recursing into a symlinked subdirectory, silently defeating the "does not follow symlinked directories" guarantee the function already documented for itself.
+- Build version synchronized with `hydra-umc.project.json` and the repository-native version source.
+
 ## [0.0.8] - The 0.0.7 workspace approach was unreadable by its own service account
 
 - **`systemd/hydra-umc-cognitive-node.service`** - `--workspace` no

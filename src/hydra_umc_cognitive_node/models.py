@@ -18,6 +18,7 @@ sibling repositories are checked out.
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
@@ -72,11 +73,21 @@ def _contains_candidate_model_artifact(models_dir: Path) -> bool:
         return False
 
     try:
-        for path in models_dir.rglob("*"):
-            if path.is_symlink() or not path.is_file():
-                continue
-            if path.suffix.lower() in MODEL_ARTIFACT_SUFFIXES and path.stat().st_size > 0:
-                return True
+        # os.walk(..., followlinks=False) - not Path.rglob("*") - is the
+        # real, version-independent way to keep this walk inside the
+        # models/ tree. pathlib's own recursive "**" traversal only grew a
+        # way to refuse symlinked directories in Python 3.13's
+        # recurse_symlinks parameter; on every earlier 3.x release this
+        # project actually declares support for (requires-python >=3.10),
+        # Path.rglob("*") has no such option and always follows a
+        # symlinked subdirectory, silently defeating this exact guarantee.
+        for root, dirnames, filenames in os.walk(models_dir, followlinks=False):
+            for filename in filenames:
+                path = Path(root, filename)
+                if path.is_symlink() or not path.is_file():
+                    continue
+                if path.suffix.lower() in MODEL_ARTIFACT_SUFFIXES and path.stat().st_size > 0:
+                    return True
     except OSError:
         return False
     return False

@@ -5,7 +5,10 @@
 # =============================================================================
 from __future__ import annotations
 
+import os
 from pathlib import Path
+
+import pytest
 
 from hydra_umc_cognitive_node.models import check_shared_models
 
@@ -64,6 +67,29 @@ def test_empty_candidate_artifact_does_not_claim_model_readiness(tmp_path: Path)
     models_dir = tmp_path / "models"
     models_dir.mkdir()
     (models_dir / "model.hef").write_bytes(b"")
+
+    status = check_shared_models(tmp_path)
+
+    assert status.present is False
+
+
+def test_symlinked_subdirectory_is_not_traversed(tmp_path: Path) -> None:
+    # A readiness probe of this repo's own models/ tree must not escape it
+    # through a symlinked subdirectory - regression test for a real gap:
+    # Path.rglob("*") (unlike os.walk(followlinks=False)) has no way to
+    # refuse recursing into a symlinked directory on Python <3.13, which is
+    # still within this project's own declared support (requires-python
+    # >=3.10).
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "escaped.hef").write_bytes(b"must not be found via a symlink")
+
+    models_dir = tmp_path / "models"
+    models_dir.mkdir()
+    try:
+        os.symlink(outside, models_dir / "linked", target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip("this host does not allow creating symlinks")
 
     status = check_shared_models(tmp_path)
 
