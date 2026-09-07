@@ -1,0 +1,121 @@
+# Changelog: HYDRA-UMC-COGNITIVE-NODE 🧠
+
+All notable changes to this project will be documented in this file. The
+version number follows this ecosystem's "odometer" scheme: PATCH +1 on
+every real build, rolling into MINOR past 9 (`0.0.9` -> `0.1.0`); MAJOR is
+bumped manually only. See `bump_version.py`.
+
+## [Unreleased]
+
+- **All 4 children now have a real Dockerfile** (HYDRA-UMC-VOICE-UI,
+  HYDRA-UMC-SEMANTIC-PLANNER, HYDRA-UMC-VLA-ENGINE, HYDRA-UMC-DOCS-QA) -
+  found in an ecosystem-wide software-improvements audit: this repo's own
+  `docker-compose.yml` referenced 4 child images with no Dockerfile of
+  their own, so `docker compose up` could never actually work. Each new
+  Dockerfile mirrors the exact `--addr`/`--port` (or, for Voice-UI,
+  `--host`/`--port`) CLI its own real CM5 systemd unit already runs,
+  bound to `0.0.0.0` instead of `127.0.0.1` - a container's own network
+  namespace is the real isolation boundary here, not the loopback bind,
+  and `127.0.0.1` inside a container would be unreachable from this
+  node's own container over the compose network. Voice-UI's own
+  `docker-compose.yml` service now also requires a real
+  `HYDRA_UMC_VOICE_UI_TOKEN` at run time (its gateway already refuses to
+  bind beyond loopback without one, by design - never baked into the
+  image). DOCS-QA's own Dockerfile points `--docs` at its real, copied-in
+  docs instead of relying on a `pip install`-fragile default. Not
+  build-tested (no Docker runtime on this dev machine) - every path/flag
+  matches what each child's own systemd unit already runs live on the
+  real CM5, same standard as HYDRA-UMC-VISION-NODE's own sibling
+  Dockerfiles (0.0.7).
+- **Strict child-manifest fields:** family discovery accepts `name`, `version`,
+  `maturity` and `role` only as non-empty text. Numeric, array or blank values
+  now degrade to unavailable instead of being coerced into an apparent contract.
+- **Conservative shared-model readiness:** `family-status` no longer treats
+  any file or directory under `models/` as runnable weights. It reports
+  `present` only for a non-empty local candidate artifact with a recognised
+  Hailo/LLM weight extension, ignores symlinks, and continues to make no
+  physical-runtime compatibility claim.
+- **Documented evidence boundary:** `docs/CLI_REFERENCE.md` now defines the
+  exact readiness criterion and distinguishes local inventory evidence from
+  Hailo-10 validation on real hardware.
+
+## [0.0.9]
+
+- **`models.py`** - the shared model-weights inventory check now walks `models/` with `os.walk(followlinks=False)` instead of `Path.rglob("*")`. On every Python release this project actually declares support for (`requires-python >=3.10`, i.e. everything before 3.13), `rglob("*")` has no way to refuse recursing into a symlinked subdirectory, silently defeating the "does not follow symlinked directories" guarantee the function already documented for itself.
+- Build version synchronized with `hydra-umc.project.json` and the repository-native version source.
+
+## [0.0.8] - The 0.0.7 workspace approach was unreadable by its own service account
+
+- **`systemd/hydra-umc-cognitive-node.service`** - `--workspace` no
+  longer points at a symlink to the real sibling-repo checkout root.
+  Live-verified failure on the real CM5 this was first installed on:
+  that checkout root lives under the operator's own home directory,
+  itself `0700` (Debian's own default) - unreadable by this service's
+  own unprivileged account no matter how `ProtectHome` is set (see
+  HYDRA-UMC-VISION-NODE's own CHANGELOG, 0.0.6, for the full writeup -
+  same real bug, found there first). `install_cognitive_node.sh` now
+  copies out just each expected child's small `hydra-umc.project.json`
+  into a real `root:root 0755` tree under `/opt` instead - `ProtectHome`
+  reverts to this family's usual `true`.
+
+## [0.0.7] - Real v0: JSON/HTTP server mode, plus CM5 deployment
+
+- **`api.py`** (new) - `GET /family-status` reaches the exact same
+  `check_family_status()`/`family_status_to_dict()` the CLI's own
+  `family-status --json` already runs - reuses that one JSON shape
+  rather than inventing a second. Real gap this closes: this project's
+  own readiness check was only ever reachable as a one-shot CLI.
+- **`main.py`** - new `serve` subcommand (`--workspace`/`--addr`/`--port`,
+  default `127.0.0.1:8096`).
+- **`systemd/hydra-umc-cognitive-node.service`** (new) - unit for
+  `HYDRA-UMC-OS/provisioning/install_cognitive_node.sh` (new, that repo).
+  `--workspace` points at a symlink to the real sibling-checkout root
+  already on the CM5, rather than a second copy - `ProtectHome` is
+  `read-only`, not the family's usual `true`, since that root lives
+  under the operator's home directory (same real lesson from
+  HYDRA-UMC-VISION-NODE's own install).
+- 6 new tests (`tests/test_api.py`, real end-to-end HTTP, reusing this
+  repo's own `tests/test_family.py` fixture shapes) - 32 total.
+
+## [0.0.6] - Versioned family-status schema, resource-limited manifest reads, shared-model degradation
+
+- **A real, versioned JSON schema for `family-status`** (`family.py`'s `family_status_to_dict()`, `FAMILY_STATUS_SCHEMA_VERSION`) - the one real input/output contract this integration hub has today. New `family-status --json` prints it directly; the existing human-readable table is unchanged. Every field is real data the check already computed - `schema_version`, `shared_models.{present,path}`, one entry per child (`name`/`present`/`version`/`maturity`/`role`), `all_children_present`.
+- **A real resource limit on sibling manifest reads** (`manifest.py`'s `MAX_MANIFEST_BYTES`, 64 KiB) - a corrupted or malicious sibling checkout whose `hydra-umc.project.json` has been replaced by an oversized file now degrades to "not found", the same as any other malformed manifest, instead of being read unbounded into memory.
+- **Real degradation-awareness when this node's own shared model weights are missing** (`models.py`, new) - `docker-compose.yml` already documents that this repo owns the quantized LLM/VLA weights (`models/`) shared by its four children; `check_shared_models()` is a real, honest check of that real (currently empty, unprovisioned-on-this-machine) directory. `family-status` now always reports `Shared model weights: present`/`MISSING` in its text output and `shared_models` in its JSON output, so a caller can tell "children are checked out" apart from "children can actually run a model" without inventing a fake ready state.
+- 11 new tests (`test_models.py` new, plus additions to `test_manifest.py`/`test_family.py`/`test_cli.py`) = 23 total, including the real oversized-manifest rejection, the real schema-shape assertions for both the all-present and some-missing cases, and both CLI output modes.
+- Real verification beyond the test suite: ran `family-status`/`family-status --json` against the actual local ecosystem checkout - correctly reported all 4 real children present with their real, independently-verified version/maturity, and honestly reported this machine's real, empty `models/` directory as missing.
+
+## [0.0.5] - Real v0 family-readiness check
+### Added
+- `manifest.py` - a real, minimal, defensive reader for a sibling repo's own `hydra-umc.project.json` (name/version/maturity/role), returning `None` for every real failure mode (missing checkout, missing file, malformed JSON, missing field) rather than raising.
+- `family.py` - `check_family_status()`: a real check of this node's four real children (`HYDRA-UMC-VLA-ENGINE`/`HYDRA-UMC-VOICE-UI`/`HYDRA-UMC-SEMANTIC-PLANNER`/`HYDRA-UMC-DOCS-QA`) against a real local workspace, reading each one's own manifest rather than a second hand-maintained list.
+- `main.py` - new `family-status [--workspace PATH]` subcommand, defaulting to this repo's own parent directory (the real sibling-checkout layout this whole ecosystem already uses). Bare invocation is unchanged: identity/version/role.
+- 12 new real tests (`tests/`) - manifest reading for every real failure mode, family-status coverage for all-present/some-missing/none-present, and a real end-to-end CLI round-trip.
+- Real verification beyond the test suite: ran `family-status` against the actual local ecosystem checkout on this machine - correctly reported `HYDRA-UMC-VLA-ENGINE` as still `scaffolding` and the other three real siblings as `functional`, matching their real, independently-verified state.
+
+## [0.0.4]
+### Added
+- Copyright/license header on every source file and build/run script.
+- `CHANGELOG.md` (this file).
+- Extended documentation across `README.md` and its 4 translations:
+  advanced technical/architecture section, detailed build/run
+  troubleshooting, and a full "Related Projects" section.
+
+### Changed
+- Inline comments explaining the *why* behind non-obvious decisions
+  (versioning scheme, src-layout, `docker-compose.yml` wiring).
+
+## [0.0.0]
+### Added
+- Initial Python scaffolding: `pyproject.toml` (setuptools, src-layout),
+  `src/hydra_umc_cognitive_node/__init__.py` + `main.py` (real entry
+  point - prints identity/version/role, exits 0).
+- `bump_version.py` - odometer-style version bump applied to
+  `pyproject.toml` and mirrored into `__init__.py`.
+- `build.sh` / `build.bat` - create/activate a venv, install the package
+  editable, verify it compiles and imports.
+- `run.sh` / `run.bat` - run the entry point.
+- `docker-compose.yml` - integration map wiring this node (the parent)
+  to its four children (VLA-Engine, Voice-UI, Semantic-Planner, Docs-QA)
+  as sibling services on the same Hailo-10 + CM5 hardware, including
+  `/dev/hailo0` passthrough and the shared `models/`/`os/` mounts.
