@@ -94,8 +94,7 @@ zu agieren:
   festgehalten, bevor irgendein Kind ein Dockerfile hatte - so wurde
   verhindert, dass diese Form später ad hoc erfunden wird. Alle 4 Kinder
   (VLA-Engine, Voice-UI, Semantic-Planner, Docs-QA) haben inzwischen ein
-  echtes eigenes Dockerfile - schließt eine echte Lücke, die in einem
-  Ökosystem-weiten Software-Verbesserungs-Audit gefunden wurde -
+  echtes eigenes Dockerfile - schließt eine echte Lücke -
   `docker compose up` baut und startet jetzt das echte Ding.
 * **Wie sich das in den Rest des Ökosystems einfügt.** Dieser Knoten
   sitzt eine Schicht über der Wahrnehmung (HYDRA-UMC-VISION-NODE,

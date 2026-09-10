@@ -91,8 +91,7 @@ como una sola unidad cognitiva sobre la misma placa física:
   de que ningún hijo tuviera Dockerfile, evitando que esa forma se
   inventara más adelante de manera improvisada. Los 4 hijos (VLA-Engine,
   Voice-UI, Semantic-Planner, Docs-QA) ya tienen su propio Dockerfile
-  real, cerrando un hueco real encontrado en una auditoría de mejoras de
-  software de todo el ecosistema - `docker compose up` construye y
+  real, cerrando un hueco real - `docker compose up` construye y
   ejecuta lo real.
 * **Cómo encaja en el resto del ecosistema.** Este nodo se sitúa una capa
   por encima de la percepción (HYDRA-UMC-VISION-NODE, Hailo-8) y una capa

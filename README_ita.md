@@ -92,8 +92,7 @@ agire come un'unica unità cognitiva sulla stessa scheda fisica:
   scritto prima che qualsiasi figlio avesse un Dockerfile - evitando che
   questa forma venisse inventata più tardi in modo improvvisato. Tutti e
   4 i figli (VLA-Engine, Voice-UI, Semantic-Planner, Docs-QA) hanno ora
-  un proprio vero Dockerfile, chiudendo un vero gap trovato in un audit
-  di miglioramenti software a livello di ecosistema - `docker compose up`
+  un proprio vero Dockerfile, chiudendo un vero gap - `docker compose up`
   ora compila ed esegue davvero.
 * **Come si inserisce nel resto dell'ecosistema.** Questo nodo si trova
   un livello sopra la percezione (HYDRA-UMC-VISION-NODE, Hailo-8) e un

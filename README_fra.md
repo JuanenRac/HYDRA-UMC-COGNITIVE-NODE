@@ -92,8 +92,7 @@ une seule unité cognitive sur la même carte physique :
   écrit avant qu'aucun enfant n'ait de Dockerfile - évitant que cette
   forme soit inventée plus tard de manière improvisée. Les 4 enfants
   (VLA-Engine, Voice-UI, Semantic-Planner, Docs-QA) ont maintenant chacun
-  leur propre vrai Dockerfile, comblant un vrai manque trouvé lors d'un
-  audit d'améliorations logicielles à l'échelle de l'écosystème -
+  leur propre vrai Dockerfile, comblant un vrai manque -
   `docker compose up` construit et exécute la vraie chose.
 * **Comment cela s'intègre dans le reste de l'écosystème.** Ce nœud se
   situe une couche au-dessus de la perception (HYDRA-UMC-VISION-NODE,
