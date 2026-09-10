@@ -68,7 +68,7 @@ flowchart TB
 * **为何 `os/` 和 `models/` 仅存在于父项目中。** HydraOS 镜像和量化的 LLM/VLA 权重是共享的板卡级资源——在父项目中保留一份副本，并以只读方式挂载到每个子项目的容器中（见 `docker-compose.yml`），可以避免出现四份互不一致的、动辄数 GB 的模型权重副本。
 * **为何采用 `src/` 布局。** 使可安装的包（`hydra_umc_cognitive_node`）与仓库根目录的工具（`bump_version.py`、`docker-compose.yml`）分离，并与生态系统中其他每个 Python 项目所使用的布局保持一致。
 * **为何入口点今天只打印身份/版本/角色。** 这是脚手架（scaffolding）阶段：证明该包在实际目标 Python 版本上能够正确安装、编译并被导入，是后续添加真正的 LLM/VLA/语音编排逻辑的前提条件，并使那部分后续工作与打包相关的问题相互隔离。
-* **为何 `docker-compose.yml` 记录的是集成契约，而不只是连接镜像。** 哪个服务依赖哪个服务、每个服务需要哪些设备/卷挂载，这些在任何子项目拥有 Dockerfile 之前就已写下，避免这一形态日后被临时拼凑出来。4 个子项目(VLA-Engine、Voice-UI、Semantic-Planner、Docs-QA)现在都各自拥有真实的 Dockerfile——修复了一次生态系统级软件改进审计中发现的真实缺口——`docker compose up` 现在真正构建并运行。
+* **为何 `docker-compose.yml` 记录的是集成契约，而不只是连接镜像。** 哪个服务依赖哪个服务、每个服务需要哪些设备/卷挂载，这些在任何子项目拥有 Dockerfile 之前就已写下，避免这一形态日后被临时拼凑出来。4 个子项目(VLA-Engine、Voice-UI、Semantic-Planner、Docs-QA)现在都各自拥有真实的 Dockerfile——修复了一处真实缺口——`docker compose up` 现在真正构建并运行。
 * **这如何融入生态系统的其余部分。** 本节点位于感知层（HYDRA-UMC-VISION-NODE，Hailo-8）之上一层，任务编排层（HYDRA-UMC-ORCHESTRATOR）之下一层：它将语音/文本指令和检测结果转化为语义决策，编排器随后将这些决策转化为物理机器人指令。
 * **为何 `family-status` 读取每个子项目自身的清单，而不是一份手工维护的列表。** `hydra-umc.project.json` 已经是整个生态系统仪表盘和更新器都信任的唯一真相来源。再维护第二份列表会在某个子项目的真实成熟度变化时立刻产生偏差。
 * **为何缺少某个兄弟项目的本地检出会得到一个真实、诚实的"未找到"，而非一个错误。** 一个集成中枢真的无法预先知道开发者是否在本地检出了全部 4 个子项目——`manifest.py` 对每一种真实的失败情形（仓库缺失、清单缺失、JSON 格式错误）都返回 `None`，让 `family-status` 清楚地报告出来，而不是直接崩溃。

@@ -8,8 +8,8 @@ bumped manually only. See `bump_version.py`.
 ## [Unreleased]
 
 - **All 4 children now have a real Dockerfile** (HYDRA-UMC-VOICE-UI,
-  HYDRA-UMC-SEMANTIC-PLANNER, HYDRA-UMC-VLA-ENGINE, HYDRA-UMC-DOCS-QA) -
-  found in an ecosystem-wide software-improvements audit: this repo's own
+  HYDRA-UMC-SEMANTIC-PLANNER, HYDRA-UMC-VLA-ENGINE, HYDRA-UMC-DOCS-QA):
+  this repo's own
   `docker-compose.yml` referenced 4 child images with no Dockerfile of
   their own, so `docker compose up` could never actually work. Each new
   Dockerfile mirrors the exact `--addr`/`--port` (or, for Voice-UI,

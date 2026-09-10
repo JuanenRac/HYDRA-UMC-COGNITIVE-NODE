@@ -87,8 +87,7 @@ unit on the same physical board:
   device/volume mounts each needs was written down before any child had
   a Dockerfile - avoiding that shape being invented ad hoc later. All
   four children (VLA-Engine, Voice-UI, Semantic-Planner, Docs-QA) now
-  have a real Dockerfile of their own, closing a real gap found in an
-  ecosystem-wide software-improvements audit - `docker compose up`
+  have a real Dockerfile of their own, closing a real gap - `docker compose up`
   builds and runs the real thing.
 * **How this fits the rest of the ecosystem.** This node sits one layer
   above perception (HYDRA-UMC-VISION-NODE, Hailo-8) and one layer below
