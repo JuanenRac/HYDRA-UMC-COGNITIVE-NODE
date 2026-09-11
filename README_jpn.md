@@ -15,6 +15,8 @@
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
 </p>
 
+> **誠実性チェック - 今日実際に動くもの:** ファミリー準備状況チェックとそのバージョン管理された JSON スキーマ（`family.py`、`manifest.py`、`models.py`）、および標準ライブラリのみによる素の HTTP インターフェース（`api.py`）は本物であり、33件の通過するテストで検証されている（`pytest tests/` - `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。このノード自体はモデルを一切実行しない - 下記の主要機能にある「ローカル LLM 実行」「VLA 統合」「音声コマンド処理」は明示的に `(計画中)` と表示されており、本リポジトリには Hailo-10 のランタイムコードは存在しない。`docker-compose.yml` は現在、4つの子サービスすべてに対して本物の Dockerfile を参照しているが、この開発環境では一つのスタックとして実際に実行されたことは一度もない（ここには利用可能な Docker ランタイムがない）- 各 Dockerfile のコマンド/ポートのマッピングは、各子サービス自身の systemd unit が実際の CM5 上で既に実行している内容と手作業で照合されたものであり、ライブでは検証されていない。これまでに実際に出荷された内容は `CHANGELOG.md` を参照。
+
 ---
 
 ## 1. 🛠️ 技術概要

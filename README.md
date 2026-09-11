@@ -15,6 +15,8 @@
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
 </p>
 
+> **Honesty check - what actually runs today:** the family-readiness check and its versioned JSON schema (`family.py`, `manifest.py`, `models.py`) and the plain stdlib HTTP surface (`api.py`) are real and covered by 33 passing tests (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). This node runs no model itself: "Local LLM Execution", "VLA Integration" and "Voice Command Processing" in the Key Features below are explicitly marked `(planned)` - there is no Hailo-10 runtime code in this repo. `docker-compose.yml` now references a real Dockerfile for all 4 children, but it has never actually been run as one stack in this dev environment (no Docker runtime available here) - each Dockerfile's command/port mapping was checked by hand against what each child's own systemd unit already runs on the real CM5, not verified live. See `CHANGELOG.md` for exactly what has shipped so far.
+
 ---
 
 ## 1. 🛠️ TECHNICAL OVERVIEW
