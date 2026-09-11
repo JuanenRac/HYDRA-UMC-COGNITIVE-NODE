@@ -15,6 +15,8 @@
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
 </p>
 
+> **诚实检查——今天真正可运行的部分：** 家族就绪检查及其带版本号的 JSON 模式（`family.py`、`manifest.py`、`models.py`），以及基于标准库的简单 HTTP 接口（`api.py`）都是真实的，并由 33 个通过的测试覆盖（`pytest tests/` —— `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。该节点本身不运行任何模型——下文"核心功能"中的"本地 LLM 执行"、"VLA 集成"和"语音命令处理"都明确标注为`(计划中)`——本仓库中没有任何 Hailo-10 运行时代码。`docker-compose.yml` 现在为全部 4 个子服务都引用了真实的 Dockerfile，但在这个开发环境中从未真正作为一个整体堆栈运行过（这里没有可用的 Docker 运行时）——每个 Dockerfile 的命令/端口映射都是人工核对的，对照的是每个子服务自身的 systemd unit 在真实 CM5 上已经在运行的配置，并未经过实际验证。目前具体已交付的内容见 `CHANGELOG.md`。
+
 ---
 
 ## 1. 🛠️ 技术概述
