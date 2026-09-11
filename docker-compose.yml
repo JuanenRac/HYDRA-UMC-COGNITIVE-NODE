@@ -11,8 +11,8 @@
 #
 # STATUS: all four children (hydra-umc-vla-engine, hydra-umc-voice-ui,
 # hydra-umc-semantic-planner, hydra-umc-docs-qa) now have a real
-# Dockerfile of their own - found missing in an ecosystem-wide
-# software-improvements audit, closing the real gap this header used to
+# Dockerfile of their own - found missing while auditing the code,
+# closing the real gap this header used to
 # name ("do not have published Dockerfiles/images yet"). `docker compose
 # up` builds and runs the real thing now, not just documents the wiring.
 # Not build-tested (no Docker runtime on this dev machine) - every
