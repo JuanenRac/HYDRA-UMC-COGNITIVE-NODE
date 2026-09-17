@@ -39,6 +39,19 @@ bumped manually only. See `bump_version.py`.
   exact readiness criterion and distinguishes local inventory evidence from
   Hailo-10 validation on real hardware.
 
+## [0.1.0] - This repo's own Dockerfile, plus real resource limits and healthchecks for the whole compose stack
+
+`docker-compose.yml`'s own `cognitive-node` service declared `build: .`, but this repo never actually
+had a `Dockerfile` at its root - `docker compose up` could never have succeeded even after all 4
+children gained their own Dockerfiles, since the top-level service itself had nothing to build. New
+`Dockerfile` mirrors the same real `--addr`/`--port` (8096) the CM5 systemd unit
+(`systemd/hydra-umc-cognitive-node.service`) already runs, non-root, matching that unit's own user.
+Also added to every service in `docker-compose.yml`: a real `mem_limit` (mirroring each service's own
+already-chosen `MemoryMax` from its systemd unit - never a new, invented number) and a `healthcheck`
+against each service's own real, already-existing lightweight GET route (`/health` for Voice-UI,
+`/stats` everywhere else), so an unhealthy container is now detectable instead of silently accepting
+unlimited memory and no liveness signal.
+
 ## [0.0.9]
 
 - **`models.py`** - the shared model-weights inventory check now walks `models/` with `os.walk(followlinks=False)` instead of `Path.rglob("*")`. On every Python release this project actually declares support for (`requires-python >=3.10`, i.e. everything before 3.13), `rglob("*")` has no way to refuse recursing into a symlinked subdirectory, silently defeating the "does not follow symlinked directories" guarantee the function already documented for itself.
