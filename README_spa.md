@@ -186,7 +186,7 @@ run.bat
 real (`pytest tests/`). Salida esperada de un `run.sh` sin argumentos:
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.0.9
+HYDRA-UMC-COGNITIVE-NODE v0.1.0
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 

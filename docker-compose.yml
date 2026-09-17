@@ -9,16 +9,23 @@
 # four children, and this file documents/reserves how those four children
 # attach to it as sibling services on the same physical board.
 #
-# STATUS: all four children (hydra-umc-vla-engine, hydra-umc-voice-ui,
-# hydra-umc-semantic-planner, hydra-umc-docs-qa) now have a real
-# Dockerfile of their own - found missing while auditing the code,
-# closing the real gap this header used to
-# name ("do not have published Dockerfiles/images yet"). `docker compose
-# up` builds and runs the real thing now, not just documents the wiring.
-# Not build-tested (no Docker runtime on this dev machine) - every
-# path/flag matches what each child's own systemd unit already runs live
-# on the real CM5, same verification standard as HYDRA-UMC-VISION-NODE's
-# own sibling Dockerfiles (0.0.7).
+# STATUS: this node's own Dockerfile plus all four children
+# (hydra-umc-vla-engine, hydra-umc-voice-ui, hydra-umc-semantic-planner,
+# hydra-umc-docs-qa) now have a real Dockerfile of their own. `docker
+# compose up` builds and runs the real thing now, not just documents the
+# wiring. Not build-tested (no Docker runtime on this dev machine) - every
+# path/flag matches what each service's own systemd unit already runs
+# live on the real CM5, same verification standard as
+# HYDRA-UMC-VISION-NODE's own sibling Dockerfiles (0.0.7).
+#
+# `mem_limit` below mirrors each service's own already-chosen real
+# MemoryMax from its systemd unit (systemd/*.service in this repo/each
+# sibling repo) - never a new, invented number - so a container never
+# gets a looser ceiling than the same service already runs under on bare
+# metal. `healthcheck` hits each service's own real, already-existing
+# lightweight GET route (`/health` for voice-ui, `/stats` everywhere
+# else) - none of these routes were added for this file, they already
+# existed for their own service's own tests/CLI.
 # =============================================================================
 version: "3.9"
 
@@ -38,6 +45,13 @@ services:
       - vla-engine
       - docs-qa
     restart: unless-stopped
+    mem_limit: 384m   # matches systemd/hydra-umc-cognitive-node.service's own MemoryMax
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8096/stats', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # Speech-to-Action pipeline (STT/TTS). Feeds recognized intent to the
   # semantic-planner service. See ../HYDRA-UMC-VOICE-UI.
@@ -52,6 +66,13 @@ services:
     environment:
       - HYDRA_UMC_VOICE_UI_TOKEN=${HYDRA_UMC_VOICE_UI_TOKEN:?set a real token - see this file's own comment}
     restart: unless-stopped
+    mem_limit: 384m   # matches ../HYDRA-UMC-VOICE-UI/systemd's own MemoryMax
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8091/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # LLM-based mission planner and semantic error recovery. Consumes
   # voice-ui intents and vla-engine action tokens, drives the
@@ -61,6 +82,13 @@ services:
     image: hydra-umc-semantic-planner:1.0.0
     container_name: hydra-umc-semantic-planner
     restart: unless-stopped
+    mem_limit: 384m   # matches ../HYDRA-UMC-SEMANTIC-PLANNER/systemd's own MemoryMax
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8109/stats', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # Vision-Language-Action engine: camera frames + text -> action tokens.
   # See ../HYDRA-UMC-VLA-ENGINE.
@@ -71,6 +99,13 @@ services:
     devices:
       - /dev/hailo0:/dev/hailo0
     restart: unless-stopped
+    mem_limit: 768m   # matches ../HYDRA-UMC-VLA-ENGINE/systemd's own MemoryMax
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8098/stats', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # RAG technical assistant grounded in the ecosystem's own docs. See
   # ../HYDRA-UMC-DOCS-QA.
@@ -79,3 +114,10 @@ services:
     image: hydra-umc-docs-qa:1.0.0
     container_name: hydra-umc-docs-qa
     restart: unless-stopped
+    mem_limit: 768m   # matches ../HYDRA-UMC-DOCS-QA/systemd's own MemoryMax
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8110/stats', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
