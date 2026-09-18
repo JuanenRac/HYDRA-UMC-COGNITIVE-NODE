@@ -189,7 +189,7 @@ exécutent la vraie suite de tests (`pytest tests/`). Sortie attendue
 d'un `run.sh` sans argument :
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.0
+HYDRA-UMC-COGNITIVE-NODE v0.1.1
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
