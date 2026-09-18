@@ -139,7 +139,7 @@ run.bat
 出力：
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.0
+HYDRA-UMC-COGNITIVE-NODE v0.1.1
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 

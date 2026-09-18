@@ -5,7 +5,7 @@ version number follows this ecosystem's "odometer" scheme: PATCH +1 on
 every real build, rolling into MINOR past 9 (`0.0.9` -> `0.1.0`); MAJOR is
 bumped manually only. See `bump_version.py`.
 
-## [Unreleased]
+## [0.1.1] - Dockerfiles for all 4 children, stricter manifest/model checks
 
 - **All 4 children now have a real Dockerfile** (HYDRA-UMC-VOICE-UI,
   HYDRA-UMC-SEMANTIC-PLANNER, HYDRA-UMC-VLA-ENGINE, HYDRA-UMC-DOCS-QA):
