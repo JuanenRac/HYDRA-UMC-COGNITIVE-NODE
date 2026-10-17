@@ -121,3 +121,22 @@ def test_not_found(tmp_path: Path) -> None:
     with running_server(workspace, repo_root) as base:
         status, body = _get(f"{base}/nope")
         assert status == 404
+
+
+def test_a_client_that_sends_nothing_is_dropped_instead_of_holding_a_thread(tmp_path: Path, monkeypatch) -> None:
+    import socket
+    import time
+
+    from hydra_umc_cognitive_node.api import Handler
+
+    monkeypatch.setattr(Handler, "timeout", 0.3)
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    with running_server(workspace, repo_root) as base:
+        port = int(base.rsplit(":", 1)[1])
+        with socket.create_connection(("127.0.0.1", port), timeout=5) as client:
+            started = time.monotonic()
+            assert client.recv(1) == b""  # sends nothing; the server closes the connection by itself
+            assert time.monotonic() - started < 3

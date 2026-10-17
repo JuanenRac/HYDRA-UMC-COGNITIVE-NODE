@@ -5,6 +5,12 @@ version number follows this ecosystem's "odometer" scheme: PATCH +1 on
 every real build, rolling into MINOR past 9 (`0.0.9` -> `0.1.0`); MAJOR is
 bumped manually only. See `bump_version.py`.
 
+## [0.1.2] - Idle connections dropped, Portuguese README
+
+- **Idle connections are dropped:** the HTTP handler of `serve` had no connection timeout, so a client that opened a connection and sent nothing held a handler thread forever. A silent client is now dropped after 15 seconds; the limit covers socket I/O only, never the time a check takes.
+- **Tests:** a new test covers the dropped idle connection (34 tests).
+- **Docs:** the README test count and the sample version line are corrected, and a README in Portuguese (`README_por.md`) joins the other translations.
+
 ## [0.1.1] - Dockerfiles for all 4 children, stricter manifest/model checks
 
 - **All 4 children now have a real Dockerfile** (HYDRA-UMC-VOICE-UI,

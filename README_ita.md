@@ -4,7 +4,7 @@
 
 # 🧠 HYDRA-UMC-COGNITIVE-NODE
 
-<p align="center"><a href="README.md">🇺🇸 English</a> | <a href="README_spa.md">🇪🇸 Español</a> | <a href="README_fra.md">🇫🇷 Français</a> | 🇮🇹 <b>Italiano</b> | <a href="README_deu.md">🇩🇪 Deutsch</a> | <a href="README_zho.md">🇨🇳 简体中文</a> | <a href="README_jpn.md">🇯🇵 日本語</a></p>
+<p align="center"><a href="README.md">🇺🇸 English</a> | <a href="README_spa.md">🇪🇸 Español</a> | <a href="README_fra.md">🇫🇷 Français</a> | 🇮🇹 <b>Italiano</b> | <a href="README_deu.md">🇩🇪 Deutsch</a> | <a href="README_zho.md">🇨🇳 简体中文</a> | <a href="README_jpn.md">🇯🇵 日本語</a> | <a href="README_por.md">🇵🇹 Português</a></p>
 
 ### 🤖 Nodo AI Edge per Ragionamento Semantico & GenAI (Hailo-10 + Raspberry Pi CM5)
 
@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
 </p>
 
-> **Verifica di onestà - cosa funziona davvero oggi:** il controllo di disponibilità della famiglia e il suo schema JSON versionato (`family.py`, `manifest.py`, `models.py`) e la semplice superficie HTTP della stdlib (`api.py`) sono reali e coperti da 33 test superati (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Questo nodo non esegue alcun modello da solo: "Esecuzione locale LLM", "Integrazione VLA" e "Elaborazione comandi vocali" nelle Funzionalità Chiave qui sotto sono esplicitamente contrassegnate come `(pianificato)` - non esiste codice runtime Hailo-10 in questo repository. `docker-compose.yml` ora fa riferimento a un vero Dockerfile per tutti e 4 i figli, ma non è mai stato effettivamente eseguito come un unico stack in questo ambiente di sviluppo (nessun runtime Docker disponibile qui) - la mappatura comando/porta di ogni Dockerfile è stata verificata a mano rispetto a ciò che la propria unità systemd di ogni figlio esegue già sulla vera CM5, non verificata dal vivo. Vedi `CHANGELOG.md` per cosa è stato esattamente consegnato finora.
+> **Verifica di onestà - cosa funziona davvero oggi:** il controllo di disponibilità della famiglia e il suo schema JSON versionato (`family.py`, `manifest.py`, `models.py`) e la semplice superficie HTTP della stdlib (`api.py`) sono reali e coperti da 34 test superati (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Questo nodo non esegue alcun modello da solo: "Esecuzione locale LLM", "Integrazione VLA" e "Elaborazione comandi vocali" nelle Funzionalità Chiave qui sotto sono esplicitamente contrassegnate come `(pianificato)` - non esiste codice runtime Hailo-10 in questo repository. `docker-compose.yml` ora fa riferimento a un vero Dockerfile per tutti e 4 i figli, ma non è mai stato effettivamente eseguito come un unico stack in questo ambiente di sviluppo (nessun runtime Docker disponibile qui) - la mappatura comando/porta di ogni Dockerfile è stata verificata a mano rispetto a ciò che la propria unità systemd di ogni figlio esegue già sulla vera CM5, non verificata dal vivo. Vedi `CHANGELOG.md` per cosa è stato esattamente consegnato finora.
 
 ---
 
@@ -188,7 +188,7 @@ suite di test (`pytest tests/`). Output atteso di un `run.sh` senza
 argomenti:
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.1
+HYDRA-UMC-COGNITIVE-NODE v0.1.2
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
