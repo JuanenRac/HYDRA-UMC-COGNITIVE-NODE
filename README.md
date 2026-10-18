@@ -19,6 +19,17 @@
 
 ---
 
+## 📋 At a glance
+
+| | |
+|---|---|
+| Version | `0.1.4` |
+| Maturity | Functional |
+| Tests | 35 (`pytest tests/`) |
+| Stack | Python / CM5 / Hailo-10 |
+| Target | The Raspberry Pi CM5 of a HYDRA-UMC cell |
+| On real hardware | Not yet: no run on real hardware is recorded for this version |
+
 ## 1. 🛠️ TECHNICAL OVERVIEW
 
 **HYDRA-UMC-COGNITIVE-NODE** serves as the "frontal lobe" of the HYDRA-UMC ecosystem. Powered by the Hailo-10 NPU (40 TOPS), it enables complex semantic reasoning, natural language understanding, and vision-language-action (VLA) task planning directly at the edge.

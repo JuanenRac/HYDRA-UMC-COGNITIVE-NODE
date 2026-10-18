@@ -19,6 +19,17 @@
 
 ---
 
+## 📋 Num relance
+
+| | |
+|---|---|
+| Versão | `0.1.4` |
+| Maturidade | Funcional |
+| Testes | 35 (`pytest tests/`) |
+| Tecnologia | Python / CM5 / Hailo-10 |
+| Destino | O Raspberry Pi CM5 de uma célula HYDRA-UMC |
+| Em hardware real | Ainda não: não há registo de execução em hardware real para esta versão |
+
 ## 1. 🛠️ VISÃO TÉCNICA GERAL
 
 O **HYDRA-UMC-COGNITIVE-NODE** serve de "lobo frontal" do ecossistema HYDRA-UMC. Alimentado pela NPU Hailo-10 (40 TOPS), permite raciocínio semântico complexo, compreensão de linguagem natural e planeamento de tarefas visão-linguagem-ação (VLA) diretamente na periferia.
