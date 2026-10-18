@@ -40,7 +40,7 @@ Bare invocation (no subcommand) prints identity/version/role and exits `0`:
 
 ```
 $ hydra-umc-cognitive-node
-HYDRA-UMC-COGNITIVE-NODE v0.0.8
+HYDRA-UMC-COGNITIVE-NODE v0.1.3
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
@@ -74,10 +74,10 @@ siblings really checked out):
 ```
 $ hydra-umc-cognitive-node family-status
 Cognitive AI Node family status (workspace: C:\Users\juane\Documents\GitHub):
-  HYDRA-UMC-VLA-ENGINE: v0.1.0, maturity=established, role=service
-  HYDRA-UMC-VOICE-UI: v0.1.0, maturity=established, role=service
-  HYDRA-UMC-SEMANTIC-PLANNER: v0.0.7, maturity=established, role=service
-  HYDRA-UMC-DOCS-QA: v0.0.7, maturity=established, role=api
+  HYDRA-UMC-VLA-ENGINE: v0.1.5, maturity=established, role=service
+  HYDRA-UMC-VOICE-UI: v0.1.4, maturity=established, role=service
+  HYDRA-UMC-SEMANTIC-PLANNER: v0.1.2, maturity=established, role=service
+  HYDRA-UMC-DOCS-QA: v0.1.1, maturity=established, role=api
 
 Shared model weights: MISSING (C:\Users\juane\Documents\GitHub\HYDRA-UMC-COGNITIVE-NODE\models) - this node's own os/models weights have not been provisioned on this machine; children that need them will run in their own honest degraded/no-hardware mode.
 
@@ -199,18 +199,19 @@ $ curl -s http://127.0.0.1:8096/family-status
 {"schema_version": "1.0", "shared_models": {"present": false, "path": "models"}, "children": [{"name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.1.0", "maturity": "established", "role": "service"}, {"name": "HYDRA-UMC-VOICE-UI", "present": true, "version": "0.1.0", "maturity": "established", "role": "service"}, {"name": "HYDRA-UMC-SEMANTIC-PLANNER", "present": true, "version": "0.0.7", "maturity": "established", "role": "service"}, {"name": "HYDRA-UMC-DOCS-QA", "present": true, "version": "0.0.7", "maturity": "established", "role": "api"}], "all_children_present": true}
 
 $ curl -s http://127.0.0.1:8096/stats
-{"workspace": ".."}
+{"status": "ok"}
 
 $ curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8096/nope
 404
 ```
 
-`GET /family-status` accepts an optional `?workspace=` query parameter
-to override the server's default per-request. A repeated query parameter
-(e.g. `?workspace=a&workspace=b`) is rejected with `400` rather than
-silently taking one value. `GET /stats` reports only the server's
-configured default workspace path — it does not itself run the
-family-status check. Any other path returns `404`. The handler is quiet
+`GET /family-status` scans the workspace fixed when the service starts
+(`--workspace`, `--models-dir`, or the `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` /
+`HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR` environment variables, which a container
+needs because the installed package no longer sits next to the checkouts). A
+request that passes `?workspace=` is rejected with `400`, and so is a repeated
+query parameter. `GET /stats` only answers `{"status": "ok"}` - it does not
+itself run the family-status check. Any other path returns `404`. The handler is quiet
 by default (no per-request access log line), matching this family's
 other `api.py` modules.
 

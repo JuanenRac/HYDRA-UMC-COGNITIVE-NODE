@@ -26,24 +26,45 @@
 # lightweight GET route (`/health` for voice-ui, `/stats` everywhere
 # else) - none of these routes were added for this file, they already
 # existed for their own service's own tests/CLI.
+#
+# Ports are published on the host's loopback only (127.0.0.1:<port>), which is
+# where HYDRA-UMC-SERVER's proxy expects each service. They are the same ports
+# the systemd units use, so run EITHER this stack OR the systemd units, never
+# both. Required secrets (HYDRA_UMC_VOICE_UI_TOKEN and
+# HYDRA_UMC_VOICE_UI_CONFIRM_SECRET, the latter at least 32 characters) come
+# from a .env file next to this one or from your secret manager.
 # =============================================================================
-version: "3.9"
 
 services:
   cognitive-node:
     build: .
     image: hydra-umc-cognitive-node:1.0.0
     container_name: hydra-umc-cognitive-node
-    devices:
-      - /dev/hailo0:/dev/hailo0   # Hailo-10 NPU passthrough (CM5 host)
+    # family-status reads each child's manifest, so those four files are
+    # mounted where the node looks for them (the images do not contain the
+    # sibling checkouts); the weights directory is passed explicitly because
+    # after `pip install` the package no longer sits next to models/.
+    environment:
+      - HYDRA_UMC_COGNITIVE_NODE_WORKSPACE=/workspace
+      - HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR=/opt/hydra/models
+    ports:
+      - "127.0.0.1:8096:8096"
     volumes:
       - ./models:/opt/hydra/models:ro   # shared quantized LLM/VLA weights
       - ./os:/opt/hydra/os:ro           # HydraOS image/config reference
+      - ../HYDRA-UMC-VLA-ENGINE/hydra-umc.project.json:/workspace/HYDRA-UMC-VLA-ENGINE/hydra-umc.project.json:ro
+      - ../HYDRA-UMC-VOICE-UI/hydra-umc.project.json:/workspace/HYDRA-UMC-VOICE-UI/hydra-umc.project.json:ro
+      - ../HYDRA-UMC-SEMANTIC-PLANNER/hydra-umc.project.json:/workspace/HYDRA-UMC-SEMANTIC-PLANNER/hydra-umc.project.json:ro
+      - ../HYDRA-UMC-DOCS-QA/hydra-umc.project.json:/workspace/HYDRA-UMC-DOCS-QA/hydra-umc.project.json:ro
     depends_on:
-      - voice-ui
-      - semantic-planner
-      - vla-engine
-      - docs-qa
+      voice-ui:
+        condition: service_healthy
+      semantic-planner:
+        condition: service_healthy
+      vla-engine:
+        condition: service_healthy
+      docs-qa:
+        condition: service_healthy
     restart: unless-stopped
     mem_limit: 384m   # matches systemd/hydra-umc-cognitive-node.service's own MemoryMax
     healthcheck:
@@ -53,18 +74,23 @@ services:
       retries: 3
       start_period: 10s
 
-  # Speech-to-Action pipeline (STT/TTS). Feeds recognized intent to the
-  # semantic-planner service. See ../HYDRA-UMC-VOICE-UI.
+  # Speech-to-Action pipeline (STT/TTS). Today its only real client is the
+  # Watch -> Android -> SERVER relay; feeding intents to the semantic-planner
+  # is planned, not wired. See ../HYDRA-UMC-VOICE-UI.
   voice-ui:
     build: ../HYDRA-UMC-VOICE-UI
     image: hydra-umc-voice-ui:1.0.0
     container_name: hydra-umc-voice-ui
-    # http_service.py's own open_gateway() refuses to bind beyond
+    # http_service.py's own create_voice_gateway() refuses to bind beyond
     # loopback without a real bearer token (by design - see this
     # image's own Dockerfile comment) - supply a real secret via a real
     # .env file or your secret manager, never a value committed here.
     environment:
       - HYDRA_UMC_VOICE_UI_TOKEN=${HYDRA_UMC_VOICE_UI_TOKEN:?set a real token - see this file's own comment}
+      # signs the confirmation tokens; without a fixed value every restart would invalidate them
+      - HYDRA_UMC_VOICE_UI_CONFIRM_SECRET=${HYDRA_UMC_VOICE_UI_CONFIRM_SECRET:?set a secret of at least 32 characters}
+    ports:
+      - "127.0.0.1:8091:8091"
     restart: unless-stopped
     mem_limit: 384m   # matches ../HYDRA-UMC-VOICE-UI/systemd's own MemoryMax
     healthcheck:
@@ -74,13 +100,15 @@ services:
       retries: 3
       start_period: 10s
 
-  # LLM-based mission planner and semantic error recovery. Consumes
-  # voice-ui intents and vla-engine action tokens, drives the
-  # HYDRA-ORCHESTRATOR. See ../HYDRA-UMC-SEMANTIC-PLANNER.
+  # LLM-based mission planner and semantic error recovery. Consuming
+  # voice-ui intents and vla-engine action tokens and driving the
+  # HYDRA-ORCHESTRATOR are planned, not wired. See ../HYDRA-UMC-SEMANTIC-PLANNER.
   semantic-planner:
     build: ../HYDRA-UMC-SEMANTIC-PLANNER
     image: hydra-umc-semantic-planner:1.0.0
     container_name: hydra-umc-semantic-planner
+    ports:
+      - "127.0.0.1:8109:8109"
     restart: unless-stopped
     mem_limit: 384m   # matches ../HYDRA-UMC-SEMANTIC-PLANNER/systemd's own MemoryMax
     healthcheck:
@@ -96,6 +124,8 @@ services:
     build: ../HYDRA-UMC-VLA-ENGINE
     image: hydra-umc-vla-engine:1.0.0
     container_name: hydra-umc-vla-engine
+    ports:
+      - "127.0.0.1:8098:8098"
     devices:
       - /dev/hailo0:/dev/hailo0
     restart: unless-stopped
@@ -113,6 +143,8 @@ services:
     build: ../HYDRA-UMC-DOCS-QA
     image: hydra-umc-docs-qa:1.0.0
     container_name: hydra-umc-docs-qa
+    ports:
+      - "127.0.0.1:8110:8110"
     restart: unless-stopped
     mem_limit: 768m   # matches ../HYDRA-UMC-DOCS-QA/systemd's own MemoryMax
     healthcheck:

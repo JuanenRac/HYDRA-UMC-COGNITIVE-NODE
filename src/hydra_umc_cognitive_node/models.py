@@ -8,9 +8,9 @@
 `docker-compose.yml`'s own header comment says this repo "owns the
 HydraOS image (os/) and the quantized LLM/VLA weights (models/) shared
 by its four children", and mounts `./models` read-only into the
-container. `models/` is real and already exists in this checkout - it is
-just empty today (no weights have been provisioned onto this dev
-machine), which is itself real, honest information a family-readiness
+container. The directory is kept in the repository (with a placeholder
+file) but holds no weights until they are provisioned onto the machine,
+which is itself honest information a family-readiness
 check should surface rather than silently ignore: a caller deciding
 whether this node's family is actually ready to run needs to know the
 shared weights the children depend on are missing, not just that the
@@ -24,6 +24,9 @@ from pathlib import Path
 from typing import Final
 
 MODELS_DIR_NAME = "models"
+
+# Upper bound on the files one readiness probe looks at.
+MAX_FILES_INSPECTED = 20_000
 
 # A checked-out `models/` tree can legitimately contain documentation,
 # empty directories, `.gitkeep`, tokenizers, and configuration files before
@@ -51,12 +54,15 @@ class SharedModelsStatus:
     path: Path
 
 
-def check_shared_models(repo_root: Path) -> SharedModelsStatus:
-    """Real check of `repo_root/models/` - this node's own shared weights
-    directory, not a sibling's. `repo_root` is this repository's own
-    root (see `main.py`'s `_REPO_ROOT`), never the workspace root
-    `family-status --workspace` scans for sibling checkouts."""
-    models_dir = repo_root / MODELS_DIR_NAME
+def check_shared_models(repo_root: Path, models_dir: Path | None = None) -> SharedModelsStatus:
+    """Real check of this node's own shared weights directory, not a
+    sibling's: `models_dir` when given (a container mounts the weights
+    somewhere other than next to the installed package), otherwise
+    `repo_root/models/`. `repo_root` is this repository's own root (see
+    `main.py`'s `_REPO_ROOT`), never the workspace root `family-status
+    --workspace` scans for sibling checkouts."""
+    if models_dir is None:
+        models_dir = repo_root / MODELS_DIR_NAME
     present = _contains_candidate_model_artifact(models_dir)
     return SharedModelsStatus(present=present, path=models_dir)
 
@@ -81,8 +87,13 @@ def _contains_candidate_model_artifact(models_dir: Path) -> bool:
         # project actually declares support for (requires-python >=3.10),
         # Path.rglob("*") has no such option and always follows a
         # symlinked subdirectory, silently defeating this exact guarantee.
-        for root, dirnames, filenames in os.walk(models_dir, followlinks=False):
+        visited = 0
+        for root, _dirnames, filenames in os.walk(models_dir, followlinks=False):
             for filename in filenames:
+                # a huge snapshot tree must not make every status probe walk it all
+                visited += 1
+                if visited > MAX_FILES_INSPECTED:
+                    return False
                 path = Path(root, filename)
                 if path.is_symlink() or not path.is_file():
                     continue

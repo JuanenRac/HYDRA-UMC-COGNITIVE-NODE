@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
 </p>
 
-> **Verificação de honestidade - o que realmente funciona hoje:** a verificação de prontidão da família e o seu esquema JSON versionado (`family.py`, `manifest.py`, `models.py`) e a superfície HTTP simples da biblioteca padrão (`api.py`) são reais e estão cobertos por 34 testes a passar (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Este nó não executa nenhum modelo ele próprio: "Execução local de LLM", "Integração VLA" e "Processamento de comandos de voz" nas Funcionalidades principais abaixo estão explicitamente marcados `(planeado)` - não há código de execução do Hailo-10 neste repositório. O `docker-compose.yml` refere agora um Dockerfile real para os 4 filhos, mas nunca foi realmente executado como um único stack neste ambiente de desenvolvimento (não há ambiente de execução Docker aqui) - o mapeamento de comando/porta de cada Dockerfile foi conferido à mão com o que a unidade systemd de cada filho já executa no CM5 real, não verificado em direto. Veja o `CHANGELOG.md` para saber exatamente o que foi entregue até agora.
+> **Verificação de honestidade - o que realmente funciona hoje:** a verificação de prontidão da família e o seu esquema JSON versionado (`family.py`, `manifest.py`, `models.py`) e a superfície HTTP simples da biblioteca padrão (`api.py`) são reais e estão cobertos por 35 testes a passar (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Este nó não executa nenhum modelo ele próprio: "Execução local de LLM", "Integração VLA" e "Processamento de comandos de voz" nas Funcionalidades principais abaixo estão explicitamente marcados `(planeado)` - não há código de execução do Hailo-10 neste repositório. O `docker-compose.yml` refere agora um Dockerfile real para os 4 filhos, mas nunca foi realmente executado como um único stack neste ambiente de desenvolvimento (não há ambiente de execução Docker aqui) - o mapeamento de comando/porta de cada Dockerfile foi conferido à mão com o que a unidade systemd de cada filho já executa no CM5 real, não verificado em direto. Veja o `CHANGELOG.md` para saber exatamente o que foi entregue até agora.
 
 ---
 
@@ -176,7 +176,7 @@ O `build.sh`/`build.bat` sobe a versão (ao estilo conta-quilómetros, veja
 (`pytest tests/`). Saída esperada de um `run.sh` simples:
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.2
+HYDRA-UMC-COGNITIVE-NODE v0.1.3
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
@@ -240,10 +240,10 @@ produção:
 ```bash
 ./run.sh serve --addr 127.0.0.1 --port 8096
 # GET /family-status  -> o mesmo JSON que o `family-status --json` imprime acima
-# GET /stats          -> { "workspace": "<configured default>" }
+# GET /stats          -> { "status": "ok" }
 ```
 
-O `GET /family-status` aceita uma substituição opcional `?workspace=`; qualquer outro
+O `GET /family-status` analisa o workspace fixado no arranque do serviço (`--workspace`, `--models-dir` ou `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR`) e responde `400` se um pedido tentar escolher outro; qualquer outro
 caminho devolve `404`. Veja a [Referência da CLI](docs/CLI_REFERENCE.md) para a
 referência completa de comandos: cada opção, saída real capturada de `-h`/`curl` e
 a tabela de códigos de saída.

@@ -9,3 +9,8 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Model weights are provisioned per machine, never committed
+models/*
+!models/.gitkeep
+.vscode/

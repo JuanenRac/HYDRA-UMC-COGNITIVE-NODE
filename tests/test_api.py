@@ -44,8 +44,8 @@ def _get(url: str) -> tuple[int, dict]:
 
 
 @contextmanager
-def running_server(workspace: Path, repo_root: Path) -> Iterator[str]:
-    server = CognitiveNodeServer(("127.0.0.1", 0), workspace, repo_root)
+def running_server(workspace: Path, repo_root: Path, models_dir: Path | None = None) -> Iterator[str]:
+    server = CognitiveNodeServer(("127.0.0.1", 0), workspace, repo_root, models_dir)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -81,7 +81,7 @@ def test_family_status_reports_missing(tmp_path: Path) -> None:
         assert body["all_children_present"] is False
 
 
-def test_family_status_workspace_override(tmp_path: Path) -> None:
+def test_family_status_workspace_cannot_be_chosen_by_a_request(tmp_path: Path) -> None:
     default_workspace = tmp_path / "default"
     other_workspace = tmp_path / "other"
     other_workspace.mkdir()
@@ -91,8 +91,21 @@ def test_family_status_workspace_override(tmp_path: Path) -> None:
         _write_manifest(other_workspace, child, maturity="functional")
     with running_server(default_workspace, repo_root) as base:
         status, body = _get(f"{base}/family-status?workspace={other_workspace}")
+        assert status == 400
+        assert "fixed" in body["error"]
+
+
+def test_models_dir_given_at_startup_is_the_one_checked(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    mounted = tmp_path / "mounted-weights"
+    mounted.mkdir()
+    (mounted / "model.hef").write_bytes(b"weights")
+    with running_server(workspace, repo_root, mounted) as base:
+        status, body = _get(f"{base}/family-status")
         assert status == 200
-        assert body["all_children_present"] is True
+        assert body["shared_models"]["present"] is True
 
 
 def test_shared_models_present_with_real_artifact(tmp_path: Path) -> None:
@@ -112,7 +125,7 @@ def test_stats(tmp_path: Path) -> None:
     with running_server(workspace, repo_root) as base:
         status, body = _get(f"{base}/stats")
         assert status == 200
-        assert body["workspace"] == str(workspace)
+        assert body == {"status": "ok"}
 
 
 def test_not_found(tmp_path: Path) -> None:

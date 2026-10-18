@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
 </p>
 
-> **诚实检查——今天真正可运行的部分：** 家族就绪检查及其带版本号的 JSON 模式（`family.py`、`manifest.py`、`models.py`），以及基于标准库的简单 HTTP 接口（`api.py`）都是真实的，并由 34 个通过的测试覆盖（`pytest tests/` —— `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。该节点本身不运行任何模型——下文"核心功能"中的"本地 LLM 执行"、"VLA 集成"和"语音命令处理"都明确标注为`(计划中)`——本仓库中没有任何 Hailo-10 运行时代码。`docker-compose.yml` 现在为全部 4 个子服务都引用了真实的 Dockerfile，但在这个开发环境中从未真正作为一个整体堆栈运行过（这里没有可用的 Docker 运行时）——每个 Dockerfile 的命令/端口映射都是人工核对的，对照的是每个子服务自身的 systemd unit 在真实 CM5 上已经在运行的配置，并未经过实际验证。目前具体已交付的内容见 `CHANGELOG.md`。
+> **诚实检查——今天真正可运行的部分：** 家族就绪检查及其带版本号的 JSON 模式（`family.py`、`manifest.py`、`models.py`），以及基于标准库的简单 HTTP 接口（`api.py`）都是真实的，并由 35 个通过的测试覆盖（`pytest tests/` —— `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。该节点本身不运行任何模型——下文"核心功能"中的"本地 LLM 执行"、"VLA 集成"和"语音命令处理"都明确标注为`(计划中)`——本仓库中没有任何 Hailo-10 运行时代码。`docker-compose.yml` 现在为全部 4 个子服务都引用了真实的 Dockerfile，但在这个开发环境中从未真正作为一个整体堆栈运行过（这里没有可用的 Docker 运行时）——每个 Dockerfile 的命令/端口映射都是人工核对的，对照的是每个子服务自身的 systemd unit 在真实 CM5 上已经在运行的配置，并未经过实际验证。目前具体已交付的内容见 `CHANGELOG.md`。
 
 ---
 
@@ -134,7 +134,7 @@ run.bat
 `run.sh` 的预期输出：
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.2
+HYDRA-UMC-COGNITIVE-NODE v0.1.3
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
@@ -193,10 +193,10 @@ systemd 单元在生产环境中实际运行的命令：
 ```bash
 ./run.sh serve --addr 127.0.0.1 --port 8096
 # GET /family-status  -> 返回与上方 `family-status --json` 相同的 JSON
-# GET /stats          -> { "workspace": "<已配置的默认值>" }
+# GET /stats          -> { "status": "ok" }
 ```
 
-`GET /family-status` 接受可选的 `?workspace=` 覆盖参数；其他任何路径均返回
+`GET /family-status` 扫描服务启动时固定的工作区（`--workspace`、`--models-dir`，或 `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR`），请求试图选择其他工作区时返回 `400`；其他任何路径均返回
 `404`。完整命令参考（所有参数、真实抓取的 `-h`/`curl` 输出以及退出码表）
 请参见 [CLI 参考](docs/CLI_REFERENCE.md)。
 

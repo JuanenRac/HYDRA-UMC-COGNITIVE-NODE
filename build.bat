@@ -74,7 +74,7 @@ echo       Done.
 echo.
 
 echo [4/5] Verifying the package compiles/imports without errors...
-python -m py_compile src\hydra_umc_cognitive_node\__init__.py src\hydra_umc_cognitive_node\main.py src\hydra_umc_cognitive_node\manifest.py src\hydra_umc_cognitive_node\family.py
+python -m compileall -q src
 if errorlevel 1 goto :error
 python -c "import hydra_umc_cognitive_node; print('import OK - version', hydra_umc_cognitive_node.__version__)"
 if errorlevel 1 goto :error

@@ -5,6 +5,14 @@ version number follows this ecosystem's "odometer" scheme: PATCH +1 on
 every real build, rolling into MINOR past 9 (`0.0.9` -> `0.1.0`); MAJOR is
 bumped manually only. See `bump_version.py`.
 
+## [0.1.3] - A container can actually see its children and its weights
+
+- **Docker deployment:** inside the image the package is installed in site-packages, so the "parent of the repository" defaults pointed at nothing and `/family-status` reported every child and the weights as missing. `serve` and `family-status` now take `--models-dir` (and the `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR` variables), the image passes them explicitly, and the compose file mounts the four children's manifests under `/workspace`.
+- **Compose file:** the services publish their ports on the host's loopback (where the Server's proxy looks for them), `depends_on` waits for healthy services, the Voice UI gets the confirmation-signing secret it needs so a restart no longer invalidates confirmations, the node no longer claims the Hailo device it never opens, the obsolete `version` key is gone and the comments no longer describe service-to-service flows that do not exist yet.
+- **Service:** a request can no longer choose which directory `/family-status` scans (it answers 400), `/stats` no longer reveals the absolute workspace path, and the weights probe stops after 20,000 files instead of walking a whole model snapshot on every request.
+- **Repository:** `models/` and `os/` are kept as placeholders (weights are ignored by git), `build.sh`/`build.bat` compile the whole package instead of a fixed list of four files, and the manifest maturity reads functional.
+- **Docs:** the CLI reference shows the current version and children, and the README documents the fixed workspace in all languages (35 tests).
+
 ## [0.1.2] - Idle connections dropped, Portuguese README
 
 - **Idle connections are dropped:** the HTTP handler of `serve` had no connection timeout, so a client that opened a connection and sent nothing held a handler thread forever. A silent client is now dropped after 15 seconds; the limit covers socket I/O only, never the time a check takes.

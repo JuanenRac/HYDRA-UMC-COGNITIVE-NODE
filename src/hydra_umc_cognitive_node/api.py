@@ -61,18 +61,29 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if path == "/family-status":
-            workspace = Path(params["workspace"]) if "workspace" in params else self.server.workspace
-            statuses = check_family_status(workspace)
-            shared_models = check_shared_models(self.server.repo_root)
+            if "workspace" in params:
+                # which directory is scanned is decided by whoever starts the
+                # service, never by a request (it would be a file-existence oracle)
+                _write_error(self, 400, "the workspace is fixed when the service starts")
+                return
+            statuses = check_family_status(self.server.workspace)
+            shared_models = check_shared_models(self.server.repo_root, self.server.models_dir)
             _write_json(self, 200, family_status_to_dict(statuses, shared_models))
         elif path == "/stats":
-            _write_json(self, 200, {"workspace": str(self.server.workspace)})
+            _write_json(self, 200, {"status": "ok"})
         else:
             _write_error(self, 404, "not found")
 
 
 class CognitiveNodeServer(ThreadingHTTPServer):
-    def __init__(self, address: tuple[str, int], workspace: Path, repo_root: Path) -> None:
+    def __init__(
+        self,
+        address: tuple[str, int],
+        workspace: Path,
+        repo_root: Path,
+        models_dir: Path | None = None,
+    ) -> None:
         super().__init__(address, Handler)
         self.workspace = workspace
         self.repo_root = repo_root
+        self.models_dir = models_dir

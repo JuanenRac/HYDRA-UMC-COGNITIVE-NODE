@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -35,7 +36,10 @@ ROLE = (
 # up is this repo's own root, and one more level up is the workspace
 # that holds it as a sibling of the other ecosystem repos.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_DEFAULT_WORKSPACE = _REPO_ROOT.parent
+_DEFAULT_WORKSPACE = Path(os.environ.get("HYDRA_UMC_COGNITIVE_NODE_WORKSPACE") or _REPO_ROOT.parent)
+# After `pip install` the package lives in site-packages, so the repository-relative
+# defaults above point nowhere; a container passes these explicitly.
+_DEFAULT_MODELS_DIR = os.environ.get("HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR")
 
 
 def _print_identity() -> None:
@@ -43,9 +47,9 @@ def _print_identity() -> None:
     print(ROLE)
 
 
-def _run_family_status(workspace: Path, *, as_json: bool) -> int:
+def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | None = None) -> int:
     statuses = check_family_status(workspace)
-    shared_models = check_shared_models(_REPO_ROOT)
+    shared_models = check_shared_models(_REPO_ROOT, models_dir)
 
     if as_json:
         print(json.dumps(family_status_to_dict(statuses, shared_models), indent=2))
@@ -77,8 +81,8 @@ def _run_family_status(workspace: Path, *, as_json: bool) -> int:
     return 0
 
 
-def _run_serve(addr: str, port: int, workspace: Path) -> int:
-    server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT)
+def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = None) -> int:
+    server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT, models_dir)
     print(f"[cognitive-node] HTTP API listening on {addr}:{port} (workspace={workspace})")
     print("[cognitive-node] GET /family-status, GET /stats")
     try:
@@ -102,7 +106,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--workspace",
         type=Path,
         default=_DEFAULT_WORKSPACE,
-        help="Directory containing the sibling repo checkouts (default: this repo's own parent directory).",
+        help="Directory containing the sibling repo checkouts (default: $HYDRA_UMC_COGNITIVE_NODE_WORKSPACE, "
+             "else this repo's own parent directory).",
+    )
+    family_parser.add_argument(
+        "--models-dir",
+        type=Path,
+        default=_DEFAULT_MODELS_DIR,
+        help="Shared model weights directory (default: $HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR, else this repo's models/).",
     )
     family_parser.add_argument(
         "--json",
@@ -121,7 +132,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--workspace",
         type=Path,
         default=_DEFAULT_WORKSPACE,
-        help="Default workspace for GET /family-status when it is not overridden per-request.",
+        help="Workspace scanned by GET /family-status (default: $HYDRA_UMC_COGNITIVE_NODE_WORKSPACE, "
+             "else this repo's own parent directory). Fixed at startup; requests cannot change it.",
+    )
+    serve_parser.add_argument(
+        "--models-dir",
+        type=Path,
+        default=_DEFAULT_MODELS_DIR,
+        help="Shared model weights directory (default: $HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR, else this repo's models/).",
     )
 
     return parser
@@ -132,9 +150,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "family-status":
-        return _run_family_status(args.workspace, as_json=args.json)
+        return _run_family_status(args.workspace, as_json=args.json, models_dir=args.models_dir)
     if args.command == "serve":
-        return _run_serve(args.addr, args.port, args.workspace)
+        return _run_serve(args.addr, args.port, args.workspace, args.models_dir)
 
     _print_identity()
     return 0

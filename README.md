@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
 </p>
 
-> **Honesty check - what actually runs today:** the family-readiness check and its versioned JSON schema (`family.py`, `manifest.py`, `models.py`) and the plain stdlib HTTP surface (`api.py`) are real and covered by 34 passing tests (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). This node runs no model itself: "Local LLM Execution", "VLA Integration" and "Voice Command Processing" in the Key Features below are explicitly marked `(planned)` - there is no Hailo-10 runtime code in this repo. `docker-compose.yml` now references a real Dockerfile for all 4 children, but it has never actually been run as one stack in this dev environment (no Docker runtime available here) - each Dockerfile's command/port mapping was checked by hand against what each child's own systemd unit already runs on the real CM5, not verified live. See `CHANGELOG.md` for exactly what has shipped so far.
+> **Honesty check - what actually runs today:** the family-readiness check and its versioned JSON schema (`family.py`, `manifest.py`, `models.py`) and the plain stdlib HTTP surface (`api.py`) are real and covered by 35 passing tests (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). This node runs no model itself: "Local LLM Execution", "VLA Integration" and "Voice Command Processing" in the Key Features below are explicitly marked `(planned)` - there is no Hailo-10 runtime code in this repo. `docker-compose.yml` now references a real Dockerfile for all 4 children, but it has never actually been run as one stack in this dev environment (no Docker runtime available here) - each Dockerfile's command/port mapping was checked by hand against what each child's own systemd unit already runs on the real CM5, not verified live. See `CHANGELOG.md` for exactly what has shipped so far.
 
 ---
 
@@ -178,7 +178,7 @@ run.bat
 (`pytest tests/`). Expected output of a bare `run.sh`:
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.2
+HYDRA-UMC-COGNITIVE-NODE v0.1.3
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
@@ -242,10 +242,10 @@ production:
 ```bash
 ./run.sh serve --addr 127.0.0.1 --port 8096
 # GET /family-status  -> the same JSON `family-status --json` prints above
-# GET /stats          -> { "workspace": "<configured default>" }
+# GET /stats          -> { "status": "ok" }
 ```
 
-`GET /family-status` accepts an optional `?workspace=` override; any other
+`GET /family-status` scans the workspace fixed when the service starts (`--workspace`, `--models-dir`, or `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR`) and answers `400` to a request that tries to choose another; any other
 path returns `404`. See [CLI Reference](docs/CLI_REFERENCE.md) for the
 full command reference: every flag, real captured `-h`/`curl` output, and
 the exit-code table.

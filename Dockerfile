@@ -15,12 +15,12 @@
 # their own already; this one was the real remaining gap `docker-compose.yml`'s
 # own `cognitive-node` service (`build: .`) needed to actually build.
 #
-# `--workspace` is deliberately NOT set here - main.py's own default
-# already resolves to this repo's parent directory, which is the real
-# checkout layout `docker-compose.yml`'s sibling `build: ../HYDRA-UMC-*`
-# paths already assume; populating a real per-container workspace of the
-# 4 children's own hydra-umc.project.json files is the real CM5 install
-# script's job (install_cognitive_node.sh), not this Dockerfile's.
+# After `pip install .` the package lives in site-packages, so the default
+# "parent of the repository" no longer points at the sibling checkouts or at
+# models/. The workspace and the weights directory are therefore passed
+# explicitly (docker-compose.yml mounts the four children's manifests under
+# /workspace and the weights under /opt/hydra/models). On bare metal the
+# install script of HYDRA-UMC-OS provisions the same files for the systemd unit.
 
 FROM python:3.12-slim
 
@@ -34,4 +34,4 @@ USER hydra
 
 EXPOSE 8096
 ENTRYPOINT ["hydra-umc-cognitive-node"]
-CMD ["serve", "--addr", "0.0.0.0", "--port", "8096"]
+CMD ["serve", "--addr", "0.0.0.0", "--port", "8096", "--workspace", "/workspace", "--models-dir", "/opt/hydra/models"]
