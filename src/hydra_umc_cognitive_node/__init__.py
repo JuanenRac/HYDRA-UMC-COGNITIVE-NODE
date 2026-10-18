@@ -1,7 +1,7 @@
 # =============================================================================
 # HYDRA-UMC-COGNITIVE-NODE - src/hydra_umc_cognitive_node/__init__.py
 # Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
-# GPL-3.0 - see LICENSE
+# GPL-3.0-or-later - see LICENSE
 # =============================================================================
 """HYDRA-UMC-COGNITIVE-NODE - Semantic reasoning & GenAI edge node (Hailo-10).
 
@@ -18,4 +18,4 @@ are wired together on the same Hailo-10 + CM5 hardware.
 # build, rather than the more common "read version from package metadata
 # at import time" approach: this way `main.py` can print a version even
 # when the package was never installed (e.g. run straight from src/).
-__version__ = "0.1.3"
+__version__ = "0.1.4"

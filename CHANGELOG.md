@@ -5,6 +5,11 @@ version number follows this ecosystem's "odometer" scheme: PATCH +1 on
 every real build, rolling into MINOR past 9 (`0.0.9` -> `0.1.0`); MAJOR is
 bumped manually only. See `bump_version.py`.
 
+## [0.1.4]
+
+- Build version synchronized with `hydra-umc.project.json` and the repository-native version source.
+- The licence is written as GPL-3.0-or-later in every header and in the package metadata.
+
 ## [0.1.3] - A container can actually see its children and its weights
 
 - **Docker deployment:** inside the image the package is installed in site-packages, so the "parent of the repository" defaults pointed at nothing and `/family-status` reported every child and the weights as missing. `serve` and `family-status` now take `--models-dir` (and the `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR` variables), the image passes them explicitly, and the compose file mounts the four children's manifests under `/workspace`.

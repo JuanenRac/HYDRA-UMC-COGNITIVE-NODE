@@ -1,7 +1,7 @@
 # =============================================================================
 # HYDRA-UMC-COGNITIVE-NODE - docker-compose.yml
 # Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
-# GPL-3.0 - see LICENSE
+# GPL-3.0-or-later - see LICENSE
 #
 # Integration map for the Cognitive AI Node (Hailo-10 + CM5). This node is
 # a real integration repo (not documentation-only): it owns the HydraOS

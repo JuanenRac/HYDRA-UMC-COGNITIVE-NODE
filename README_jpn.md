@@ -9,7 +9,7 @@
 ### 🤖 意味推論と生成 AI エッジノード（Hailo-10 + Raspberry Pi CM5）
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Licencia-GPL%203.0-blue.svg" alt="GPL 3.0">
+  <img src="https://img.shields.io/badge/Licencia-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="CM5 + Hailo-10">
   <img src="https://img.shields.io/badge/Performance-40%20TOPS-green.svg" alt="40 TOPS">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
@@ -139,7 +139,7 @@ run.bat
 出力：
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.3
+HYDRA-UMC-COGNITIVE-NODE v0.1.4
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
@@ -335,4 +335,4 @@ CM5 自身の `hydra-umc-cognitive-node.service` systemd ユニットが本番�
 📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
 
 ## 📜 ライセンス
-GPL-3.0 —— 詳細は LICENSE を参照してください。
+GPL-3.0-or-later —— 詳細は LICENSE を参照してください。

@@ -1,7 +1,7 @@
 # =============================================================================
 # HYDRA-UMC-COGNITIVE-NODE - src/hydra_umc_cognitive_node/models.py
 # Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
-# GPL-3.0 - see LICENSE
+# GPL-3.0-or-later - see LICENSE
 # =============================================================================
 """Real check of this node's own shared model-weights directory.
 

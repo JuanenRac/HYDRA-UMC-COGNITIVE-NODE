@@ -9,7 +9,7 @@
 ### 🤖 Nó de borda de raciocínio semântico e IA generativa (Hailo-10 + Raspberry Pi CM5)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/License-GPL%203.0-blue.svg" alt="GPL 3.0">
+  <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="CM5 + Hailo-10">
   <img src="https://img.shields.io/badge/Performance-40%20TOPS-green.svg" alt="40 TOPS">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
@@ -176,7 +176,7 @@ O `build.sh`/`build.bat` sobe a versão (ao estilo conta-quilómetros, veja
 (`pytest tests/`). Saída esperada de um `run.sh` simples:
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.3
+HYDRA-UMC-COGNITIVE-NODE v0.1.4
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
@@ -387,5 +387,5 @@ Este projeto faz parte do ecossistema de robótica HYDRA-UMC do mesmo autor (Jua
 📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
 
 ## 📜 LICENÇA
-GPL-3.0 - consulte LICENSE para mais detalhes.
+GPL-3.0-or-later - consulte LICENSE para mais detalhes.
 

@@ -40,7 +40,7 @@ Bare invocation (no subcommand) prints identity/version/role and exits `0`:
 
 ```
 $ hydra-umc-cognitive-node
-HYDRA-UMC-COGNITIVE-NODE v0.1.3
+HYDRA-UMC-COGNITIVE-NODE v0.1.4
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
