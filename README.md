@@ -51,8 +51,7 @@ It transforms high-level human instructions into logical robotic sequences, mana
   below)*
 * 🔒 **Versioned status schema + resource-limited manifest reads:** `family-status --json` prints a real, versioned machine-readable result; any sibling manifest bigger than 64 KiB (a corrupted/malicious checkout) degrades to "not found" instead of being read unbounded. *(implemented)*
 * 🪫 **Shared model-weights degradation check:** `family-status` honestly reports whether this node's own `models/` directory actually has real weights in it, not just whether the sibling repos are checked out. *(implemented)*
-* 📦 **Odometer Versioning:** Every real build bumps `pyproject.toml`'s
-  own version automatically (`bump_version.py`) - no manual version edits.
+* 📦 **Odometer Versioning:** The version in `pyproject.toml` is raised only by the explicit bump command (`python tools/hydra_project_tool.py bump`, which runs `bump_version.py`) - building never changes it.
 
 ---
 
@@ -157,8 +156,8 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── build_test.py               # Non-versioning build/compile check
 │   └── ci_validate.py              # Manifest/CHANGELOG/docs validation used by CI
 ├── build/                          # Local build output (git-ignored)
-├── pyproject.toml                  # Package metadata (version odometer-bumped on every real build)
-├── bump_version.py                 # Odometer-style native version bump (used by build.sh/.bat)
+├── pyproject.toml                  # Package metadata (version raised only by the explicit bump command)
+├── bump_version.py                 # Odometer-style version bump (run only by the explicit `bump` command)
 ├── bump_manifest_version.py        # Syncs hydra-umc.project.json's version to the native one (--sync)
 ├── docker-compose.yml              # Integration map for the 4 child services
 ├── build.sh / build.bat            # Create venv, install (with dev extras), run tests, verify import
@@ -186,8 +185,7 @@ build.bat
 run.bat
 ```
 
-`build.sh`/`build.bat` bump the version (odometer-style, see
-`bump_version.py`) before every real build, and run the real test suite
+`build.sh`/`build.bat` never change the version (only `python tools/hydra_project_tool.py bump` raises it), and run the real test suite
 (`pytest tests/`). Expected output of a bare `run.sh`:
 
 ```text

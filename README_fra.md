@@ -51,9 +51,7 @@ Il transforme les instructions humaines de haut niveau en séquences robotiques 
   contrôle de disponibilité - voir BUILD ET EXÉCUTION ci-dessous)*
 * 🔒 **Schéma de statut versionné + lectures de manifeste à ressources limitées :** `family-status --json` affiche un résultat réel, versionné et lisible par machine ; tout manifeste d'un frère dépassant 64 Kio (un checkout corrompu ou malveillant) se dégrade en « non trouvé » plutôt que d'être lu sans limite. *(implémenté)*
 * 🪫 **Contrôle de dégradation des poids de modèle partagés :** `family-status` signale honnêtement si le répertoire `models/` propre à ce nœud contient réellement de vrais poids, et pas seulement si les dépôts frères sont clonés. *(implémenté)*
-* 📦 **Versionnage compteur kilométrique :** Chaque build réel incrémente
-  automatiquement la version de `pyproject.toml` (`bump_version.py`) - pas
-  de modification manuelle de version.
+* 📦 **Versionnage compteur kilométrique :** La version de `pyproject.toml` n'est augmentée que par la commande `bump` explicite (`python tools/hydra_project_tool.py bump`, qui exécute `bump_version.py`) - compiler ne la change jamais.
 
 ---
 
@@ -168,7 +166,7 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   └── ci_validate.py              # Validation manifeste/CHANGELOG/docs utilisée par CI
 ├── build/                          # Sortie de build locale (ignorée par git)
 ├── pyproject.toml                  # Métadonnées du paquet (version à incrément type compteur kilométrique)
-├── bump_version.py                 # Incrément de version native type compteur kilométrique (utilisé par build.sh/.bat)
+├── bump_version.py                 # Incrément de version type compteur kilométrique (exécuté seulement par la commande `bump` explicite)
 ├── bump_manifest_version.py        # Synchronise la version de hydra-umc.project.json avec la version native (--sync)
 ├── docker-compose.yml              # Carte d'intégration des 4 services enfants
 ├── build.sh / build.bat            # Crée le venv, installe (avec extras dev), exécute les tests, vérifie l'import
@@ -196,8 +194,7 @@ build.bat
 run.bat
 ```
 
-`build.sh`/`build.bat` incrémentent la version (type compteur
-kilométrique, voir `bump_version.py`) avant chaque build réel, et
+`build.sh`/`build.bat` ne changent jamais la version (seule `python tools/hydra_project_tool.py bump` la fait monter), et
 exécutent la vraie suite de tests (`pytest tests/`). Sortie attendue
 d'un `run.sh` sans argument :
 

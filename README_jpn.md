@@ -55,9 +55,7 @@
   参照）*
 * 🔒 **バージョン管理されたステータススキーマ + リソース制限付きマニフェスト読み込み：** `family-status --json` は実際の、バージョン管理された機械可読の結果を出力します。64 KiB を超える兄弟プロジェクトのマニフェスト（破損または悪意のあるチェックアウト）は、無制限に読み込まれるのではなく「見つかりません」に縮退します。*（実装済み）*
 * 🪫 **共有モデル重みの縮退チェック：** `family-status` は、本ノード自身の `models/` ディレクトリに実際に重みが存在するかどうかを正直に報告します。兄弟リポジトリがチェックアウトされているかどうかだけではありません。*（実装済み）*
-* 📦 **オドメーター式バージョン管理：** 実際のビルドのたびに
-  `pyproject.toml` 自身のバージョンが自動的に増加します
-  （`bump_version.py`）——手動でのバージョン編集は不要です。
+* 📦 **オドメーター式バージョン管理：** `pyproject.toml` のバージョンを上げるのは明示的な `bump` コマンド（`python tools/hydra_project_tool.py bump`、内部で `bump_version.py` を実行）だけです - ビルドがバージョンを変更することはありません。
 
 ---
 
@@ -119,7 +117,7 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   └── ci_validate.py              # CI が使用するマニフェスト/CHANGELOG/ドキュメント検証
 ├── build/                          # ローカルビルド出力（git 管理外）
 ├── pyproject.toml                  # パッケージメタデータ（オドメーター式バージョン増加）
-├── bump_version.py                 # ネイティブバージョンのオドメーター式インクリメント（build.sh/.bat が使用）
+├── bump_version.py                 # オドメーター式バージョンインクリメント（明示的な `bump` コマンドのみが実行）
 ├── bump_manifest_version.py        # hydra-umc.project.json のバージョンをネイティブ版と同期(--sync)
 ├── docker-compose.yml              # 4 つの子サービスの統合マップ
 ├── build.sh / build.bat            # venv 作成、インストール（dev エクストラ付き）、テスト実行、インポート検証
@@ -147,8 +145,7 @@ build.bat
 run.bat
 ```
 
-`build.sh`/`build.bat` は、実際の各ビルドの前にバージョンを増加させます
-（オドメーター方式、`bump_version.py` を参照）。`run.sh` の予期される
+`build.sh`/`build.bat` はバージョンを変更しません（上げるのは `python tools/hydra_project_tool.py bump` だけです）。`run.sh` の予期される
 出力：
 
 ```text

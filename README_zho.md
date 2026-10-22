@@ -53,8 +53,7 @@ NPU（40 TOPS）驱动，它能直接在边缘端实现复杂的语义推理、�
   运行"）*
 * 🔒 **版本化状态模式 + 资源受限的清单读取：** `family-status --json` 会打印真实的、版本化的、机器可读的结果；任何超过 64 KiB 的兄弟清单（损坏或恶意的检出）都会降级为"未找到"，而不会被无限制地读取。*（已实现）*
 * 🪫 **共享模型权重降级检查：** `family-status` 会诚实地报告本节点自身的 `models/` 目录中是否真的存在真实权重，而不仅仅是兄弟仓库是否已被检出。*（已实现）*
-* 📦 **里程表式版本管理：** 每次真实构建都会自动递增 `pyproject.toml`
-  自身的版本号（`bump_version.py`）——无需手动编辑版本号。
+* 📦 **里程表式版本管理：** `pyproject.toml` 中的版本只由显式的 `bump` 命令提升（`python tools/hydra_project_tool.py bump`，它会运行 `bump_version.py`）- 构建绝不会更改它。
 
 ---
 
@@ -115,7 +114,7 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   └── ci_validate.py              # CI 使用的清单/CHANGELOG/文档校验
 ├── build/                          # 本地构建输出（已被 git 忽略）
 ├── pyproject.toml                  # 包元数据（里程表式递增版本号）
-├── bump_version.py                 # 原生版本的里程表式递增（由 build.sh/.bat 使用）
+├── bump_version.py                 # 里程表式版本递增（仅由显式 `bump` 命令运行）
 ├── bump_manifest_version.py        # 将 hydra-umc.project.json 的版本与原生版本同步(--sync)
 ├── docker-compose.yml              # 4 个子服务的集成蓝图
 ├── build.sh / build.bat            # 创建 venv、安装（含 dev 附加依赖）、运行测试、验证导入
@@ -142,8 +141,7 @@ build.bat
 run.bat
 ```
 
-`build.sh`/`build.bat` 会在每次真实构建之前递增版本号（里程表式，见
-`bump_version.py`），并运行真实的测试套件（`pytest tests/`）。不带参数的
+`build.sh`/`build.bat` 不会更改版本号（只有 `python tools/hydra_project_tool.py bump` 才会提升），并运行真实的测试套件（`pytest tests/`）。不带参数的
 `run.sh` 的预期输出：
 
 ```text
