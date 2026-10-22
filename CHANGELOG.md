@@ -1,4 +1,4 @@
-# Changelog: HYDRA-UMC-COGNITIVE-NODE 🧠
+# Changelog
 
 All notable changes to this project are documented here.
 
@@ -120,7 +120,6 @@ unlimited memory and no liveness signal.
 - Real verification beyond the test suite: ran `family-status`/`family-status --json` against the actual local ecosystem checkout - correctly reported all 4 real children present with their real, independently-verified version/maturity, and honestly reported this machine's real, empty `models/` directory as missing.
 
 ## [0.0.5] - Real v0 family-readiness check
-### Added
 - `manifest.py` - a real, minimal, defensive reader for a sibling repo's own `hydra-umc.project.json` (name/version/maturity/role), returning `None` for every real failure mode (missing checkout, missing file, malformed JSON, missing field) rather than raising.
 - `family.py` - `check_family_status()`: a real check of this node's four real children (`HYDRA-UMC-VLA-ENGINE`/`HYDRA-UMC-VOICE-UI`/`HYDRA-UMC-SEMANTIC-PLANNER`/`HYDRA-UMC-DOCS-QA`) against a real local workspace, reading each one's own manifest rather than a second hand-maintained list.
 - `main.py` - new `family-status [--workspace PATH]` subcommand, defaulting to this repo's own parent directory (the real sibling-checkout layout this whole ecosystem already uses). Bare invocation is unchanged: identity/version/role.
@@ -128,19 +127,16 @@ unlimited memory and no liveness signal.
 - Real verification beyond the test suite: ran `family-status` against the actual local ecosystem checkout on this machine - correctly reported `HYDRA-UMC-VLA-ENGINE` as still `scaffolding` and the other three real siblings as `functional`, matching their real, independently-verified state.
 
 ## [0.0.4]
-### Added
 - Copyright/license header on every source file and build/run script.
 - `CHANGELOG.md` (this file).
 - Extended documentation across `README.md` and its 4 translations:
   advanced technical/architecture section, detailed build/run
   troubleshooting, and a full "Related Projects" section.
 
-### Changed
 - Inline comments explaining the *why* behind non-obvious decisions
   (versioning scheme, src-layout, `docker-compose.yml` wiring).
 
 ## [0.0.0]
-### Added
 - Initial Python scaffolding: `pyproject.toml` (setuptools, src-layout),
   `src/hydra_umc_cognitive_node/__init__.py` + `main.py` (real entry
   point - prints identity/version/role, exits 0).
