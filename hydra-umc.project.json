@@ -21,6 +21,7 @@
     "pattern": "^version\\s*=\\s*\"(\\d+)\\.(\\d+)\\.(\\d+)\""
   },
   "service": {
-    "systemd_unit": "hydra-umc-cognitive-node.service"
+    "systemd_unit": "hydra-umc-cognitive-node.service",
+    "health_path": "/stats"
   }
 }
