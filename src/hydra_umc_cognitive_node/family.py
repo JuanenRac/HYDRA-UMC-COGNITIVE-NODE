@@ -63,27 +63,45 @@ def check_family_status(workspace_root: Path) -> list[ChildStatus]:
 
 
 def family_status_to_dict(
-    statuses: list[ChildStatus], shared_models: SharedModelsStatus
+    statuses: list[ChildStatus], shared_models: SharedModelsStatus, health: dict[str, dict[str, Any]] | None = None
 ) -> dict[str, Any]:
     """Real, versioned machine-readable shape for a family-status result -
     the CLI's `--json` output (see `main.py`). Every field here is real
     data this check already computed; nothing is invented for the sake
     of a richer-looking schema."""
-    return {
+    children = []
+    for status in statuses:
+        entry: dict[str, Any] = {
+            "name": status.name,
+            "present": status.present,
+            "version": status.manifest.version if status.manifest else None,
+            "maturity": status.manifest.maturity if status.manifest else None,
+            "role": status.manifest.role if status.manifest else None,
+        }
+        if health is not None:
+            # only when the services were asked (see probe.py): what is installed and what is answering are different things
+            entry["health"] = health.get(status.name)
+        children.append(entry)
+    result: dict[str, Any] = {
         "schema_version": FAMILY_STATUS_SCHEMA_VERSION,
         "shared_models": {
             "present": shared_models.present,
             "path": str(shared_models.path),
         },
-        "children": [
-            {
-                "name": status.name,
-                "present": status.present,
-                "version": status.manifest.version if status.manifest else None,
-                "maturity": status.manifest.maturity if status.manifest else None,
-                "role": status.manifest.role if status.manifest else None,
-            }
-            for status in statuses
-        ],
+        "children": children,
         "all_children_present": all(status.present for status in statuses),
     }
+    if health is not None:
+        result["all_children_healthy"] = all((health.get(status.name) or {}).get("healthy") is True for status in statuses)
+    return result
+
+
+def env_versions(statuses: list[ChildStatus]) -> list[str]:
+    """`HYDRA_UMC_<CHILD>_VERSION=x.y.z` lines for the children that have a manifest, for the `.env` file next to docker-compose.yml: the
+    images are tagged with these, so a container is the version of the checkout it was built from."""
+    lines = []
+    for status in statuses:
+        if status.manifest is not None:
+            key = status.name.removeprefix("HYDRA-UMC-").replace("-", "_")
+            lines.append(f"HYDRA_UMC_{key}_VERSION={status.manifest.version}")
+    return lines

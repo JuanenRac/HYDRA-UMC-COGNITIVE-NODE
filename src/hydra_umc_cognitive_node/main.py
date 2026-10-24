@@ -22,8 +22,9 @@ from pathlib import Path
 
 from . import __version__
 from .api import CognitiveNodeServer
-from .family import check_family_status, family_status_to_dict
+from .family import check_family_status, env_versions, family_status_to_dict
 from .models import check_shared_models
+from .probe import health_to_dict, probe_family
 
 PROJECT_NAME = "HYDRA-UMC-COGNITIVE-NODE"
 ROLE = (
@@ -47,12 +48,21 @@ def _print_identity() -> None:
     print(ROLE)
 
 
-def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | None = None) -> int:
+def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | None = None, probe: bool = False) -> int:
     statuses = check_family_status(workspace)
     shared_models = check_shared_models(_REPO_ROOT, models_dir)
+    health = None
+    if probe:
+        try:
+            health = {h.name: health_to_dict(h) for h in probe_family(workspace)}
+        except ValueError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 2
 
     if as_json:
-        print(json.dumps(family_status_to_dict(statuses, shared_models), indent=2))
+        print(json.dumps(family_status_to_dict(statuses, shared_models, health), indent=2))
+        if health is not None and not all((health.get(s.name) or {}).get("healthy") is True for s in statuses):
+            return 1
         return 0 if all(status.present for status in statuses) else 1
 
     print(f"Cognitive AI Node family status (workspace: {workspace}):")
@@ -61,7 +71,15 @@ def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | Non
             print(f"  {status.name}: NOT FOUND")
             continue
         m = status.manifest
-        print(f"  {status.name}: v{m.version}, maturity={m.maturity}, role={m.role}")
+        line = f"  {status.name}: v{m.version}, maturity={m.maturity}, role={m.role}"
+        if health is not None:
+            h = health[status.name]
+            if not h["reachable"]:
+                line += f" - NOT ANSWERING at {h['url']} ({h['error']})"
+            else:
+                state = {True: "healthy", False: "UNHEALTHY", None: "answers"}[h["healthy"]]
+                line += f" - {state} (HTTP {h['http_status']}, {h['latency_ms']} ms)"
+        print(line)
 
     if shared_models.present:
         print(f"\nShared model weights: present ({shared_models.path})")
@@ -72,6 +90,12 @@ def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | Non
             "on this machine; children that need them will run in their "
             "own honest degraded/no-hardware mode."
         )
+
+    if health is not None:
+        unwell = [s.name for s in statuses if (health.get(s.name) or {}).get("healthy") is not True]
+        if unwell:
+            print(f"\n{len(unwell)} of {len(statuses)} children are not answering well: {', '.join(unwell)}")
+            return 1
 
     missing = [status.name for status in statuses if not status.present]
     if missing:
@@ -116,10 +140,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Shared model weights directory (default: $HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR, else this repo's models/).",
     )
     family_parser.add_argument(
+        "--probe",
+        action="store_true",
+        help="Also ask each running child for its health (GET to the route its manifest declares). Where the children are: "
+             "the loopback ports of their systemd units, or $HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS (NAME=URL,...). "
+             "Without it only the manifests are read.",
+    )
+    family_parser.add_argument(
         "--json",
         action="store_true",
         help="Print a real, versioned machine-readable result instead of the human-readable table.",
     )
+
+    versions_parser = subparsers.add_parser(
+        "family-versions",
+        help="Print HYDRA_UMC_<CHILD>_VERSION=x.y.z lines (from the manifests of the checkouts) for the .env file of docker-compose.yml.",
+    )
+    versions_parser.add_argument("--workspace", type=Path, default=_DEFAULT_WORKSPACE)
 
     serve_parser = subparsers.add_parser(
         "serve",
@@ -150,7 +187,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "family-status":
-        return _run_family_status(args.workspace, as_json=args.json, models_dir=args.models_dir)
+        return _run_family_status(args.workspace, as_json=args.json, models_dir=args.models_dir, probe=args.probe)
+    if args.command == "family-versions":
+        for line in env_versions(check_family_status(args.workspace)):
+            print(line)
+        return 0
     if args.command == "serve":
         return _run_serve(args.addr, args.port, args.workspace, args.models_dir)
 

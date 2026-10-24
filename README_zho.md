@@ -52,6 +52,7 @@ NPU（40 TOPS）驱动，它能直接在边缘端实现复杂的语义推理、�
   其是否存在/版本/成熟度。*（已实现为真实的就绪检查——见下方"构建与
   运行"）*
 * 🔒 **版本化状态模式 + 资源受限的清单读取：** `family-status --json` 会打印真实的、版本化的、机器可读的结果；任何超过 64 KiB 的兄弟清单（损坏或恶意的检出）都会降级为"未找到"，而不会被无限制地读取。*（已实现）*
+* 🩺 **运行中子服务的健康状况、镜像标签以及引擎容器中的权重:** `family-status --probe`(或 `GET /family-status?probe=1`)还会向每个运行中的子服务询问其健康状况,使用其自身清单声明的路由(没有则用 `/stats`),并报告它是否应答、状态码和速度,以及该子服务对自身的判断;只要有一个状况不好就以非零码退出。子服务的位置在节点启动时固定:默认是它们的回环端口,或 `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS`(compose 文件在栈内如此设置)。compose 文件中的镜像用 `HYDRA_UMC_<名称>_VERSION`(来自 `.env`;`family-versions` 根据清单打印这些行)或 `latest` 打标签,不再使用编造的数字;vla-engine 容器现在把 `models/` 挂载在引擎查找的位置;另有一个工作流检查 `docker compose config` 仍能解析。*(已用替代服务测试,未用真实子服务或 Hailo-10)*
 * 🪫 **共享模型权重降级检查：** `family-status` 会诚实地报告本节点自身的 `models/` 目录中是否真的存在真实权重，而不仅仅是兄弟仓库是否已被检出。*（已实现）*
 * 📦 **里程表式版本管理：** `pyproject.toml` 中的版本只由显式的 `bump` 命令提升（`python tools/hydra_project_tool.py bump`，它会运行 `bump_version.py`）- 构建绝不会更改它。
 

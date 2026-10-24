@@ -1,0 +1,27 @@
+# =============================================================================
+# HYDRA-UMC-COGNITIVE-NODE - the compose file still parses
+# Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
+# GPL-3.0-or-later - see LICENSE
+# =============================================================================
+name: Compose file
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  config:
+    name: docker compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Resolve the compose file (variables, mounts, ports) without building anything
+        env:
+          # placeholders: the file refuses to resolve without them, and they are not used for anything else
+          HYDRA_UMC_VOICE_UI_TOKEN: ci-only-token-0123456789
+          HYDRA_UMC_VOICE_UI_CONFIRM_SECRET: ci-only-secret-0123456789abcdef0123456789
+        run: docker compose -f docker-compose.yml config --quiet

@@ -27,6 +27,9 @@
 # else) - none of these routes were added for this file, they already
 # existed for their own service's own tests/CLI.
 #
+# Image tags: each image is tagged with HYDRA_UMC_<NAME>_VERSION from the .env file next to this one, `latest` when it is not set.
+# `hydra-umc-cognitive-node family-versions --workspace ..` prints those lines from the manifests of the checkouts the images are built from.
+#
 # Ports are published on the host's loopback only (127.0.0.1:<port>), which is
 # where HYDRA-UMC-SERVER's proxy expects each service. They are the same ports
 # the systemd units use, so run EITHER this stack OR the systemd units, never
@@ -38,7 +41,7 @@
 services:
   cognitive-node:
     build: .
-    image: hydra-umc-cognitive-node:1.0.0
+    image: hydra-umc-cognitive-node:${HYDRA_UMC_COGNITIVE_NODE_VERSION:-latest}
     container_name: hydra-umc-cognitive-node
     # family-status reads each child's manifest, so those four files are
     # mounted where the node looks for them (the images do not contain the
@@ -47,6 +50,8 @@ services:
     environment:
       - HYDRA_UMC_COGNITIVE_NODE_WORKSPACE=/workspace
       - HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR=/opt/hydra/models
+      # where the children are inside this stack (family-status --probe and GET /family-status?probe=1 ask them for their health)
+      - HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS=HYDRA-UMC-VOICE-UI=http://voice-ui:8091,HYDRA-UMC-SEMANTIC-PLANNER=http://semantic-planner:8109,HYDRA-UMC-VLA-ENGINE=http://vla-engine:8098,HYDRA-UMC-DOCS-QA=http://docs-qa:8110
     ports:
       - "127.0.0.1:8096:8096"
     volumes:
@@ -79,7 +84,7 @@ services:
   # is planned, not wired. See ../HYDRA-UMC-VOICE-UI.
   voice-ui:
     build: ../HYDRA-UMC-VOICE-UI
-    image: hydra-umc-voice-ui:1.0.0
+    image: hydra-umc-voice-ui:${HYDRA_UMC_VOICE_UI_VERSION:-latest}
     container_name: hydra-umc-voice-ui
     # http_service.py's own create_voice_gateway() refuses to bind beyond
     # loopback without a real bearer token (by design - see this
@@ -105,7 +110,7 @@ services:
   # HYDRA-ORCHESTRATOR are planned, not wired. See ../HYDRA-UMC-SEMANTIC-PLANNER.
   semantic-planner:
     build: ../HYDRA-UMC-SEMANTIC-PLANNER
-    image: hydra-umc-semantic-planner:1.0.0
+    image: hydra-umc-semantic-planner:${HYDRA_UMC_SEMANTIC_PLANNER_VERSION:-latest}
     container_name: hydra-umc-semantic-planner
     ports:
       - "127.0.0.1:8109:8109"
@@ -122,12 +127,15 @@ services:
   # See ../HYDRA-UMC-VLA-ENGINE.
   vla-engine:
     build: ../HYDRA-UMC-VLA-ENGINE
-    image: hydra-umc-vla-engine:1.0.0
+    image: hydra-umc-vla-engine:${HYDRA_UMC_VLA_ENGINE_VERSION:-latest}
     container_name: hydra-umc-vla-engine
     ports:
       - "127.0.0.1:8098:8098"
     devices:
       - /dev/hailo0:/dev/hailo0
+    # the engine looks for compiled models in <workspace>/HYDRA-UMC-COGNITIVE-NODE/models and its image sets the workspace to /workspace
+    volumes:
+      - ./models:/workspace/HYDRA-UMC-COGNITIVE-NODE/models:ro
     restart: unless-stopped
     mem_limit: 768m   # matches ../HYDRA-UMC-VLA-ENGINE/systemd's own MemoryMax
     healthcheck:
@@ -141,7 +149,7 @@ services:
   # ../HYDRA-UMC-DOCS-QA.
   docs-qa:
     build: ../HYDRA-UMC-DOCS-QA
-    image: hydra-umc-docs-qa:1.0.0
+    image: hydra-umc-docs-qa:${HYDRA_UMC_DOCS_QA_VERSION:-latest}
     container_name: hydra-umc-docs-qa
     ports:
       - "127.0.0.1:8110:8110"
