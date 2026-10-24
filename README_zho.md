@@ -25,7 +25,7 @@
 
 | | |
 |---|---|
-| 版本 | `0.1.4` |
+| 版本 | `0.1.5` |
 | 成熟度 | 可用 |
 | 测试 | 35 (`pytest tests/`) |
 | 技术栈 | Python / CM5 / Hailo-10 |
@@ -146,7 +146,7 @@ run.bat
 `run.sh` 的预期输出：
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.4
+HYDRA-UMC-COGNITIVE-NODE v0.1.5
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 

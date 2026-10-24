@@ -25,7 +25,7 @@
 
 | | |
 |---|---|
-| Versión | `0.1.4` |
+| Versión | `0.1.5` |
 | Madurez | Funcional |
 | Tests | 35 (`pytest tests/`) |
 | Tecnología | Python / CM5 / Hailo-10 |
@@ -197,7 +197,7 @@ run.bat
 real (`pytest tests/`). Salida esperada de un `run.sh` sin argumentos:
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.4
+HYDRA-UMC-COGNITIVE-NODE v0.1.5
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
