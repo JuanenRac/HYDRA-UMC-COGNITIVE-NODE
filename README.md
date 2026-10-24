@@ -153,11 +153,13 @@ unit on the same physical board:
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
+│   ├── __init__.py                 # Package description and version
 │   ├── manifest.py                 # Real, defensive reader for a sibling's own manifest (64 KiB bound)
 │   ├── models.py                   # Real check of this node's own shared model-weights directory
 │   ├── family.py                    # Real family-readiness check + versioned JSON schema
 │   ├── api.py                         # Plain JSON/HTTP surface (stdlib http.server) over `family-status`
-│   └── main.py                        # Entry point + real `family-status [--json]` and `serve` subcommands
+│   ├── main.py                        # Entry point + real `family-status [--json]` and `serve` subcommands
+│   └── probe.py                       # Asks the running child services whether they answer (one GET to each health route)
 ├── tests/                          # Real tests: manifest reading, models, family status, api, end-to-end CLI
 ├── docs/
 │   └── CLI_REFERENCE.md            # Full command reference: every flag, real captured output, exit codes
@@ -168,7 +170,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   └── hydra-umc-cognitive-node.service # Local CM5 family-status API systemd unit
 ├── tools/
 │   ├── build_test.py               # Non-versioning build/compile check
-│   └── ci_validate.py              # Manifest/CHANGELOG/docs validation used by CI
+│   ├── ci_validate.py              # Manifest/CHANGELOG/docs validation used by CI
+│   ├── _doc_policy.py              # Documentation rules shared by the family (a copy of HYDRA-UMC-SDK's, kept in sync)
+│   ├── _readme_parity.py           # Check that the eight READMEs share one structure (a copy of HYDRA-UMC-SDK's, kept in sync)
+│   └── hydra_project_tool.py       # The same commands in every repository: validate, test, ci, version, status, bump
 ├── build/                          # Local build output (git-ignored)
 ├── pyproject.toml                  # Package metadata (version raised only by the explicit bump command)
 ├── bump_version.py                 # Odometer-style version bump (run only by the explicit `bump` command)

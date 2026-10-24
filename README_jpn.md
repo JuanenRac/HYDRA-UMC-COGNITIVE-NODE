@@ -113,11 +113,13 @@ flowchart TB
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
+│   ├── __init__.py                 # パッケージの説明とバージョン
 │   ├── manifest.py                 # 兄弟プロジェクト自身のマニフェストの実際の防御的リーダー（64 KiB 上限）
 │   ├── models.py                   # 本ノード自身の共有モデル重みディレクトリに対する実際のチェック
 │   ├── family.py                    # 実際のファミリーレディネスチェック + バージョン管理された JSON スキーマ
 │   ├── api.py                         # シンプルなJSON/HTTPサーフェス(stdlibのhttp.server)。`family-status`を橋渡し
-│   └── main.py                        # エントリポイント + 実際の `family-status [--json]` と `serve` サブコマンド
+│   ├── main.py                        # エントリポイント + 実際の `family-status [--json]` と `serve` サブコマンド
+│   └── probe.py                       # 稼働中の子サービスが応答するか確認 (各ヘルスルートへの GET 1回)
 ├── tests/                          # 実際のテスト：マニフェスト読み込み、モデル、ファミリーステータス、api、エンドツーエンド CLI
 ├── docs/
 │   └── CLI_REFERENCE.md            # 完全なコマンドリファレンス:全フラグ、実際に取得した出力、終了コード
@@ -128,7 +130,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   └── hydra-umc-cognitive-node.service # ローカルCM5 family-status APIのsystemdユニット
 ├── tools/
 │   ├── build_test.py               # バージョンを増やさないビルドチェック
-│   └── ci_validate.py              # CI が使用するマニフェスト/CHANGELOG/ドキュメント検証
+│   ├── ci_validate.py              # CI が使用するマニフェスト/CHANGELOG/ドキュメント検証
+│   ├── _doc_policy.py              # ファミリー共通のドキュメント規則 (HYDRA-UMC-SDK のコピーで、同期を維持)
+│   ├── _readme_parity.py           # 8つの README が同じ構造であることの検査 (HYDRA-UMC-SDK のコピーで、同期を維持)
+│   └── hydra_project_tool.py       # すべてのリポジトリで共通のコマンド: validate、test、ci、version、status、bump
 ├── build/                          # ローカルビルド出力（git 管理外）
 ├── pyproject.toml                  # パッケージメタデータ（オドメーター式バージョン増加）
 ├── bump_version.py                 # オドメーター式バージョンインクリメント（明示的な `bump` コマンドのみが実行）

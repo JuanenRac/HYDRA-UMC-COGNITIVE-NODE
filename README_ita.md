@@ -161,11 +161,13 @@ agire come un'unica unità cognitiva sulla stessa scheda fisica:
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
+│   ├── __init__.py                 # Descrizione e versione del pacchetto
 │   ├── manifest.py                 # Lettore reale e difensivo del manifest proprio di un fratello (limite di 64 KiB)
 │   ├── models.py                   # Controllo reale della directory di pesi di modello condivisi propria di questo nodo
 │   ├── family.py                    # Vero controllo di disponibilità di famiglia + schema JSON versionato
 │   ├── api.py                         # Superficie JSON/HTTP semplice (http.server di stdlib) su `family-status`
-│   └── main.py                        # Punto di ingresso + sottocomandi reali `family-status [--json]` e `serve`
+│   ├── main.py                        # Punto di ingresso + sottocomandi reali `family-status [--json]` e `serve`
+│   └── probe.py                       # Chiede ai servizi figli in esecuzione se rispondono (un GET su ogni percorso di salute)
 ├── tests/                          # Test reali: lettura manifest, modelli, stato famiglia, api, CLI end-to-end
 ├── docs/
 │   └── CLI_REFERENCE.md            # Riferimento completo dei comandi: ogni flag, output reale catturato, codici di uscita
@@ -176,7 +178,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   └── hydra-umc-cognitive-node.service # Unità systemd della API locale family-status sulla CM5
 ├── tools/
 │   ├── build_test.py               # Controllo build senza versionamento
-│   └── ci_validate.py              # Validazione manifest/CHANGELOG/docs usata dalla CI
+│   ├── ci_validate.py              # Validazione manifest/CHANGELOG/docs usata dalla CI
+│   ├── _doc_policy.py              # Regole di documentazione condivise dalla famiglia (copia di quella di HYDRA-UMC-SDK, mantenuta sincronizzata)
+│   ├── _readme_parity.py           # Verifica che gli otto README abbiano la stessa struttura (copia di quella di HYDRA-UMC-SDK, mantenuta sincronizzata)
+│   └── hydra_project_tool.py       # Gli stessi comandi in ogni repository: validate, test, ci, version, status, bump
 ├── build/                          # Output di build locale (ignorato da git)
 ├── pyproject.toml                  # Metadati del pacchetto (versione a incremento contachilometri)
 ├── bump_version.py                 # Incremento di versione stile contachilometri (eseguito solo dal comando `bump` esplicito)

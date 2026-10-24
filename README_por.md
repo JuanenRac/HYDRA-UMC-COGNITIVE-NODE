@@ -151,11 +151,13 @@ na mesma placa física:
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
+│   ├── __init__.py                 # Descrição e versão do pacote
 │   ├── manifest.py                 # Leitor real e defensivo do manifesto próprio de um irmão (limite de 64 KiB)
 │   ├── models.py                   # Verificação real do diretório de pesos de modelos partilhados deste nó
 │   ├── family.py                    # Verificação real de prontidão da família + esquema JSON versionado
 │   ├── api.py                         # Superfície JSON/HTTP simples (http.server da biblioteca padrão) sobre o `family-status`
-│   └── main.py                        # Ponto de entrada + subcomandos reais `family-status [--json]` e `serve`
+│   ├── main.py                        # Ponto de entrada + subcomandos reais `family-status [--json]` e `serve`
+│   └── probe.py                       # Pergunta aos serviços filhos em execução se respondem (um GET a cada rota de saúde)
 ├── tests/                          # Testes reais: leitura de manifestos, modelos, estado da família, api, CLI de ponta a ponta
 ├── docs/
 │   └── CLI_REFERENCE.md            # Referência completa de comandos: cada opção, saída real capturada, códigos de saída
@@ -166,7 +168,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   └── hydra-umc-cognitive-node.service # Unidade systemd da API local family-status do CM5
 ├── tools/
 │   ├── build_test.py               # Verificação de compilação sem subir a versão
-│   └── ci_validate.py              # Validação de manifesto/CHANGELOG/documentação usada pelo CI
+│   ├── ci_validate.py              # Validação de manifesto/CHANGELOG/documentação usada pelo CI
+│   ├── _doc_policy.py              # Regras de documentação partilhadas pela família (cópia da de HYDRA-UMC-SDK, mantida em sincronia)
+│   ├── _readme_parity.py           # Verificação de que os oito README partilham a mesma estrutura (cópia da de HYDRA-UMC-SDK, mantida em sincronia)
+│   └── hydra_project_tool.py       # Os mesmos comandos em todos os repositórios: validate, test, ci, version, status, bump
 ├── build/                          # Saída da compilação local (ignorada pelo git)
 ├── pyproject.toml                  # Metadados do pacote (versão subida só pelo comando bump explícito)
 ├── bump_version.py                 # Subida de versão ao estilo conta-quilómetros (executada só pelo comando `bump` explícito)

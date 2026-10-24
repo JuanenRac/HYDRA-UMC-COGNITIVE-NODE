@@ -110,11 +110,13 @@ flowchart TB
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
+│   ├── __init__.py                 # 包说明与版本
 │   ├── manifest.py                 # 真实的、具防御性的兄弟项目自身清单读取器（64 KiB 上限）
 │   ├── models.py                   # 对本节点自身共享模型权重目录的真实检查
 │   ├── family.py                    # 真实的家族就绪检查 + 版本化 JSON 模式
 │   ├── api.py                         # 简洁的 JSON/HTTP 接口(基于 stdlib http.server),桥接 `family-status`
-│   └── main.py                        # 入口点 + 真实的 `family-status [--json]` 与 `serve` 子命令
+│   ├── main.py                        # 入口点 + 真实的 `family-status [--json]` 与 `serve` 子命令
+│   └── probe.py                       # 询问正在运行的子服务是否应答 (对每条健康路由发一次 GET)
 ├── tests/                          # 真实测试：清单读取、模型、家族状态、api、端到端 CLI
 ├── docs/
 │   └── CLI_REFERENCE.md            # 完整命令参考:所有参数、真实抓取的输出、退出码
@@ -125,7 +127,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   └── hydra-umc-cognitive-node.service # 本地 CM5 family-status API 的 systemd 单元
 ├── tools/
 │   ├── build_test.py               # 不递增版本号的构建检查
-│   └── ci_validate.py              # CI 使用的清单/CHANGELOG/文档校验
+│   ├── ci_validate.py              # CI 使用的清单/CHANGELOG/文档校验
+│   ├── _doc_policy.py              # 家族共享的文档规则 (HYDRA-UMC-SDK 的副本,保持同步)
+│   ├── _readme_parity.py           # 检查八个 README 结构一致 (HYDRA-UMC-SDK 的副本,保持同步)
+│   └── hydra_project_tool.py       # 每个仓库相同的命令: validate、test、ci、version、status、bump
 ├── build/                          # 本地构建输出（已被 git 忽略）
 ├── pyproject.toml                  # 包元数据（里程表式递增版本号）
 ├── bump_version.py                 # 里程表式版本递增（仅由显式 `bump` 命令运行）

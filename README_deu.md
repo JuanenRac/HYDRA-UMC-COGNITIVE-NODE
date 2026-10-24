@@ -164,11 +164,13 @@ zu agieren:
 ```text
 HYDRA-UMC-COGNITIVE-NODE/
 ├── src/hydra_umc_cognitive_node/
+│   ├── __init__.py                 # Paketbeschreibung und Version
 │   ├── manifest.py                 # Echter, defensiver Leser für das eigene Manifest eines Geschwisters (64 KiB Grenze)
 │   ├── models.py                   # Echte Prüfung des eigenen Verzeichnisses mit gemeinsam genutzten Modellgewichten dieses Knotens
 │   ├── family.py                    # Echte Familien-Bereitschaftsprüfung + versioniertes JSON-Schema
 │   ├── api.py                         # Einfache JSON/HTTP-Oberfläche (stdlib http.server) über `family-status`
-│   └── main.py                        # Einstiegspunkt + echte Subcommands `family-status [--json]` und `serve`
+│   ├── main.py                        # Einstiegspunkt + echte Subcommands `family-status [--json]` und `serve`
+│   └── probe.py                       # Fragt die laufenden Kind-Dienste, ob sie antworten (ein GET auf jede Health-Route)
 ├── tests/                          # Echte Tests: Manifest-Lesen, Modelle, Familienstatus, api, End-to-End-CLI
 ├── docs/
 │   └── CLI_REFERENCE.md            # Vollständige Befehlsreferenz: jedes Flag, echte erfasste Ausgabe, Exit-Codes
@@ -179,7 +181,10 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   └── hydra-umc-cognitive-node.service # systemd-Unit der lokalen CM5-family-status-API
 ├── tools/
 │   ├── build_test.py               # Nicht-versionierender Build-Check
-│   └── ci_validate.py              # Manifest/CHANGELOG/Docs-Validierung, von CI genutzt
+│   ├── ci_validate.py              # Manifest/CHANGELOG/Docs-Validierung, von CI genutzt
+│   ├── _doc_policy.py              # Von der Familie geteilte Dokumentationsregeln (Kopie der von HYDRA-UMC-SDK, synchron gehalten)
+│   ├── _readme_parity.py           # Prüfung, dass die acht READMEs dieselbe Struktur haben (Kopie der von HYDRA-UMC-SDK, synchron gehalten)
+│   └── hydra_project_tool.py       # Dieselben Befehle in jedem Repository: validate, test, ci, version, status, bump
 ├── build/                          # Lokale Build-Ausgabe (von git ignoriert)
 ├── pyproject.toml                  # Paket-Metadaten (Version per Kilometerzähler-Inkrement)
 ├── bump_version.py                 # Versionserhöhung im Kilometerzähler-Stil (nur vom expliziten `bump`-Befehl ausgeführt)
