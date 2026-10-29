@@ -1,3 +1,9 @@
+<!-- =============================================================================
+HYDRA-UMC-COGNITIVE-NODE - Cognitive AI node (Hailo-10)
+Copyright (C) JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
+GPL-3.0-or-later - see LICENSE
+============================================================================= -->
+
 <p align="center">
   <img src="images/HYDRA_UMC_BANNER.svg" alt="HYDRA-UMC-COGNITIVE-NODE banner" width="100%">
 </p>
@@ -9,17 +15,21 @@
 ### 🤖 语义推理与生成式 AI 边缘节点（Hailo-10 + Raspberry Pi CM5）
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Licencia-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
-  <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="CM5 + Hailo-10">
-  <img src="https://img.shields.io/badge/Performance-40%20TOPS-green.svg" alt="40 TOPS">
+  <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
+  <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
+  <img src="https://img.shields.io/badge/Tests-56%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.1.5-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
-
-> **诚实检查——今天真正可运行的部分：** 家族就绪检查及其带版本号的 JSON 模式（`family.py`、`manifest.py`、`models.py`），以及基于标准库的简单 HTTP 接口（`api.py`）都是真实的，并由 35 个通过的测试覆盖（`pytest tests/` —— `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。该节点本身不运行任何模型——下文"核心功能"中的"本地 LLM 执行"、"VLA 集成"和"语音命令处理"都明确标注为`(计划中)`——本仓库中没有任何 Hailo-10 运行时代码。`docker-compose.yml` 现在为全部 4 个子服务都引用了真实的 Dockerfile，但在这个开发环境中从未真正作为一个整体堆栈运行过（这里没有可用的 Docker 运行时）——每个 Dockerfile 的命令/端口映射都是人工核对的，对照的是每个子服务自身的 systemd unit 在真实 CM5 上已经在运行的配置，并未经过实际验证。目前具体已交付的内容见 `CHANGELOG.md`。
 
 ---
 
+> **诚实检查——今天真正可运行的部分：** 家族就绪检查及其带版本号的 JSON 模式（`family.py`、`manifest.py`、`models.py`），以及基于标准库的简单 HTTP 接口（`api.py`）都是真实的，并由 56 个通过的测试覆盖（`pytest tests/` —— `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。该节点本身不运行任何模型——下文"核心功能"中的"本地 LLM 执行"、"VLA 集成"和"语音命令处理"都明确标注为`(计划中)`——本仓库中没有任何 Hailo-10 运行时代码。`docker-compose.yml` 现在为全部 4 个子服务都引用了真实的 Dockerfile，但在这个开发环境中从未真正作为一个整体堆栈运行过（这里没有可用的 Docker 运行时）——每个 Dockerfile 的命令/端口映射都是人工核对的，对照的是每个子服务自身的 systemd unit 在真实 CM5 上已经在运行的配置，并未经过实际验证。目前具体已交付的内容见 `CHANGELOG.md`。
+
 > **安全与安防现状:**本生态系统不是经认证的安全系统。目前尚无硬件 E-STOP 通路,没有由固件强制执行的限位或联锁,也没有经过验证的运动指令;固件映像使用 CRC32 和共享密钥的 HMAC-SHA256 校验,而非非对称签名;TLS 与双向 TLS 均为可选项,默认关闭;自制电路板尚未组装或测试。在依赖此处任何说法来保障人身安全之前,请先阅读[安全基线](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)和[威胁模型](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)。
+
+---
 
 ## 📋 速览
 
@@ -27,10 +37,12 @@
 |---|---|
 | 版本 | `0.1.5` |
 | 成熟度 | 可用 |
-| 测试 | 35 (`pytest tests/`) |
+| 测试 | 56 (`python -m pytest -q tests`) |
 | 技术栈 | Python / CM5 / Hailo-10 |
 | 目标 | HYDRA-UMC 工作单元的 Raspberry Pi CM5 |
 | 真实硬件 | 尚未：此版本没有在真实硬件上运行的记录 |
+
+**跳转：** [概述](#-概述) · [架构](#-架构) · [功能](#-功能) · [安全与防护](#-安全与防护) · [接口](#-接口) · [配置](#-配置) · [快速开始](#-快速开始) · [测试](#-测试) · [故障排除](#-故障排除) · [仓库结构](#-仓库结构) · [相关项目](#-相关项目)
 
 ## 🚦 项目状态
 
@@ -41,11 +53,11 @@
 | 领域 | 状态 | 在这里的含义 |
 |---|---|---|
 | 软件 | 🟡 | 主要用途可用；上面的诚实性检查列出了仍然缺少的内容 |
-| 测试 | 🟢 | 35 项自动测试，每次变更都会运行 |
+| 测试 | 🟢 | 56 项自动测试，每次变更都会运行 |
 | 真实硬件 | 🔴 | 尚未：此版本没有在真实硬件上运行的记录 |
 | 文档 | 🟢 | 八种语言的 README，每次变更都会与清单核对 |
 
-## 1. 🛠️ 技术概述
+## 🎯 概述
 
 **HYDRA-UMC-COGNITIVE-NODE** 充当 HYDRA-UMC 生态系统的"额叶"。由 Hailo-10
 NPU（40 TOPS）驱动，它能直接在边缘端实现复杂的语义推理、自然语言理解，
@@ -54,24 +66,18 @@ NPU（40 TOPS）驱动，它能直接在边缘端实现复杂的语义推理、�
 它将高层的人类指令转化为逻辑化的机器人操作序列，管理错误恢复和任务优化，
 无需依赖云端。
 
-### 关键特性：
-* 🧠 **本地 LLM 执行：** 针对量化模型（Llama/Mistral）的硬件加速推理。*（计划中——需要真实的 Hailo-10 模型运行时）*
-* 👁️ **VLA 集成：** 用于直观任务执行的视觉-语言-动作模型。*（计划中）*
-* 🎙️ **语音指令处理：** 用于人机交互的实时 STT/TTS。*（计划中）*
-* 🛡️ **隐私优先：** 所有认知任务 100% 离线处理。*（一旦上述功能存在即天然成立——目前这里没有任何代码会调用网络）*
-* 🧩 **集成中枢（v0）：** 拥有共享的 HydraOS 镜像和被其 4 个子项目消费的量化
-  模型权重，并通过单一的 `docker-compose.yml` 将它们作为同级服务连接在
-  一起。真实的 `family-status` 检查会读取每个子项目自身的真实清单，报告
-  其是否存在/版本/成熟度。*（已实现为真实的就绪检查——见下方"构建与
-  运行"）*
-* 🔒 **版本化状态模式 + 资源受限的清单读取：** `family-status --json` 会打印真实的、版本化的、机器可读的结果；任何超过 64 KiB 的兄弟清单（损坏或恶意的检出）都会降级为"未找到"，而不会被无限制地读取。*（已实现）*
-* 🩺 **运行中子服务的健康状况、镜像标签以及引擎容器中的权重:** `family-status --probe`(或 `GET /family-status?probe=1`)还会向每个运行中的子服务询问其健康状况,使用其自身清单声明的路由(没有则用 `/stats`),并报告它是否应答、状态码和速度,以及该子服务对自身的判断;只要有一个状况不好就以非零码退出。子服务的位置在节点启动时固定:默认是它们的回环端口,或 `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS`(compose 文件在栈内如此设置)。compose 文件中的镜像用 `HYDRA_UMC_<名称>_VERSION`(来自 `.env`;`family-versions` 根据清单打印这些行)或 `latest` 打标签,不再使用编造的数字;vla-engine 容器现在把 `models/` 挂载在引擎查找的位置;另有一个工作流检查 `docker compose config` 仍能解析。*(已用替代服务测试,未用真实子服务或 Hailo-10)*
-* 🪫 **共享模型权重降级检查：** `family-status` 会诚实地报告本节点自身的 `models/` 目录中是否真的存在真实权重，而不仅仅是兄弟仓库是否已被检出。*（已实现）*
-* 📦 **里程表式版本管理：** `pyproject.toml` 中的版本只由显式的 `bump` 命令提升（`python tools/hydra_project_tool.py bump`，它会运行 `bump_version.py`）- 构建绝不会更改它。
+## 🧩 在 HYDRA-UMC 中的角色
 
----
+**HYDRA-UMC-COGNITIVE-NODE** 是 Hailo-10 认知家族的集成点。目前它的真实工作是就绪检查：读取四个子项目（VLA-ENGINE、VOICE-UI、SEMANTIC-PLANNER、DOCS-QA）的清单，查看共享的模型权重文件夹，并在需要时通过 HTTP 探测每个子服务。它不是推理引擎。
 
-## 2. 🔄 认知工作流
+## 🏛️ 架构
+
+<p align="center">
+  <img src="images/architecture.svg" alt="HYDRA-UMC-COGNITIVE-NODE architecture" width="100%">
+</p>
+
+<details>
+<summary>图表的文本版本（Mermaid）</summary>
 
 ```mermaid
 flowchart TB
@@ -84,9 +90,9 @@ flowchart TB
     RAG --> PLANNER
 ```
 
----
+</details>
 
-## 3. 🧱 架构与设计决策
+**为什么这样构建**
 
 本仓库是 Cognitive AI Node 系列的**父项目/集成点**。它本身不运行任何
 模型——它拥有共享资源以及使其 4 个子项目能够作为同一物理板卡上单一认知
@@ -103,50 +109,59 @@ flowchart TB
 * **为何兄弟清单的读取被限制在 64 KiB 以内。** 本生态系统中每一份真实的清单大小都在几百字节到几 KiB 之间——一个清单被替换成超大文件的、损坏或恶意的检出，绝不能让一次常规的就绪检查无限制地将数据加载到内存中。它会像任何其他格式错误的清单一样降级为 `None`。
 * **为何 `family-status` 会报告 `models/`，即使本节点自身并不运行任何模型。** "兄弟仓库已被检出"和"它们所需的共享权重确实存在"是两个不同的真实事实——`models.py` 的 `check_shared_models()` 会诚实地检查后者（为空但存在也算作缺失），而不是让操作者仅凭子项目的存在就假定就绪。
 
----
+## ✨ 功能
 
-## 📂 目录结构
+* 🧠 **本地 LLM 执行：** 针对量化模型（Llama/Mistral）的硬件加速推理。*（计划中——需要真实的 Hailo-10 模型运行时）*
+* 👁️ **VLA 集成：** 用于直观任务执行的视觉-语言-动作模型。*（计划中）*
+* 🎙️ **语音指令处理：** 用于人机交互的实时 STT/TTS。*（计划中）*
+* 🛡️ **隐私优先：** 所有认知任务 100% 离线处理。*（一旦上述功能存在即天然成立——目前这里没有任何代码会调用网络）*
+* 🧩 **集成中枢（v0）：** 拥有共享的 HydraOS 镜像和被其 4 个子项目消费的量化
+  模型权重，并通过单一的 `docker-compose.yml` 将它们作为同级服务连接在
+  一起。真实的 `family-status` 检查会读取每个子项目自身的真实清单，报告
+  其是否存在/版本/成熟度。*（已实现为真实的就绪检查——见下方"构建与
+  运行"）*
+* 🔒 **版本化状态模式 + 资源受限的清单读取：** `family-status --json` 会打印真实的、版本化的、机器可读的结果；任何超过 64 KiB 的兄弟清单（损坏或恶意的检出）都会降级为"未找到"，而不会被无限制地读取。*（已实现）*
+* 🩺 **运行中子服务的健康状况、镜像标签以及引擎容器中的权重:** `family-status --probe`(或 `GET /family-status?probe=1`)还会向每个运行中的子服务询问其健康状况,使用其自身清单声明的路由(没有则用 `/stats`),并报告它是否应答、状态码和速度,以及该子服务对自身的判断;只要有一个状况不好就以非零码退出。子服务的位置在节点启动时固定:默认是它们的回环端口,或 `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS`(compose 文件在栈内如此设置)。compose 文件中的镜像用 `HYDRA_UMC_<名称>_VERSION`(来自 `.env`;`family-versions` 根据清单打印这些行)或 `latest` 打标签,不再使用编造的数字;vla-engine 容器现在把 `models/` 挂载在引擎查找的位置;另有一个工作流检查 `docker compose config` 仍能解析。*(已用替代服务测试,未用真实子服务或 Hailo-10)*
+* 🪫 **共享模型权重降级检查：** `family-status` 会诚实地报告本节点自身的 `models/` 目录中是否真的存在真实权重，而不仅仅是兄弟仓库是否已被检出。*（已实现）*
+* 📦 **显式的版本提升：** `pyproject.toml` 中的版本只由显式的 `bump` 命令提升（`python tools/hydra_project_tool.py bump`，它会运行 `bump_version.py`）- 构建绝不会更改它。
 
-```text
-HYDRA-UMC-COGNITIVE-NODE/
-├── src/hydra_umc_cognitive_node/
-│   ├── __init__.py                 # 包说明与版本
-│   ├── manifest.py                 # 真实的、具防御性的兄弟项目自身清单读取器（64 KiB 上限）
-│   ├── models.py                   # 对本节点自身共享模型权重目录的真实检查
-│   ├── family.py                    # 真实的家族就绪检查 + 版本化 JSON 模式
-│   ├── api.py                         # 简洁的 JSON/HTTP 接口(基于 stdlib http.server),桥接 `family-status`
-│   ├── main.py                        # 入口点 + 真实的 `family-status [--json]` 与 `serve` 子命令
-│   └── probe.py                       # 询问正在运行的子服务是否应答 (对每条健康路由发一次 GET)
-├── tests/                          # 真实测试：清单读取、模型、家族状态、api、端到端 CLI
-├── docs/
-│   └── CLI_REFERENCE.md            # 完整命令参考:所有参数、真实抓取的输出、退出码
-├── os/                             # CM5 的 HydraOS 镜像/配置 - 部署时填充(不在 git 中)
-├── models/                         # Hailo-10 优化后的权重（LLM/VLA，由 4 个子项目共享） - 部署时填充(不在 git 中)
-├── images/                         # 媒体与图表
-├── systemd/
-│   └── hydra-umc-cognitive-node.service # 本地 CM5 family-status API 的 systemd 单元
-├── tools/
-│   ├── build_test.py               # 不递增版本号的构建检查
-│   ├── ci_validate.py              # CI 使用的清单/CHANGELOG/文档校验
-│   ├── _doc_policy.py              # 家族共享的文档规则 (HYDRA-UMC-SDK 的副本,保持同步)
-│   ├── _readme_parity.py           # 检查八个 README 结构一致 (HYDRA-UMC-SDK 的副本,保持同步)
-│   └── hydra_project_tool.py       # 每个仓库相同的命令: validate、test、ci、version、status、bump
-├── build/                          # 本地构建输出（已被 git 忽略）
-├── pyproject.toml                  # 包元数据（里程表式递增版本号）
-├── bump_version.py                 # 里程表式版本递增（仅由显式 `bump` 命令运行）
-├── bump_manifest_version.py        # 将 hydra-umc.project.json 的版本与原生版本同步(--sync)
-├── docker-compose.yml              # 4 个子服务的集成蓝图
-├── build.sh / build.bat            # 创建 venv、安装（含 dev 附加依赖）、运行测试、验证导入
-└── run.sh / run.bat                # 运行入口点（转发参数，例如 `family-status`）
+## 🔒 安全与防护
+
+| 威胁 | 防御 | 位置 |
+|---|---|---|
+| 巨大或恶意的清单、巨大的模型文件夹 | 兄弟仓库的清单最多读取 64 KiB；模型文件夹最多检查 20 000 个文件，只统计权重后缀 `.bin .gguf .har .hef .onnx .safetensors .tflite` | `manifest.py`, `models.py` |
+| 返回垃圾或卡死的子服务 | 探测最多等待 2 秒、最多读取 64 KiB；清单中的健康路径只有以 `/` 开头、短于 128 个字符且不含空格才被接受，否则使用 `/stats` | `probe.py` |
+| 对网络的暴露 | HTTP 接口只读，默认监听 `127.0.0.1:8096`；它扫描启动时固定的工作区，对试图选择其他工作区的请求返回 `400`。它没有令牌：是否需要仍未决定 | `api.py`, `main.py` |
+
+**它绝不做的事：** 它不是推理引擎：此仓库中不运行任何模型，也不向子服务写入任何内容。
+
+## 🔌 接口
+
+`family-status [--workspace DIR] [--models-dir DIR] [--probe] [--json]` 和 `serve [--addr 127.0.0.1] [--port 8096] [--workspace DIR] [--models-dir DIR]`。子服务的默认端口：VLA-ENGINE 8098、VOICE-UI 8091、SEMANTIC-PLANNER 8109、DOCS-QA 8110。
+
+`serve` 会以一个小巧的标准库 `http.server` 运行完全相同的 `family-status`
+检查，而不是单次 CLI 调用——这正是 CM5 自身的 `hydra-umc-cognitive-node.service`
+systemd 单元被配置为运行的命令：
+
+```bash
+./run.sh serve --addr 127.0.0.1 --port 8096
+# GET /family-status  -> 返回与上方 `family-status --json` 相同的 JSON
+# GET /stats          -> { "status": "ok" }
 ```
 
-> **注意：** `hardware/` 和 `firmware/` 已被省略——本节点运行在现成的
-> CM5 + Hailo-10 M.2 模块上，没有自己的硬件/固件设计。若日后有必要，
-> 可能会添加专用的辅助微控制器。
+`GET /family-status` 扫描服务启动时固定的工作区（`--workspace`、`--models-dir`，或 `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR`），请求试图选择其他工作区时返回 `400`；其他任何路径均返回
+`404`。完整命令参考（所有参数、真实抓取的 `-h`/`curl` 输出以及退出码表）
+请参见 [CLI 参考](docs/CLI_REFERENCE.md)。
 
----
+## ⚙️ 配置
 
-## ⚙️ 构建与运行
+| 变量 | 默认值 | 设置内容 |
+|---|---|---|
+| `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` | 本仓库的父文件夹 | 兄弟仓库所在位置 |
+| `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR` | `models/` | 共享的模型权重 |
+| `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS` | 上面的默认端口 | `--probe` 使用的子服务 URL |
+
+## 🚀 快速开始
 
 需要 Python >= 3.10。
 
@@ -187,7 +202,7 @@ run.bat family-status
 
 ```text
 Cognitive AI Node family status (workspace: /path/to/workspace):
-  HYDRA-UMC-VLA-ENGINE: v0.1.0, maturity=established, role=service
+  HYDRA-UMC-VLA-ENGINE: v0.1.8, maturity=functional, role=service
   ...
 
 Shared model weights: MISSING (.../HYDRA-UMC-COGNITIVE-NODE/models) - this node's own os/models weights have not been provisioned on this machine; children that need them will run in their own honest degraded/no-hardware mode.
@@ -203,7 +218,7 @@ $ ./run.sh family-status --json
   "schema_version": "1.0",
   "shared_models": { "present": false, "path": ".../models" },
   "children": [
-    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.1.0", "maturity": "established", "role": "service" },
+    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.1.8", "maturity": "functional", "role": "service" },
     ...
   ],
   "all_children_present": true
@@ -214,23 +229,17 @@ $ ./run.sh family-status --json
 布局（所有仓库作为兄弟项目位于同一个工作区文件夹下）。如果缺少任何真实
 子项目，将以 `1` 退出。
 
-### 🌐 HTTP API（`serve`）
+## 🧪 测试
 
-`serve` 会以一个小巧的标准库 `http.server` 运行完全相同的 `family-status`
-检查，而不是单次 CLI 调用——这正是 CM5 自身的 `hydra-umc-cognitive-node.service`
-systemd 单元被配置为运行的命令：
+运行 `python -m pytest -q tests` 会执行 56 个自动测试，用本地夹具检查清单、模型文件夹、探测、命令行和 HTTP 接口；不需要硬件和外部网络。
 
-```bash
-./run.sh serve --addr 127.0.0.1 --port 8096
-# GET /family-status  -> 返回与上方 `family-status --json` 相同的 JSON
-# GET /stats          -> { "status": "ok" }
-```
+CI 运行 `HYDRA_UMC_CI=1 python tools/ci_validate.py`，检查清单、文档、八个 README 和图片。
 
-`GET /family-status` 扫描服务启动时固定的工作区（`--workspace`、`--models-dir`，或 `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR`），请求试图选择其他工作区时返回 `400`；其他任何路径均返回
-`404`。完整命令参考（所有参数、真实抓取的 `-h`/`curl` 输出以及退出码表）
-请参见 [CLI 参考](docs/CLI_REFERENCE.md)。
+## 🏗️ 构建与发布
 
-### 🩺 故障排查
+发布无需编译：`build.sh` / `build.bat` 创建虚拟环境、以可编辑模式安装包并运行测试，`build-test` 只做检查。构建从不改变版本；只有 `python tools/hydra_project_tool.py bump` 会提升版本，并同时推进更新日志。包、清单和更新日志的版本必须一致，否则 `ci_validate.py` 会失败。
+
+## 🩺 故障排除
 
 * **`python: command not found` / 构建在第 1 步失败。** 需要 `PATH` 中存在 Python >= 3.10。在 Windows 上，从 [python.org](https://python.org) 安装，并确保安装过程中勾选了"Add to PATH"；`python3` 是 Linux/macOS 上的常见命令名。
 * **`build.sh` 无法激活 venv。** `python3 -m venv .venv` 在不同平台上生成的激活脚本路径不同：Linux/macOS 上是 `.venv/bin/activate`，Windows（包括从 Git Bash 使用的 Windows Python venv）上是 `.venv/Scripts/activate`。`build.sh` 已经检查了这两个路径——如果仍然失败，删除 `.venv/` 并重新运行 `./build.sh` 从头重建。
@@ -238,15 +247,57 @@ systemd 单元被配置为运行的命令：
 * **`import OK` 从未打印。** 意味着 `python -c "import hydra_umc_cognitive_node"` 本身失败了——在激活 venv 的情况下重新运行以查看真实的回溯信息（手动合并后 `pyproject.toml` 被破坏是常见原因）。
 * **`docker compose up` 无法启动 `voice-ui`。** 该容器在没有真实 `HYDRA_UMC_VOICE_UI_TOKEN` 时会拒绝监听 loopback 以外的地址(有意为之——见 `docker-compose.yml` 自身的注释);请在真实的 `.env` 文件或密钥管理器中设置它,切勿提交。开发期间直接用各自的 `run.sh`/`run.bat` 运行每个服务则不需要这个令牌,因为那里的 `--host` 仍停留在 loopback。
 
----
+## 📂 仓库结构
 
-## 🚀 路线图
+<p align="center">
+  <img src="images/repository-structure.svg" alt="Repository structure of HYDRA-UMC-COGNITIVE-NODE" width="100%">
+</p>
+
+<details>
+<summary>目录树的文本版本</summary>
+
+```text
+HYDRA-UMC-COGNITIVE-NODE/
+├── src/hydra_umc_cognitive_node/
+│   ├── family.py                                四个子服务的就绪状态
+│   ├── manifest.py                              读取兄弟仓库的清单
+│   ├── models.py                                检查共享的模型权重文件夹
+│   ├── probe.py                                 每个子服务是否通过 HTTP 应答
+│   └── api.py main.py                           HTTP 接口与命令行
+├── tests/                                       56 项测试
+├── docs/                                        命令行参考
+├── models/                                      共享模型权重
+├── os/                                          操作系统层说明
+├── tools/                                       构建与测试运行器、版本提升、CI 校验、README 与图片的生成和检查
+├── images/                                      横幅图与 README 的图片
+├── .github/                                     CI 工作流和 Issue 模板
+├── pyproject.toml                               包元数据与依赖
+├── hydra-umc.project.json                       清单：版本、成熟度、系列
+├── CHANGELOG.md                                 每个版本的变化
+├── build.sh build.bat                           构建脚本（从不改变版本）
+├── build-test.sh build-test.bat                 构建脚本（从不改变版本）
+├── test.sh test.bat                             运行测试
+├── systemd/                                     CM5 的服务单元
+├── docker-compose.yml / Dockerfile              节点及其四个子服务
+├── bump_version.py / bump_manifest_version.py   显式的版本提升
+├── run.sh run.bat                               启动节点
+└── SECURITY.md SUPPORT.md CONTRIBUTING.md CODE_OF_CONDUCT.md LICENSE LICENSE.md
+```
+
+</details>
+
+## 🗺️ 路线图与已知限制
+
+**当前已知限制**
+
 * **第一阶段：** 在 Hailo-10 上部署 VLA 引擎并进行多模态输入处理。
 * **第二阶段：** 语义规划器与集群行为模型及长期记忆的集成。
 * **第三阶段：** 语音 UI 的低延迟本地执行以及工业噪声消除。
 * **第四阶段：** 自主决策审计，以及与 Dashboard AI 的"所见即所问"反馈的完全集成。
 
----
+## 🌍 语言
+
+本 README 和仓库文档提供八种语言：英语、西班牙语、德语、法语、意大利语、日语、中文和葡萄牙语（葡萄牙）。它们同时编写，并由 CI 检查八个文件拥有相同的章节和相同的链接。 本仓库没有自己的界面或消息目录，因此没有需要翻译的界面文字。
 
 ## 🔗 相关项目
 
@@ -337,20 +388,27 @@ systemd 单元被配置为运行的命令：
 - **[HYDRA-UMC-OPS-AGENT](https://github.com/JuanenRac/HYDRA-UMC-OPS-AGENT)** — 维护事件协调器：一个低权限的边缘角色采集经过脱敏的库存/健康快照，一个控制面角色以只读方式渲染它，并请求某个 AI 提供方给出诊断建议——从不应用补丁，也从不部署任何内容。
 - **[HYDRA-UMC-DEV-SERVER](https://github.com/JuanenRac/HYDRA-UMC-DEV-SERVER)** — 可复现的开发主机（Raspberry Pi 5 / CM5），保存整个生态系统的源代码，并在持久队列下运行有界的构建/测试任务；这是专用的开发角色，明确区别于运行中的 CM5。
 
----
+## 📚 文档
 
-## 📚 文档与社区
+更多阅读：
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** —— 提交 Pull Request 所需的技术栈和编码规范。
-- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** —— 本社区所期望的行为准则。
-- **[SECURITY.md](SECURITY.md)** —— 如何报告漏洞，以及本项目真实的安全关注重点。
-- **[SUPPORT.md](SUPPORT.md)** —— 在哪里提问和报告缺陷。
-- **[LICENSE.md](LICENSE.md)** —— 本项目自身的许可证。
+* [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md) - 每个命令和选项、真实捕获的输出以及退出码
+* [生态系统的安全基线](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)
+* [生态系统的威胁模型](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)
+* [本仓库的更新日志](CHANGELOG.md)
+* [本仓库的许可证](LICENSE.md)
+
+## 🤝 参与贡献与社区
+
+* 提交 pull request 之前，请运行 `HYDRA_UMC_CI=1 py -3 tools/ci_validate.py`（或 `HYDRA_UMC_CI=1 python3 tools/ci_validate.py`）：它必须输出 `CI_VALIDATION=PASS`。此检查不要运行 `build.sh` 或 `build.bat`；构建不是检查。
+* 八个 README 由 HYDRA-UMC-DOCS 中的同一个源生成；请勿手工编辑。修改源文件，再用 `tools/make_readmes.py` 重新生成。
+* 不要在 README 中声称尚未运行过的内容：属实时请写“仅模拟”或“尚未在硬件上试过”。
+* 请参阅 [CONTRIBUTING.md](CONTRIBUTING.md)、[行为准则](CODE_OF_CONDUCT.md)、[SECURITY.md](SECURITY.md) 和 [SUPPORT.md](SUPPORT.md)。
 
 ## 👤 作者
-**JuanenRac** (Electro Hobby 3D)
-📧 electrohobby3d@gmail.com
-📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
+
+**JuanenRac (Electro Hobby 3D)** · electrohobby3d@gmail.com
 
 ## 📜 许可证
-GPL-3.0-or-later —— 详见 LICENSE。
+
+GPL-3.0-or-later - [LICENSE](LICENSE).

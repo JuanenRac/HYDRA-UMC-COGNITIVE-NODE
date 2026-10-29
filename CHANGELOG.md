@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **README in the universal layout:** the README and its seven translations follow the layout that the four families share (22 sections in a fixed order), with an architecture picture and a repository-structure picture drawn from `docs/architecture.json` and `docs/structure.json`; the CI validator checks both pictures and the file tree. Where the repository has a service or an MQTT transport, the README now says how to start it and which environment variables it reads.
+
 - **The layout of the README is checked in the CI:** the validator runs `tools/universal_readme_check.py` and lists, as a warning, what differs from the universal layout of the README.
 
 ## [0.1.5] - `family-status --probe` asks the running children for their health
@@ -128,6 +130,7 @@ unlimited memory and no liveness signal.
 - Real verification beyond the test suite: ran `family-status`/`family-status --json` against the actual local ecosystem checkout - correctly reported all 4 real children present with their real, independently-verified version/maturity, and honestly reported this machine's real, empty `models/` directory as missing.
 
 ## [0.0.5] - Real v0 family-readiness check
+
 - `manifest.py` - a real, minimal, defensive reader for a sibling repo's own `hydra-umc.project.json` (name/version/maturity/role), returning `None` for every real failure mode (missing checkout, missing file, malformed JSON, missing field) rather than raising.
 - `family.py` - `check_family_status()`: a real check of this node's four real children (`HYDRA-UMC-VLA-ENGINE`/`HYDRA-UMC-VOICE-UI`/`HYDRA-UMC-SEMANTIC-PLANNER`/`HYDRA-UMC-DOCS-QA`) against a real local workspace, reading each one's own manifest rather than a second hand-maintained list.
 - `main.py` - new `family-status [--workspace PATH]` subcommand, defaulting to this repo's own parent directory (the real sibling-checkout layout this whole ecosystem already uses). Bare invocation is unchanged: identity/version/role.
@@ -135,6 +138,7 @@ unlimited memory and no liveness signal.
 - Real verification beyond the test suite: ran `family-status` against the actual local ecosystem checkout on this machine - correctly reported `HYDRA-UMC-VLA-ENGINE` as still `scaffolding` and the other three real siblings as `functional`, matching their real, independently-verified state.
 
 ## [0.0.4]
+
 - Copyright/license header on every source file and build/run script.
 - `CHANGELOG.md` (this file).
 - Extended documentation across `README.md` and its 4 translations:
@@ -145,10 +149,11 @@ unlimited memory and no liveness signal.
   (versioning scheme, src-layout, `docker-compose.yml` wiring).
 
 ## [0.0.0]
+
 - Initial Python scaffolding: `pyproject.toml` (setuptools, src-layout),
   `src/hydra_umc_cognitive_node/__init__.py` + `main.py` (real entry
   point - prints identity/version/role, exits 0).
-- `bump_version.py` - odometer-style version bump applied to
+- `bump_version.py` - version bump applied to
   `pyproject.toml` and mirrored into `__init__.py`.
 - `build.sh` / `build.bat` - create/activate a venv, install the package
   editable, verify it compiles and imports.

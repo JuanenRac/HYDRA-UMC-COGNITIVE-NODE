@@ -1,3 +1,9 @@
+<!-- =============================================================================
+HYDRA-UMC-COGNITIVE-NODE - Cognitive AI node (Hailo-10)
+Copyright (C) JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
+GPL-3.0-or-later - see LICENSE
+============================================================================= -->
+
 <p align="center">
   <img src="images/HYDRA_UMC_BANNER.svg" alt="HYDRA-UMC-COGNITIVE-NODE banner" width="100%">
 </p>
@@ -10,16 +16,20 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
-  <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="CM5 + Hailo-10">
-  <img src="https://img.shields.io/badge/Performance-40%20TOPS-green.svg" alt="40 TOPS">
+  <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
+  <img src="https://img.shields.io/badge/Tests-56%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.1.5-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
-
-> **Honesty check - what actually runs today:** the family-readiness check and its versioned JSON schema (`family.py`, `manifest.py`, `models.py`) and the plain stdlib HTTP surface (`api.py`) are real and covered by 35 passing tests (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). This node runs no model itself: "Local LLM Execution", "VLA Integration" and "Voice Command Processing" in the Key Features below are explicitly marked `(planned)` - there is no Hailo-10 runtime code in this repo. `docker-compose.yml` now references a real Dockerfile for all 4 children, but it has never actually been run as one stack in this dev environment (no Docker runtime available here) - each Dockerfile's command/port mapping was checked by hand against what each child's own systemd unit already runs on the real CM5, not verified live. See `CHANGELOG.md` for exactly what has shipped so far.
 
 ---
 
+> **Honesty check - what actually runs today:** the family-readiness check and its versioned JSON schema (`family.py`, `manifest.py`, `models.py`) and the plain stdlib HTTP surface (`api.py`) are real and covered by 56 passing tests (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). This node runs no model itself: "Local LLM Execution", "VLA Integration" and "Voice Command Processing" in the Key Features below are explicitly marked `(planned)` - there is no Hailo-10 runtime code in this repo. `docker-compose.yml` now references a real Dockerfile for all 4 children, but it has never actually been run as one stack in this dev environment (no Docker runtime available here) - each Dockerfile's command/port mapping was checked by hand against what each child's own systemd unit already runs on the real CM5, not verified live. See `CHANGELOG.md` for exactly what has shipped so far.
+
 > **Safety and security status:** this ecosystem is not a certified safety system. There is no hardware E-STOP path, no firmware-enforced limits or interlocks and no verified motion command yet; firmware images are checked with CRC32 and a shared-key HMAC-SHA256, not with an asymmetric signature; TLS and mutual TLS are optional and off by default; no custom board has been populated or tested yet. Read the [security baseline](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md) and the [threat model](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md) before relying on any statement here for the safety of a person.
+
+---
 
 ## 📋 At a glance
 
@@ -27,10 +37,12 @@
 |---|---|
 | Version | `0.1.5` |
 | Maturity | Functional |
-| Tests | 35 (`pytest tests/`) |
+| Tests | 56 (`python -m pytest -q tests`) |
 | Stack | Python / CM5 / Hailo-10 |
 | Target | The Raspberry Pi CM5 of a HYDRA-UMC cell |
 | On real hardware | Not yet: no run on real hardware is recorded for this version |
+
+**Jump to:** [Overview](#-overview) · [Architecture](#-architecture) · [Features](#-features) · [Security & Safety](#-security--safety) · [Interfaces](#-interfaces) · [Configuration](#-configuration) · [Quick start](#-quick-start) · [Testing](#-testing) · [Troubleshooting](#-troubleshooting) · [Repository Structure](#-repository-structure) · [Related Projects](#-related-projects)
 
 ## 🚦 Project status
 
@@ -41,35 +53,28 @@ Each line is one part of this repository and the light says how far it is today.
 | Area | State | What it means here |
 |---|---|---|
 | Software | 🟡 | Works for its main purpose; the honesty check above lists what is still missing |
-| Tests | 🟢 | 35 automated tests, run on every change |
+| Tests | 🟢 | 56 automated tests, run on every change |
 | Real hardware | 🔴 | Not yet: no run on real hardware is recorded for this version |
 | Documentation | 🟢 | README in eight languages, checked against the manifest on every change |
 
-## 1. 🛠️ TECHNICAL OVERVIEW
+## 🎯 Overview
 
 **HYDRA-UMC-COGNITIVE-NODE** serves as the "frontal lobe" of the HYDRA-UMC ecosystem. Powered by the Hailo-10 NPU (40 TOPS), it enables complex semantic reasoning, natural language understanding, and vision-language-action (VLA) task planning directly at the edge.
 
 It transforms high-level human instructions into logical robotic sequences, managing error recovery and mission optimization without cloud dependency.
 
-### Key Features:
-* 🧠 **Local LLM Execution:** Hardware-accelerated inference for quantized models (Llama/Mistral). *(planned - needs the real Hailo-10 model runtime)*
-* 👁️ **VLA Integration:** Vision-Language-Action models for intuitive task execution. *(planned)*
-* 🎙️ **Voice Command Processing:** Real-time STT/TTS for human-robot interaction. *(planned)*
-* 🛡️ **Privacy First:** 100% offline processing of all cognitive tasks. *(true by design once the above exist - nothing here calls out to a network today)*
-* 🧩 **Integration Hub (v0):** Owns the shared HydraOS image and quantized model
-  weights consumed by its four children, and wires them together as
-  sibling services in a single `docker-compose.yml`. Real `family-status`
-  check reads each real child's own manifest to report presence/version/
-  maturity. *(implemented as a real readiness check - see BUILD & RUN
-  below)*
-* 🔒 **Versioned status schema + resource-limited manifest reads:** `family-status --json` prints a real, versioned machine-readable result; any sibling manifest bigger than 64 KiB (a corrupted/malicious checkout) degrades to "not found" instead of being read unbounded. *(implemented)*
-* 🩺 **Health of the running children, image tags and the weights in the engine's container:** `family-status --probe` (or `GET /family-status?probe=1`) also asks each running child for its health, on the route its own manifest declares (`/stats` otherwise), and reports whether it answered, with which status and how fast, and what the child says about itself; it exits non-zero when one is not well. Where the children are is fixed when the node starts: their loopback ports by default, or `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS` (as the compose file sets it inside the stack). The images of the compose file are tagged `HYDRA_UMC_<NAME>_VERSION` (from the `.env`; `family-versions` prints those lines from the manifests) or `latest`, never an invented number, the vla-engine container now gets `models/` mounted where the engine looks for it, and a second workflow checks that `docker compose config` still resolves. *(tried against stand-in services, not against the real children or a Hailo-10)*
-* 🪫 **Shared model-weights degradation check:** `family-status` honestly reports whether this node's own `models/` directory actually has real weights in it, not just whether the sibling repos are checked out. *(implemented)*
-* 📦 **Odometer Versioning:** The version in `pyproject.toml` is raised only by the explicit bump command (`python tools/hydra_project_tool.py bump`, which runs `bump_version.py`) - building never changes it.
+## 🧩 Role in HYDRA-UMC
 
----
+**HYDRA-UMC-COGNITIVE-NODE** is the integration point of the Hailo-10 cognitive family. Today its real job is a readiness check: it reads the manifest of the four children (VLA-ENGINE, VOICE-UI, SEMANTIC-PLANNER, DOCS-QA), looks at the shared model-weights folder and, when asked, probes each child over HTTP. It is not a reasoning engine.
 
-## 2. 🔄 COGNITIVE WORKFLOW
+## 🏛️ Architecture
+
+<p align="center">
+  <img src="images/architecture.svg" alt="HYDRA-UMC-COGNITIVE-NODE architecture" width="100%">
+</p>
+
+<details>
+<summary>Text version of the diagram (Mermaid)</summary>
 
 ```mermaid
 flowchart TB
@@ -82,9 +87,9 @@ flowchart TB
     RAG --> PLANNER
 ```
 
----
+</details>
 
-## 3. 🧱 ARCHITECTURE & DESIGN DECISIONS
+**Why it is built this way**
 
 This repository is the **parent/integration point** of the Cognitive AI
 Node family. It does not itself run a model - it owns the shared
@@ -146,51 +151,62 @@ unit on the same physical board:
   honestly (empty-but-present counts as missing) instead of letting an
   operator assume readiness from child presence alone.
 
----
+## ✨ Features
 
-## 📂 DIRECTORY STRUCTURE
+* 🧠 **Local LLM Execution:** Hardware-accelerated inference for quantized models (Llama/Mistral). *(planned - needs the real Hailo-10 model runtime)*
+* 👁️ **VLA Integration:** Vision-Language-Action models for intuitive task execution. *(planned)*
+* 🎙️ **Voice Command Processing:** Real-time STT/TTS for human-robot interaction. *(planned)*
+* 🛡️ **Privacy First:** 100% offline processing of all cognitive tasks. *(true by design once the above exist - nothing here calls out to a network today)*
+* 🧩 **Integration Hub (v0):** Owns the shared HydraOS image and quantized model
+  weights consumed by its four children, and wires them together as
+  sibling services in a single `docker-compose.yml`. Real `family-status`
+  check reads each real child's own manifest to report presence/version/
+  maturity. *(implemented as a real readiness check - see BUILD & RUN
+  below)*
+* 🔒 **Versioned status schema + resource-limited manifest reads:** `family-status --json` prints a real, versioned machine-readable result; any sibling manifest bigger than 64 KiB (a corrupted/malicious checkout) degrades to "not found" instead of being read unbounded. *(implemented)*
+* 🩺 **Health of the running children, image tags and the weights in the engine's container:** `family-status --probe` (or `GET /family-status?probe=1`) also asks each running child for its health, on the route its own manifest declares (`/stats` otherwise), and reports whether it answered, with which status and how fast, and what the child says about itself; it exits non-zero when one is not well. Where the children are is fixed when the node starts: their loopback ports by default, or `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS` (as the compose file sets it inside the stack). The images of the compose file are tagged `HYDRA_UMC_<NAME>_VERSION` (from the `.env`; `family-versions` prints those lines from the manifests) or `latest`, never an invented number, the vla-engine container now gets `models/` mounted where the engine looks for it, and a second workflow checks that `docker compose config` still resolves. *(tried against stand-in services, not against the real children or a Hailo-10)*
+* 🪫 **Shared model-weights degradation check:** `family-status` honestly reports whether this node's own `models/` directory actually has real weights in it, not just whether the sibling repos are checked out. *(implemented)*
+* 📦 **Versioning:** The version in `pyproject.toml` is raised only by the explicit bump command (`python tools/hydra_project_tool.py bump`, which runs `bump_version.py`) - building never changes it.
 
-```text
-HYDRA-UMC-COGNITIVE-NODE/
-├── src/hydra_umc_cognitive_node/
-│   ├── __init__.py                 # Package description and version
-│   ├── manifest.py                 # Real, defensive reader for a sibling's own manifest (64 KiB bound)
-│   ├── models.py                   # Real check of this node's own shared model-weights directory
-│   ├── family.py                    # Real family-readiness check + versioned JSON schema
-│   ├── api.py                         # Plain JSON/HTTP surface (stdlib http.server) over `family-status`
-│   ├── main.py                        # Entry point + real `family-status [--json]` and `serve` subcommands
-│   └── probe.py                       # Asks the running child services whether they answer (one GET to each health route)
-├── tests/                          # Real tests: manifest reading, models, family status, api, end-to-end CLI
-├── docs/
-│   └── CLI_REFERENCE.md            # Full command reference: every flag, real captured output, exit codes
-├── os/                             # HydraOS image/configuration for the CM5 - deploy-time populated (not in git)
-├── models/                         # Hailo-10 optimized weights (LLM/VLA, shared by the 4 children) - deploy-time populated (not in git)
-├── images/                         # Media and diagrams
-├── systemd/
-│   └── hydra-umc-cognitive-node.service # Local CM5 family-status API systemd unit
-├── tools/
-│   ├── build_test.py               # Non-versioning build/compile check
-│   ├── ci_validate.py              # Manifest/CHANGELOG/docs validation used by CI
-│   ├── _doc_policy.py              # Documentation rules shared by the family (a copy of HYDRA-UMC-SDK's, kept in sync)
-│   ├── _readme_parity.py           # Check that the eight READMEs share one structure (a copy of HYDRA-UMC-SDK's, kept in sync)
-│   └── hydra_project_tool.py       # The same commands in every repository: validate, test, ci, version, status, bump
-├── build/                          # Local build output (git-ignored)
-├── pyproject.toml                  # Package metadata (version raised only by the explicit bump command)
-├── bump_version.py                 # Odometer-style version bump (run only by the explicit `bump` command)
-├── bump_manifest_version.py        # Syncs hydra-umc.project.json's version to the native one (--sync)
-├── docker-compose.yml              # Integration map for the 4 child services
-├── build.sh / build.bat            # Create venv, install (with dev extras), run tests, verify import
-└── run.sh / run.bat                # Run the entry point (forwards args, e.g. `family-status`)
+## 🔒 Security & Safety
+
+| Threat | Defence | Where |
+|---|---|---|
+| A giant or hostile manifest, a giant model folder | A sibling's manifest is read up to 64 KiB; the models folder is inspected for at most 20 000 files and only the weight suffixes `.bin .gguf .har .hef .onnx .safetensors .tflite` count | `manifest.py`, `models.py` |
+| A child that answers with garbage or hangs | The probe waits at most 2 seconds and reads at most 64 KiB; the health path from a manifest is accepted only if it starts with `/`, is shorter than 128 characters and has no spaces, otherwise `/stats` is used | `probe.py` |
+| Exposure to the network | The HTTP surface is read only and listens on `127.0.0.1:8096` by default; it scans the workspace fixed at start-up and answers `400` to a request that tries to choose another. It has no token: whether it needs one is still open | `api.py`, `main.py` |
+
+**What it never does:** it is not a reasoning engine: no model runs in this repository, and it writes nothing to the children.
+
+## 🔌 Interfaces
+
+`family-status [--workspace DIR] [--models-dir DIR] [--probe] [--json]` and `serve [--addr 127.0.0.1] [--port 8096] [--workspace DIR] [--models-dir DIR]`. The default ports of the children are VLA-ENGINE 8098, VOICE-UI 8091, SEMANTIC-PLANNER 8109 and DOCS-QA 8110.
+
+`serve` runs that exact same `family-status` check as a small stdlib
+`http.server` instead of a one-shot CLI call - it is the command the
+CM5's own `hydra-umc-cognitive-node.service` systemd unit is configured to
+run:
+
+```bash
+./run.sh serve --addr 127.0.0.1 --port 8096
+# GET /family-status  -> the same JSON `family-status --json` prints above
+# GET /stats          -> { "status": "ok" }
 ```
 
-> **Note:** `hardware/` and `firmware/` were pruned - this node runs on an
-> existing CM5 + Hailo-10 M.2 module with no hardware/firmware design of
-> its own. A dedicated auxiliary microcontroller may be added later if it
-> becomes necessary.
+`GET /family-status` scans the workspace fixed when the service starts (`--workspace`, `--models-dir`, or `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR`) and answers `400` to a request that tries to choose another; any other
+path returns `404`. See [CLI Reference](docs/CLI_REFERENCE.md) for the
+full command reference: every flag, real captured `-h`/`curl` output, and
+the exit-code table.
 
----
+## ⚙️ Configuration
 
-## ⚙️ BUILD & RUN GUIDE
+| Variable | Default | What it sets |
+|---|---|---|
+| `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` | the parent folder of this repository | where the sibling repositories are |
+| `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR` | `models/` | the shared model weights |
+| `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS` | the default ports above | the URLs of the children for `--probe` |
+
+## 🚀 Quick start
 
 Requires Python >= 3.10.
 
@@ -234,7 +250,7 @@ never silently ignored:
 
 ```text
 Cognitive AI Node family status (workspace: /path/to/workspace):
-  HYDRA-UMC-VLA-ENGINE: v0.1.0, maturity=established, role=service
+  HYDRA-UMC-VLA-ENGINE: v0.1.8, maturity=functional, role=service
   ...
 
 Shared model weights: MISSING (.../HYDRA-UMC-COGNITIVE-NODE/models) - this node's own os/models weights have not been provisioned on this machine; children that need them will run in their own honest degraded/no-hardware mode.
@@ -251,7 +267,7 @@ $ ./run.sh family-status --json
   "schema_version": "1.0",
   "shared_models": { "present": false, "path": ".../models" },
   "children": [
-    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.1.0", "maturity": "established", "role": "service" },
+    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.1.8", "maturity": "functional", "role": "service" },
     ...
   ],
   "all_children_present": true
@@ -262,25 +278,17 @@ Defaults to this repo's own parent directory - the layout every real
 checkout of this ecosystem already uses (all repos as siblings under one
 workspace folder). Exits `1` if any real child is missing.
 
-### 🌐 HTTP API (`serve`)
+## 🧪 Testing
 
-`serve` runs that exact same `family-status` check as a small stdlib
-`http.server` instead of a one-shot CLI call - it is the command the
-CM5's own `hydra-umc-cognitive-node.service` systemd unit is configured to
-run:
+56 automated tests run with `python -m pytest -q tests`. They check the manifests, the model folder, the probe, the command line and the HTTP surface against local fixtures; no hardware and no outside network.
 
-```bash
-./run.sh serve --addr 127.0.0.1 --port 8096
-# GET /family-status  -> the same JSON `family-status --json` prints above
-# GET /stats          -> { "status": "ok" }
-```
+The CI runs `HYDRA_UMC_CI=1 python tools/ci_validate.py`, which checks the manifest, the documents, the eight READMEs and the pictures.
 
-`GET /family-status` scans the workspace fixed when the service starts (`--workspace`, `--models-dir`, or `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR`) and answers `400` to a request that tries to choose another; any other
-path returns `404`. See [CLI Reference](docs/CLI_REFERENCE.md) for the
-full command reference: every flag, real captured `-h`/`curl` output, and
-the exit-code table.
+## 🏗️ Build & Release
 
-### 🩺 Troubleshooting
+There is nothing to compile for a release: `build.sh` / `build.bat` create the virtual environment, install the package in editable mode and run the tests, and `build-test` only checks. Building never changes the version; it is raised only by `python tools/hydra_project_tool.py bump`, which also moves the changelog. The version of the package, the manifest and the changelog must agree, and `ci_validate.py` fails when they do not.
+
+## 🩺 Troubleshooting
 
 * **`python: command not found` / build fails at step 1.** Requires
   Python >= 3.10 on `PATH`. On Windows, install from
@@ -305,17 +313,59 @@ the exit-code table.
   service directly with its own `run.sh`/`run.bat` during development
   needs no such token, since `--host` there stays on loopback.
 
----
+## 📂 Repository Structure
 
-## 🚀 ROADMAP
+<p align="center">
+  <img src="images/repository-structure.svg" alt="Repository structure of HYDRA-UMC-COGNITIVE-NODE" width="100%">
+</p>
+
+<details>
+<summary>Text version of the tree</summary>
+
+```text
+HYDRA-UMC-COGNITIVE-NODE/
+├── src/hydra_umc_cognitive_node/
+│   ├── family.py                                readiness of the four child services
+│   ├── manifest.py                              reads a sibling's own manifest
+│   ├── models.py                                checks the shared model-weights folder
+│   ├── probe.py                                 does each child answer over HTTP
+│   └── api.py main.py                           HTTP surface and command line
+├── tests/                                       56 tests
+├── docs/                                        the command-line reference
+├── models/                                      shared model weights
+├── os/                                          notes of the OS layer
+├── tools/                                       build and test runner, version bump, CI validator, README and picture generators and checks
+├── images/                                      banner and the pictures of the README
+├── .github/                                     CI workflow and issue templates
+├── pyproject.toml                               package metadata and dependencies
+├── hydra-umc.project.json                       manifest: version, maturity, family
+├── CHANGELOG.md                                 what changed in each version
+├── build.sh build.bat                           build scripts (they never change the version)
+├── build-test.sh build-test.bat                 build scripts (they never change the version)
+├── test.sh test.bat                             run the tests
+├── systemd/                                     service unit for the CM5
+├── docker-compose.yml / Dockerfile              the node with its four children
+├── bump_version.py / bump_manifest_version.py   explicit version bump
+├── run.sh run.bat                               start the node
+└── SECURITY.md SUPPORT.md CONTRIBUTING.md CODE_OF_CONDUCT.md LICENSE LICENSE.md
+```
+
+</details>
+
+## 🗺️ Roadmap & Known limits
+
+**Known limits today**
+
 * **Phase 1:** VLA engine deployment and multi-modal input processing on Hailo-10.
 * **Phase 2:** Semantic planner integration with swarm behavioral models and long-term memory.
 * **Phase 3:** Voice UI low-latency local execution and industrial noise cancellation.
 * **Phase 4:** Autonomous decision-making audits and full integration with Dashboard AI for "See and Ask" feedback.
 
----
+## 🌍 Languages
 
-## 🔗 RELATED PROJECTS
+This README and the documents of the repository exist in eight languages: English, Spanish, German, French, Italian, Japanese, Chinese and Portuguese (Portugal). They are written together and checked in the CI so that the eight files have the same sections and the same links. This repository has no screen or message catalogue of its own, so there are no interface strings to translate.
+
+## 🔗 Related Projects
 
 This project is part of the HYDRA-UMC robotics ecosystem by the same author (JuanenRac / Electro Hobby 3D). Worth knowing about, since a request might actually be about one of these rather than this repository.
 
@@ -404,20 +454,27 @@ This project is part of the HYDRA-UMC robotics ecosystem by the same author (Jua
 - **[HYDRA-UMC-OPS-AGENT](https://github.com/JuanenRac/HYDRA-UMC-OPS-AGENT)** — maintenance-incident coordinator: a low-privilege edge role collects a sanitized inventory/health snapshot, a control-plane role renders it read-only and asks an AI provider to suggest a diagnosis - never applies a patch or deploys anything.
 - **[HYDRA-UMC-DEV-SERVER](https://github.com/JuanenRac/HYDRA-UMC-DEV-SERVER)** — reproducible development host (Raspberry Pi 5 / CM5) that stores the ecosystem's source and runs bounded build/test tasks under a durable queue; a dedicated dev role, explicitly not an operational CM5.
 
----
+## 📚 Documentation
 
-## 📚 Documentation & Community
+Where to read more:
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — tech stack and coding guidelines for a pull request.
-- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — the standards of behavior expected in this community.
-- **[SECURITY.md](SECURITY.md)** — how to report a vulnerability, and this project's own real security focus areas.
-- **[SUPPORT.md](SUPPORT.md)** — where to ask questions and report bugs.
-- **[LICENSE.md](LICENSE.md)** — this project's own license.
+* [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md) - every command and flag, real captured output and the exit codes
+* [Security baseline of the ecosystem](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)
+* [Threat model of the ecosystem](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)
+* [Changelog of this repository](CHANGELOG.md)
+* [License of this repository](LICENSE.md)
+
+## 🤝 Contributing & Community
+
+* Before a pull request run `HYDRA_UMC_CI=1 py -3 tools/ci_validate.py` (or `HYDRA_UMC_CI=1 python3 tools/ci_validate.py`): it must print `CI_VALIDATION=PASS`. Do not run `build.sh` or `build.bat` for this check; building is not a check.
+* The eight READMEs are written from one source in HYDRA-UMC-DOCS; do not edit them by hand. Change the source and write them again with `tools/make_readmes.py`.
+* Do not state in a README what has not run: say "simulated" or "not tried on hardware" where that is the truth.
+* See [CONTRIBUTING.md](CONTRIBUTING.md), the [code of conduct](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md) and [SUPPORT.md](SUPPORT.md).
 
 ## 👤 AUTHOR
-**JuanenRac** (Electro Hobby 3D)
-📧 electrohobby3d@gmail.com
-📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
+
+**JuanenRac (Electro Hobby 3D)** · electrohobby3d@gmail.com
 
 ## 📜 LICENSE
-GPL-3.0-or-later - See LICENSE for details.
+
+GPL-3.0-or-later - [LICENSE](LICENSE).

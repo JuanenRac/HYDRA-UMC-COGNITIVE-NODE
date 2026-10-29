@@ -1,3 +1,9 @@
+<!-- =============================================================================
+HYDRA-UMC-COGNITIVE-NODE - Cognitive AI node (Hailo-10)
+Copyright (C) JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
+GPL-3.0-or-later - see LICENSE
+============================================================================= -->
+
 <p align="center">
   <img src="images/HYDRA_UMC_BANNER.svg" alt="HYDRA-UMC-COGNITIVE-NODE banner" width="100%">
 </p>
@@ -10,16 +16,20 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
-  <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="CM5 + Hailo-10">
-  <img src="https://img.shields.io/badge/Performance-40%20TOPS-green.svg" alt="40 TOPS">
+  <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
+  <img src="https://img.shields.io/badge/Tests-56%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.1.5-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
-
-> **Verificação de honestidade - o que realmente funciona hoje:** a verificação de prontidão da família e o seu esquema JSON versionado (`family.py`, `manifest.py`, `models.py`) e a superfície HTTP simples da biblioteca padrão (`api.py`) são reais e estão cobertos por 35 testes a passar (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Este nó não executa nenhum modelo ele próprio: "Execução local de LLM", "Integração VLA" e "Processamento de comandos de voz" nas Funcionalidades principais abaixo estão explicitamente marcados `(planeado)` - não há código de execução do Hailo-10 neste repositório. O `docker-compose.yml` refere agora um Dockerfile real para os 4 filhos, mas nunca foi realmente executado como um único stack neste ambiente de desenvolvimento (não há ambiente de execução Docker aqui) - o mapeamento de comando/porta de cada Dockerfile foi conferido à mão com o que a unidade systemd de cada filho já executa no CM5 real, não verificado em direto. Veja o `CHANGELOG.md` para saber exatamente o que foi entregue até agora.
 
 ---
 
+> **Verificação de honestidade - o que realmente funciona hoje:** a verificação de prontidão da família e o seu esquema JSON versionado (`family.py`, `manifest.py`, `models.py`) e a superfície HTTP simples da biblioteca padrão (`api.py`) são reais e estão cobertos por 56 testes a passar (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Este nó não executa nenhum modelo ele próprio: "Execução local de LLM", "Integração VLA" e "Processamento de comandos de voz" nas Funcionalidades principais abaixo estão explicitamente marcados `(planeado)` - não há código de execução do Hailo-10 neste repositório. O `docker-compose.yml` refere agora um Dockerfile real para os 4 filhos, mas nunca foi realmente executado como um único stack neste ambiente de desenvolvimento (não há ambiente de execução Docker aqui) - o mapeamento de comando/porta de cada Dockerfile foi conferido à mão com o que a unidade systemd de cada filho já executa no CM5 real, não verificado em direto. Veja o `CHANGELOG.md` para saber exatamente o que foi entregue até agora.
+
 > **Estado de segurança (safety e security):** este ecossistema não é um sistema de segurança certificado. Ainda não existe um caminho de E-STOP por hardware, nem limites ou interlocks impostos pelo firmware, nem um comando de movimento verificado; as imagens de firmware são verificadas com CRC32 e um HMAC-SHA256 de chave partilhada, não com uma assinatura assimétrica; TLS e TLS mútuo são opcionais e estão desativados por defeito; nenhuma placa própria foi ainda montada ou testada. Leia a [base de segurança](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md) e o [modelo de ameaças](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md) antes de confiar em qualquer afirmação aqui para a segurança de uma pessoa.
+
+---
 
 ## 📋 Num relance
 
@@ -27,10 +37,12 @@
 |---|---|
 | Versão | `0.1.5` |
 | Maturidade | Funcional |
-| Testes | 35 (`pytest tests/`) |
+| Testes | 56 (`python -m pytest -q tests`) |
 | Tecnologia | Python / CM5 / Hailo-10 |
 | Destino | O Raspberry Pi CM5 de uma célula HYDRA-UMC |
 | Em hardware real | Ainda não: não há registo de execução em hardware real para esta versão |
+
+**Ir para:** [Visão geral](#-visão-geral) · [Arquitetura](#-arquitetura) · [Funcionalidades](#-funcionalidades) · [Segurança e proteção](#-segurança-e-proteção) · [Interfaces](#-interfaces) · [Configuração](#-configuração) · [Início rápido](#-início-rápido) · [Testes](#-testes) · [Resolução de problemas](#-resolução-de-problemas) · [Estrutura do repositório](#-estrutura-do-repositório) · [Projetos relacionados](#-projetos-relacionados)
 
 ## 🚦 Estado do projeto
 
@@ -41,34 +53,28 @@ Cada linha é uma parte deste repositório e a luz diz até onde chega hoje. É 
 | Área | Estado | O que significa aqui |
 |---|---|---|
 | Software | 🟡 | Funciona para o seu propósito principal; a verificação de honestidade acima lista o que ainda falta |
-| Testes | 🟢 | 35 testes automáticos, executados a cada alteração |
+| Testes | 🟢 | 56 testes automáticos, executados a cada alteração |
 | Hardware real | 🔴 | Ainda não: não há registo de execução em hardware real para esta versão |
 | Documentação | 🟢 | README em oito idiomas, verificado contra o manifesto a cada alteração |
 
-## 1. 🛠️ VISÃO TÉCNICA GERAL
+## 🎯 Visão geral
 
 O **HYDRA-UMC-COGNITIVE-NODE** serve de "lobo frontal" do ecossistema HYDRA-UMC. Alimentado pela NPU Hailo-10 (40 TOPS), permite raciocínio semântico complexo, compreensão de linguagem natural e planeamento de tarefas visão-linguagem-ação (VLA) diretamente na periferia.
 
 Transforma instruções humanas de alto nível em sequências robóticas lógicas, gerindo a recuperação de erros e a otimização de missões sem dependência da nuvem.
 
-### Funcionalidades principais:
-* 🧠 **Execução local de LLM:** inferência acelerada por hardware para modelos quantizados (Llama/Mistral). *(planeado - precisa do ambiente de execução real de modelos do Hailo-10)*
-* 👁️ **Integração VLA:** modelos visão-linguagem-ação para uma execução intuitiva de tarefas. *(planeado)*
-* 🎙️ **Processamento de comandos de voz:** STT/TTS em tempo real para a interação humano-robô. *(planeado)*
-* 🛡️ **Privacidade em primeiro lugar:** processamento 100 % offline de todas as tarefas cognitivas. *(verdadeiro por desenho assim que o acima existir - nada aqui contacta uma rede hoje)*
-* 🧩 **Centro de integração (v0):** detém a imagem HydraOS partilhada e os pesos de modelos quantizados
-  consumidos pelos seus quatro filhos, e liga-os como serviços irmãos num único `docker-compose.yml`.
-  A verificação real `family-status` lê o manifesto de cada filho para reportar presença/versão/
-  maturidade. *(implementado como verificação real de prontidão - veja COMPILAR E EXECUTAR
-  abaixo)*
-* 🔒 **Esquema de estado versionado + leituras de manifestos com recursos limitados:** o `family-status --json` imprime um resultado real, versionado e legível por máquina; qualquer manifesto de um irmão com mais de 64 KiB (uma cópia corrompida/maliciosa) degrada para "não encontrado" em vez de ser lido sem limite. *(implementado)*
-* 🩺 **Saúde dos filhos em execução, etiquetas das imagens e os pesos no contentor do motor:** `family-status --probe` (ou `GET /family-status?probe=1`) pergunta também a cada filho em execução pela sua saúde, na rota que o seu próprio manifesto declara (`/stats` caso contrário), e indica se respondeu, com que estado e com que rapidez, e o que o filho diz de si; termina com código diferente de zero se algum não estiver bem. Onde estão os filhos é fixado no arranque do nó: as suas portas de loopback por omissão, ou `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS` (como o ficheiro compose o define dentro da pilha). As imagens do ficheiro compose são etiquetadas com `HYDRA_UMC_<NOME>_VERSION` (do `.env`; `family-versions` imprime essas linhas a partir dos manifestos) ou `latest`, nunca com um número inventado, o contentor vla-engine passa a ter `models/` montado onde o motor o procura, e um segundo fluxo de trabalho verifica que `docker compose config` continua a resolver-se. *(experimentado com serviços de substituição, não com os filhos reais nem com um Hailo-10)*
-* 🪫 **Verificação de degradação dos pesos de modelos partilhados:** o `family-status` reporta honestamente se o próprio diretório `models/` deste nó tem de facto pesos reais, e não apenas se os repositórios irmãos estão clonados. *(implementado)*
-* 📦 **Versionamento ao estilo conta-quilómetros:** A versão do `pyproject.toml` só é subida pelo comando `bump` explícito (`python tools/hydra_project_tool.py bump`, que executa o `bump_version.py`) - compilar nunca a altera.
+## 🧩 Papel no HYDRA-UMC
 
----
+O **HYDRA-UMC-COGNITIVE-NODE** é o ponto de integração da família cognitiva Hailo-10. Hoje o seu trabalho real é uma verificação de prontidão: lê o manifesto dos quatro filhos (VLA-ENGINE, VOICE-UI, SEMANTIC-PLANNER, DOCS-QA), olha para a pasta partilhada de pesos de modelos e, se pedido, sonda cada filho por HTTP. Não é um motor de raciocínio.
 
-## 2. 🔄 FLUXO COGNITIVO
+## 🏛️ Arquitetura
+
+<p align="center">
+  <img src="images/architecture.svg" alt="HYDRA-UMC-COGNITIVE-NODE architecture" width="100%">
+</p>
+
+<details>
+<summary>Versão em texto do diagrama (Mermaid)</summary>
 
 ```mermaid
 flowchart TB
@@ -81,9 +87,9 @@ flowchart TB
     RAG --> PLANNER
 ```
 
----
+</details>
 
-## 3. 🧱 ARQUITETURA E DECISÕES DE DESENHO
+**Porque é construído assim**
 
 Este repositório é o **pai/ponto de integração** da família do Nó de IA Cognitiva.
 Não executa ele próprio nenhum modelo - detém os recursos partilhados e a ligação
@@ -144,51 +150,61 @@ na mesma placa física:
   honestidade (vazio mas presente conta como em falta) em vez de deixar um
   operador presumir a prontidão só pela presença dos filhos.
 
----
+## ✨ Funcionalidades
 
-## 📂 ESTRUTURA DE DIRETÓRIOS
+* 🧠 **Execução local de LLM:** inferência acelerada por hardware para modelos quantizados (Llama/Mistral). *(planeado - precisa do ambiente de execução real de modelos do Hailo-10)*
+* 👁️ **Integração VLA:** modelos visão-linguagem-ação para uma execução intuitiva de tarefas. *(planeado)*
+* 🎙️ **Processamento de comandos de voz:** STT/TTS em tempo real para a interação humano-robô. *(planeado)*
+* 🛡️ **Privacidade em primeiro lugar:** processamento 100 % offline de todas as tarefas cognitivas. *(verdadeiro por desenho assim que o acima existir - nada aqui contacta uma rede hoje)*
+* 🧩 **Centro de integração (v0):** detém a imagem HydraOS partilhada e os pesos de modelos quantizados
+  consumidos pelos seus quatro filhos, e liga-os como serviços irmãos num único `docker-compose.yml`.
+  A verificação real `family-status` lê o manifesto de cada filho para reportar presença/versão/
+  maturidade. *(implementado como verificação real de prontidão - veja COMPILAR E EXECUTAR
+  abaixo)*
+* 🔒 **Esquema de estado versionado + leituras de manifestos com recursos limitados:** o `family-status --json` imprime um resultado real, versionado e legível por máquina; qualquer manifesto de um irmão com mais de 64 KiB (uma cópia corrompida/maliciosa) degrada para "não encontrado" em vez de ser lido sem limite. *(implementado)*
+* 🩺 **Saúde dos filhos em execução, etiquetas das imagens e os pesos no contentor do motor:** `family-status --probe` (ou `GET /family-status?probe=1`) pergunta também a cada filho em execução pela sua saúde, na rota que o seu próprio manifesto declara (`/stats` caso contrário), e indica se respondeu, com que estado e com que rapidez, e o que o filho diz de si; termina com código diferente de zero se algum não estiver bem. Onde estão os filhos é fixado no arranque do nó: as suas portas de loopback por omissão, ou `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS` (como o ficheiro compose o define dentro da pilha). As imagens do ficheiro compose são etiquetadas com `HYDRA_UMC_<NOME>_VERSION` (do `.env`; `family-versions` imprime essas linhas a partir dos manifestos) ou `latest`, nunca com um número inventado, o contentor vla-engine passa a ter `models/` montado onde o motor o procura, e um segundo fluxo de trabalho verifica que `docker compose config` continua a resolver-se. *(experimentado com serviços de substituição, não com os filhos reais nem com um Hailo-10)*
+* 🪫 **Verificação de degradação dos pesos de modelos partilhados:** o `family-status` reporta honestamente se o próprio diretório `models/` deste nó tem de facto pesos reais, e não apenas se os repositórios irmãos estão clonados. *(implementado)*
+* 📦 **Versionamento ao estilo conta-quilómetros:** A versão do `pyproject.toml` só é subida pelo comando `bump` explícito (`python tools/hydra_project_tool.py bump`, que executa o `bump_version.py`) - compilar nunca a altera.
 
-```text
-HYDRA-UMC-COGNITIVE-NODE/
-├── src/hydra_umc_cognitive_node/
-│   ├── __init__.py                 # Descrição e versão do pacote
-│   ├── manifest.py                 # Leitor real e defensivo do manifesto próprio de um irmão (limite de 64 KiB)
-│   ├── models.py                   # Verificação real do diretório de pesos de modelos partilhados deste nó
-│   ├── family.py                    # Verificação real de prontidão da família + esquema JSON versionado
-│   ├── api.py                         # Superfície JSON/HTTP simples (http.server da biblioteca padrão) sobre o `family-status`
-│   ├── main.py                        # Ponto de entrada + subcomandos reais `family-status [--json]` e `serve`
-│   └── probe.py                       # Pergunta aos serviços filhos em execução se respondem (um GET a cada rota de saúde)
-├── tests/                          # Testes reais: leitura de manifestos, modelos, estado da família, api, CLI de ponta a ponta
-├── docs/
-│   └── CLI_REFERENCE.md            # Referência completa de comandos: cada opção, saída real capturada, códigos de saída
-├── os/                             # Imagem/configuração do HydraOS para o CM5 - preenchida na implementação (não está no git)
-├── models/                         # Pesos otimizados para o Hailo-10 (LLM/VLA, partilhados pelos 4 filhos) - preenchidos na implementação (não estão no git)
-├── images/                         # Multimédia e diagramas
-├── systemd/
-│   └── hydra-umc-cognitive-node.service # Unidade systemd da API local family-status do CM5
-├── tools/
-│   ├── build_test.py               # Verificação de compilação sem subir a versão
-│   ├── ci_validate.py              # Validação de manifesto/CHANGELOG/documentação usada pelo CI
-│   ├── _doc_policy.py              # Regras de documentação partilhadas pela família (cópia da de HYDRA-UMC-SDK, mantida em sincronia)
-│   ├── _readme_parity.py           # Verificação de que os oito README partilham a mesma estrutura (cópia da de HYDRA-UMC-SDK, mantida em sincronia)
-│   └── hydra_project_tool.py       # Os mesmos comandos em todos os repositórios: validate, test, ci, version, status, bump
-├── build/                          # Saída da compilação local (ignorada pelo git)
-├── pyproject.toml                  # Metadados do pacote (versão subida só pelo comando bump explícito)
-├── bump_version.py                 # Subida de versão ao estilo conta-quilómetros (executada só pelo comando `bump` explícito)
-├── bump_manifest_version.py        # Sincroniza a versão do hydra-umc.project.json com a nativa (--sync)
-├── docker-compose.yml              # Mapa de integração dos 4 serviços filhos
-├── build.sh / build.bat            # Cria o venv, instala (com extras de desenvolvimento), executa os testes, verifica a importação
-└── run.sh / run.bat                # Executa o ponto de entrada (reencaminha argumentos, por exemplo `family-status`)
+## 🔒 Segurança e proteção
+
+| Ameaça | Defesa | Onde |
+|---|---|---|
+| Um manifesto gigante ou hostil, uma pasta de modelos gigante | O manifesto de um repositório irmão é lido até 64 KiB; a pasta de modelos é inspecionada em no máximo 20 000 ficheiros e só contam os sufixos de pesos `.bin .gguf .har .hef .onnx .safetensors .tflite` | `manifest.py`, `models.py` |
+| Um filho que responde com lixo ou fica preso | A sonda espera no máximo 2 segundos e lê no máximo 64 KiB; o caminho de saúde de um manifesto só é aceite se começar por `/`, tiver menos de 128 carateres e não tiver espaços, senão usa-se `/stats` | `probe.py` |
+| Exposição à rede | A interface HTTP é só de leitura e escuta em `127.0.0.1:8096` por predefinição; percorre o espaço de trabalho fixado no arranque e responde `400` a um pedido que tente escolher outro. Não tem token: se precisa de um ainda está em aberto | `api.py`, `main.py` |
+
+**O que nunca faz:** não é um motor de raciocínio: neste repositório não corre nenhum modelo, e não escreve nada nos filhos.
+
+## 🔌 Interfaces
+
+`family-status [--workspace DIR] [--models-dir DIR] [--probe] [--json]` e `serve [--addr 127.0.0.1] [--port 8096] [--workspace DIR] [--models-dir DIR]`. As portas predefinidas dos filhos são VLA-ENGINE 8098, VOICE-UI 8091, SEMANTIC-PLANNER 8109 e DOCS-QA 8110.
+
+O `serve` executa essa mesma verificação `family-status` como um pequeno
+`http.server` da biblioteca padrão em vez de uma chamada única da CLI - é o comando que a
+unidade systemd `hydra-umc-cognitive-node.service` do próprio CM5 está configurada
+para executar:
+
+```bash
+./run.sh serve --addr 127.0.0.1 --port 8096
+# GET /family-status  -> o mesmo JSON que o `family-status --json` imprime acima
+# GET /stats          -> { "status": "ok" }
 ```
 
-> **Nota:** `hardware/` e `firmware/` foram retirados - este nó corre num
-> CM5 + módulo M.2 Hailo-10 existentes, sem desenho de hardware/firmware próprio.
-> Poderá acrescentar-se mais tarde um microcontrolador auxiliar dedicado, se
-> se tornar necessário.
+O `GET /family-status` analisa o workspace fixado no arranque do serviço (`--workspace`, `--models-dir` ou `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR`) e responde `400` se um pedido tentar escolher outro; qualquer outro
+caminho devolve `404`. Veja a [Referência da CLI](docs/CLI_REFERENCE.md) para a
+referência completa de comandos: cada opção, saída real capturada de `-h`/`curl` e
+a tabela de códigos de saída.
 
----
+## ⚙️ Configuração
 
-## ⚙️ GUIA DE COMPILAÇÃO E EXECUÇÃO
+| Variável | Predefinição | O que define |
+|---|---|---|
+| `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` | a pasta pai deste repositório | onde estão os repositórios irmãos |
+| `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR` | `models/` | os pesos de modelos partilhados |
+| `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS` | as portas predefinidas acima | os URL dos filhos para `--probe` |
+
+## 🚀 Início rápido
 
 Requer o Python >= 3.10.
 
@@ -232,7 +248,7 @@ nunca ignorado em silêncio:
 
 ```text
 Cognitive AI Node family status (workspace: /path/to/workspace):
-  HYDRA-UMC-VLA-ENGINE: v0.1.0, maturity=established, role=service
+  HYDRA-UMC-VLA-ENGINE: v0.1.8, maturity=functional, role=service
   ...
 
 Shared model weights: MISSING (.../HYDRA-UMC-COGNITIVE-NODE/models) - this node's own os/models weights have not been provisioned on this machine; children that need them will run in their own honest degraded/no-hardware mode.
@@ -249,7 +265,7 @@ $ ./run.sh family-status --json
   "schema_version": "1.0",
   "shared_models": { "present": false, "path": ".../models" },
   "children": [
-    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.1.0", "maturity": "established", "role": "service" },
+    { "name": "HYDRA-UMC-VLA-ENGINE", "present": true, "version": "0.1.8", "maturity": "functional", "role": "service" },
     ...
   ],
   "all_children_present": true
@@ -260,25 +276,17 @@ Por omissão usa o diretório pai deste próprio repositório - a estrutura que 
 cópias reais deste ecossistema já usam (todos os repositórios como irmãos numa
 só pasta de trabalho). Termina com `1` se algum filho real estiver em falta.
 
-### 🌐 API HTTP (`serve`)
+## 🧪 Testes
 
-O `serve` executa essa mesma verificação `family-status` como um pequeno
-`http.server` da biblioteca padrão em vez de uma chamada única da CLI - é o comando que a
-unidade systemd `hydra-umc-cognitive-node.service` do próprio CM5 está configurada
-para executar:
+56 testes automáticos correm com `python -m pytest -q tests`. Verificam os manifestos, a pasta de modelos, a sonda, a linha de comandos e a interface HTTP com fixtures locais; sem hardware nem rede externa.
 
-```bash
-./run.sh serve --addr 127.0.0.1 --port 8096
-# GET /family-status  -> o mesmo JSON que o `family-status --json` imprime acima
-# GET /stats          -> { "status": "ok" }
-```
+A CI executa `HYDRA_UMC_CI=1 python tools/ci_validate.py`, que verifica o manifesto, os documentos, os oito README e as imagens.
 
-O `GET /family-status` analisa o workspace fixado no arranque do serviço (`--workspace`, `--models-dir` ou `HYDRA_UMC_COGNITIVE_NODE_WORKSPACE` / `HYDRA_UMC_COGNITIVE_NODE_MODELS_DIR`) e responde `400` se um pedido tentar escolher outro; qualquer outro
-caminho devolve `404`. Veja a [Referência da CLI](docs/CLI_REFERENCE.md) para a
-referência completa de comandos: cada opção, saída real capturada de `-h`/`curl` e
-a tabela de códigos de saída.
+## 🏗️ Compilação e publicação
 
-### 🩺 Resolução de problemas
+Não há nada para compilar numa publicação: `build.sh` / `build.bat` criam o ambiente virtual, instalam o pacote em modo editável e executam os testes, e `build-test` apenas verifica. Compilar nunca muda a versão; só a sobe `python tools/hydra_project_tool.py bump`, que também avança o registo de alterações. A versão do pacote, do manifesto e do registo tem de coincidir, senão o `ci_validate.py` falha.
+
+## 🩺 Resolução de problemas
 
 * **`python: command not found` / a compilação falha no passo 1.** Requer o
   Python >= 3.10 no `PATH`. No Windows, instale a partir de
@@ -303,15 +311,57 @@ a tabela de códigos de saída.
   serviço diretamente com o seu próprio `run.sh`/`run.bat` durante o desenvolvimento
   não precisa desse token, já que o `--host` aí fica em loopback.
 
----
+## 📂 Estrutura do repositório
 
-## 🚀 ROTEIRO
+<p align="center">
+  <img src="images/repository-structure.svg" alt="Repository structure of HYDRA-UMC-COGNITIVE-NODE" width="100%">
+</p>
+
+<details>
+<summary>Versão em texto da árvore</summary>
+
+```text
+HYDRA-UMC-COGNITIVE-NODE/
+├── src/hydra_umc_cognitive_node/
+│   ├── family.py                                estado dos quatro serviços filhos
+│   ├── manifest.py                              lê o manifesto de um repositório irmão
+│   ├── models.py                                verifica a pasta partilhada de pesos
+│   ├── probe.py                                 cada filho responde por HTTP
+│   └── api.py main.py                           interface HTTP e linha de comandos
+├── tests/                                       56 testes
+├── docs/                                        a referência da linha de comandos
+├── models/                                      pesos de modelos partilhados
+├── os/                                          notas da camada do SO
+├── tools/                                       executor de compilação e testes, subida de versão, validador de CI, geradores e verificações de README e imagens
+├── images/                                      faixa e imagens do README
+├── .github/                                     fluxo de CI e modelos de questões
+├── pyproject.toml                               metadados do pacote e dependências
+├── hydra-umc.project.json                       manifesto: versão, maturidade, família
+├── CHANGELOG.md                                 o que mudou em cada versão
+├── build.sh build.bat                           scripts de compilação (nunca mudam a versão)
+├── build-test.sh build-test.bat                 scripts de compilação (nunca mudam a versão)
+├── test.sh test.bat                             executam os testes
+├── systemd/                                     unidade de serviço para o CM5
+├── docker-compose.yml / Dockerfile              o nó com os seus quatro filhos
+├── bump_version.py / bump_manifest_version.py   subida de versão explícita
+├── run.sh run.bat                               arrancar o nó
+└── SECURITY.md SUPPORT.md CONTRIBUTING.md CODE_OF_CONDUCT.md LICENSE LICENSE.md
+```
+
+</details>
+
+## 🗺️ Roteiro e limites conhecidos
+
+**Limites conhecidos hoje**
+
 * **Fase 1:** implementação do motor VLA e processamento de entrada multimodal no Hailo-10.
 * **Fase 2:** integração do planeador semântico com modelos comportamentais do enxame e memória de longo prazo.
 * **Fase 3:** execução local de baixa latência da Voice UI e cancelamento de ruído industrial.
 * **Fase 4:** auditorias de decisão autónoma e integração total com o Dashboard AI para um retorno "Ver e Perguntar".
 
----
+## 🌍 Idiomas
+
+Este README e os documentos do repositório existem em oito idiomas: inglês, espanhol, alemão, francês, italiano, japonês, chinês e português (Portugal). São escritos em conjunto e a CI verifica que os oito ficheiros têm as mesmas secções e as mesmas ligações. Este repositório não tem ecrã nem catálogo de mensagens próprios, por isso não há textos de interface para traduzir.
 
 ## 🔗 Projetos relacionados
 
@@ -402,21 +452,27 @@ Este projeto faz parte do ecossistema de robótica HYDRA-UMC do mesmo autor (Jua
 - **[HYDRA-UMC-OPS-AGENT](https://github.com/JuanenRac/HYDRA-UMC-OPS-AGENT)** — coordenador de incidentes de manutenção: um papel de borda de poucos privilégios recolhe um inventário/estado higienizado, um papel de plano de controlo mostra-o só de leitura e pede a um fornecedor de IA que sugira um diagnóstico; nunca aplica um patch nem implanta nada.
 - **[HYDRA-UMC-DEV-SERVER](https://github.com/JuanenRac/HYDRA-UMC-DEV-SERVER)** — anfitrião de desenvolvimento reproduzível (Raspberry Pi 5 / CM5) que guarda o código-fonte do ecossistema e executa tarefas limitadas de compilação/teste numa fila durável; um papel de desenvolvimento dedicado, explicitamente não um CM5 operacional.
 
----
+## 📚 Documentação
 
-## 📚 Documentação e comunidade
+Onde ler mais:
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — pilha tecnológica e diretrizes de código para um pull request.
-- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — as normas de comportamento esperadas nesta comunidade.
-- **[SECURITY.md](SECURITY.md)** — como comunicar uma vulnerabilidade e as áreas de segurança em que este projeto se concentra.
-- **[SUPPORT.md](SUPPORT.md)** — onde fazer perguntas e comunicar erros.
-- **[LICENSE.md](LICENSE.md)** — a licença deste projeto.
+* [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md) - cada comando e opção, saída real capturada e os códigos de saída
+* [Base de segurança do ecossistema](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)
+* [Modelo de ameaças do ecossistema](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)
+* [Registo de alterações deste repositório](CHANGELOG.md)
+* [Licença deste repositório](LICENSE.md)
+
+## 🤝 Contribuir e comunidade
+
+* Antes de um pull request execute `HYDRA_UMC_CI=1 py -3 tools/ci_validate.py` (ou `HYDRA_UMC_CI=1 python3 tools/ci_validate.py`): tem de imprimir `CI_VALIDATION=PASS`. Não execute `build.sh` nem `build.bat` para esta verificação; compilar não é verificar.
+* Os oito README são escritos a partir de uma única fonte em HYDRA-UMC-DOCS; não os edite à mão. Altere a fonte e escreva-os de novo com `tools/make_readmes.py`.
+* Não afirme num README o que não foi executado: diga «simulado» ou «não testado em hardware» quando for a verdade.
+* Consulte [CONTRIBUTING.md](CONTRIBUTING.md), o [código de conduta](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md) e [SUPPORT.md](SUPPORT.md).
 
 ## 👤 AUTOR
-**JuanenRac** (Electro Hobby 3D)
-📧 electrohobby3d@gmail.com
-📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
+
+**JuanenRac (Electro Hobby 3D)** · electrohobby3d@gmail.com
 
 ## 📜 LICENÇA
-GPL-3.0-or-later - consulte LICENSE para mais detalhes.
 
+GPL-3.0-or-later - [LICENSE](LICENSE).

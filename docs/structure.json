@@ -1,0 +1,378 @@
+{
+  "repo": "HYDRA-UMC-COGNITIVE-NODE",
+  "ecosystem": "hydra",
+  "svg": "en",
+  "cards": [
+    {
+      "name": "src/hydra_umc_cognitive_node/",
+      "span": 3,
+      "accent": "a",
+      "sub": {
+        "en": "the node, in Python",
+        "es": "el nodo, en Python",
+        "de": "der Knoten in Python",
+        "fr": "le nœud, en Python",
+        "it": "il nodo, in Python",
+        "ja": "Python のノード",
+        "zh": "用 Python 编写的节点",
+        "pt": "o nó, em Python"
+      },
+      "rows": [
+        {
+          "name": "family.py",
+          "desc": {
+            "en": "readiness of the four child services",
+            "es": "preparación de los cuatro servicios hijos",
+            "de": "Bereitschaft der vier Kinddienste",
+            "fr": "état de préparation des quatre services enfants",
+            "it": "stato dei quattro servizi figli",
+            "ja": "4 つの子サービスの準備状況",
+            "zh": "四个子服务的就绪状态",
+            "pt": "estado dos quatro serviços filhos"
+          }
+        },
+        {
+          "name": "manifest.py",
+          "desc": {
+            "en": "reads a sibling's own manifest",
+            "es": "lee el manifiesto de un hermano",
+            "de": "liest das Manifest eines Geschwister-Repos",
+            "fr": "lit le manifeste d'un dépôt frère",
+            "it": "legge il manifesto di un repo fratello",
+            "ja": "兄弟リポジトリのマニフェストを読む",
+            "zh": "读取兄弟仓库的清单",
+            "pt": "lê o manifesto de um repositório irmão"
+          }
+        },
+        {
+          "name": "models.py",
+          "desc": {
+            "en": "checks the shared model-weights folder",
+            "es": "comprueba la carpeta de pesos compartida",
+            "de": "prüft den gemeinsamen Gewichte-Ordner",
+            "fr": "contrôle le dossier partagé des poids",
+            "it": "controlla la cartella condivisa dei pesi",
+            "ja": "共有モデル重みフォルダーを検査",
+            "zh": "检查共享的模型权重文件夹",
+            "pt": "verifica a pasta partilhada de pesos"
+          }
+        },
+        {
+          "name": "probe.py",
+          "desc": {
+            "en": "does each child answer over HTTP",
+            "es": "¿contesta cada hijo por HTTP?",
+            "de": "antwortet jedes Kind per HTTP",
+            "fr": "chaque enfant répond-il en HTTP",
+            "it": "ogni figlio risponde via HTTP",
+            "ja": "各子サービスが HTTP で応答するか",
+            "zh": "每个子服务是否通过 HTTP 应答",
+            "pt": "cada filho responde por HTTP"
+          }
+        },
+        {
+          "name": "api.py, main.py",
+          "desc": {
+            "en": "HTTP surface and command line",
+            "es": "interfaz HTTP y línea de órdenes",
+            "de": "HTTP-Schnittstelle und Kommandozeile",
+            "fr": "interface HTTP et ligne de commande",
+            "it": "interfaccia HTTP e riga di comando",
+            "ja": "HTTP の窓口とコマンドライン",
+            "zh": "HTTP 接口与命令行",
+            "pt": "interface HTTP e linha de comandos"
+          },
+          "tree_name": "api.py main.py"
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "tests, docs and tools",
+        "es": "pruebas, docs y herramientas",
+        "de": "Tests, Doku und Werkzeuge",
+        "fr": "tests, docs et outils",
+        "it": "test, documenti e strumenti",
+        "ja": "テスト・文書・ツール",
+        "zh": "测试、文档和工具",
+        "pt": "testes, docs e ferramentas"
+      },
+      "kind": "group",
+      "span": 3,
+      "accent": "b",
+      "columns": 2,
+      "rows": [
+        {
+          "name": "tests/",
+          "desc": {
+            "en": "56 tests",
+            "es": "56 pruebas",
+            "de": "56 Tests",
+            "fr": "56 tests",
+            "it": "56 test",
+            "ja": "56 件",
+            "zh": "56 项测试",
+            "pt": "56 testes"
+          }
+        },
+        {
+          "name": "docs/",
+          "desc": {
+            "en": "the command-line reference",
+            "es": "la referencia de la línea de órdenes",
+            "de": "die Kommandozeilen-Referenz",
+            "fr": "la référence de la ligne de commande",
+            "it": "il riferimento della riga di comando",
+            "ja": "コマンドラインのリファレンス",
+            "zh": "命令行参考",
+            "pt": "a referência da linha de comandos"
+          }
+        },
+        {
+          "name": "models/",
+          "desc": {
+            "en": "shared model weights",
+            "es": "pesos de modelos compartidos",
+            "de": "gemeinsame Modellgewichte",
+            "fr": "poids de modèles partagés",
+            "it": "pesi dei modelli condivisi",
+            "ja": "共有モデルの重み",
+            "zh": "共享模型权重",
+            "pt": "pesos de modelos partilhados"
+          }
+        },
+        {
+          "name": "os/",
+          "desc": {
+            "en": "notes of the OS layer",
+            "es": "notas de la capa del SO",
+            "de": "Notizen zur OS-Schicht",
+            "fr": "notes de la couche OS",
+            "it": "note del livello OS",
+            "ja": "OS 層のメモ",
+            "zh": "操作系统层说明",
+            "pt": "notas da camada do SO"
+          }
+        },
+        {
+          "name": "tools/",
+          "desc": {
+            "en": "project tools, CI checks, version bump",
+            "es": "herramientas del proyecto, comprobaciones de CI, subida de versión",
+            "de": "Projektwerkzeuge, CI-Prüfungen, Versionserhöhung",
+            "fr": "outils du projet, vérifications CI, montée de version",
+            "it": "strumenti del progetto, controlli CI, aumento di versione",
+            "ja": "プロジェクトのツール、CI の検査、バージョンの引き上げ",
+            "zh": "项目工具、CI 检查、版本提升",
+            "pt": "ferramentas do projeto, verificações de CI, subida de versão"
+          },
+          "tree_desc": {
+            "en": "build and test runner, version bump, CI validator, README and picture generators and checks",
+            "es": "ejecutor de compilación y pruebas, subida de versión, validador de CI, generadores y comprobaciones de README e imágenes",
+            "de": "Build- und Testläufer, Versionserhöhung, CI-Prüfer, README- und Bildgeneratoren samt Prüfungen",
+            "fr": "exécuteur de build et de tests, montée de version, validateur CI, générateurs et vérifications des README et des images",
+            "it": "esecutore di build e test, aumento di versione, validatore CI, generatori e controlli di README e immagini",
+            "ja": "ビルド・テスト実行、バージョン引き上げ、CI 検証、README と図の生成・検査",
+            "zh": "构建与测试运行器、版本提升、CI 校验、README 与图片的生成和检查",
+            "pt": "executor de compilação e testes, subida de versão, validador de CI, geradores e verificações de README e imagens"
+          }
+        },
+        {
+          "name": "images/",
+          "desc": {
+            "en": "banner and the pictures of the README",
+            "es": "banner y las imágenes del README",
+            "de": "Banner und die Bilder der README",
+            "fr": "bannière et images du README",
+            "it": "banner e immagini del README",
+            "ja": "バナーと README の図",
+            "zh": "横幅图与 README 的图片",
+            "pt": "faixa e imagens do README"
+          }
+        },
+        {
+          "name": ".github/",
+          "desc": {
+            "en": "CI workflow and issue templates",
+            "es": "flujo de CI y plantillas de incidencias",
+            "de": "CI-Workflow und Issue-Vorlagen",
+            "fr": "workflow CI et modèles de tickets",
+            "it": "workflow CI e modelli di segnalazione",
+            "ja": "CI ワークフローと Issue テンプレート",
+            "zh": "CI 工作流和 Issue 模板",
+            "pt": "fluxo de CI e modelos de questões"
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "project files",
+        "es": "ficheros del proyecto",
+        "de": "Projektdateien",
+        "fr": "fichiers du projet",
+        "it": "file del progetto",
+        "ja": "プロジェクトのファイル",
+        "zh": "项目文件",
+        "pt": "ficheiros do projeto"
+      },
+      "kind": "group",
+      "span": 3,
+      "accent": "c",
+      "columns": 2,
+      "rows": [
+        {
+          "name": "pyproject.toml",
+          "desc": {
+            "en": "package metadata and dependencies",
+            "es": "metadatos del paquete y dependencias",
+            "de": "Paketmetadaten und Abhängigkeiten",
+            "fr": "métadonnées du paquet et dépendances",
+            "it": "metadati del pacchetto e dipendenze",
+            "ja": "パッケージのメタデータと依存関係",
+            "zh": "包元数据与依赖",
+            "pt": "metadados do pacote e dependências"
+          }
+        },
+        {
+          "name": "hydra-umc.project.json",
+          "desc": {
+            "en": "manifest: version, maturity, family",
+            "es": "manifiesto: versión, madurez, familia",
+            "de": "Manifest: Version, Reifegrad, Familie",
+            "fr": "manifeste : version, maturité, famille",
+            "it": "manifesto: versione, maturità, famiglia",
+            "ja": "マニフェスト：バージョン・成熟度・ファミリー",
+            "zh": "清单：版本、成熟度、系列",
+            "pt": "manifesto: versão, maturidade, família"
+          }
+        },
+        {
+          "name": "CHANGELOG.md",
+          "desc": {
+            "en": "what changed in each version",
+            "es": "qué cambió en cada versión",
+            "de": "was sich in jeder Version geändert hat",
+            "fr": "ce qui a changé à chaque version",
+            "it": "cosa è cambiato in ogni versione",
+            "ja": "各バージョンの変更点",
+            "zh": "每个版本的变化",
+            "pt": "o que mudou em cada versão"
+          }
+        },
+        {
+          "name": "build.sh  build.bat",
+          "tree_name": "build.sh build.bat",
+          "desc": {
+            "en": "build scripts (they never change the version)",
+            "es": "scripts de compilación (nunca cambian la versión)",
+            "de": "Build-Skripte (ändern die Version nie)",
+            "fr": "scripts de build (ils ne changent jamais la version)",
+            "it": "script di build (non cambiano mai la versione)",
+            "ja": "ビルドスクリプト（バージョンは変えません）",
+            "zh": "构建脚本（从不改变版本）",
+            "pt": "scripts de compilação (nunca mudam a versão)"
+          }
+        },
+        {
+          "name": "build-test.sh  build-test.bat",
+          "tree_name": "build-test.sh build-test.bat",
+          "desc": {
+            "en": "build scripts (they never change the version)",
+            "es": "scripts de compilación (nunca cambian la versión)",
+            "de": "Build-Skripte (ändern die Version nie)",
+            "fr": "scripts de build (ils ne changent jamais la version)",
+            "it": "script di build (non cambiano mai la versione)",
+            "ja": "ビルドスクリプト（バージョンは変えません）",
+            "zh": "构建脚本（从不改变版本）",
+            "pt": "scripts de compilação (nunca mudam a versão)"
+          }
+        },
+        {
+          "name": "test.sh  test.bat",
+          "tree_name": "test.sh test.bat",
+          "desc": {
+            "en": "run the tests",
+            "es": "ejecutan las pruebas",
+            "de": "führen die Tests aus",
+            "fr": "lancent les tests",
+            "it": "eseguono i test",
+            "ja": "テストを実行",
+            "zh": "运行测试",
+            "pt": "executam os testes"
+          }
+        },
+        {
+          "name": "systemd/",
+          "desc": {
+            "en": "service unit for the CM5",
+            "es": "unidad de servicio para la CM5",
+            "de": "Dienst-Unit für den CM5",
+            "fr": "unité de service pour la CM5",
+            "it": "unità di servizio per la CM5",
+            "ja": "CM5 用のサービスユニット",
+            "zh": "CM5 的服务单元",
+            "pt": "unidade de serviço para o CM5"
+          }
+        },
+        {
+          "name": "docker-compose.yml  Dockerfile",
+          "desc": {
+            "en": "the node with its four children",
+            "es": "el nodo con sus cuatro hijos",
+            "de": "der Knoten mit seinen vier Kindern",
+            "fr": "le nœud avec ses quatre enfants",
+            "it": "il nodo con i suoi quattro figli",
+            "ja": "4 つの子を含むノード",
+            "zh": "节点及其四个子服务",
+            "pt": "o nó com os seus quatro filhos"
+          },
+          "tree_name": "docker-compose.yml / Dockerfile"
+        },
+        {
+          "name": "bump_version.py",
+          "desc": {
+            "en": "explicit version bump",
+            "es": "subida de versión explícita",
+            "de": "ausdrückliche Versionserhöhung",
+            "fr": "montée de version explicite",
+            "it": "aumento di versione esplicito",
+            "ja": "明示的なバージョン引き上げ",
+            "zh": "显式的版本提升",
+            "pt": "subida de versão explícita"
+          },
+          "tree_name": "bump_version.py / bump_manifest_version.py"
+        },
+        {
+          "name": "run.sh  run.bat",
+          "desc": {
+            "en": "start the node",
+            "es": "arrancar el nodo",
+            "de": "den Knoten starten",
+            "fr": "démarrer le nœud",
+            "it": "avviare il nodo",
+            "ja": "ノードを起動",
+            "zh": "启动节点",
+            "pt": "arrancar o nó"
+          },
+          "tree_name": "run.sh run.bat"
+        },
+        {
+          "name": "SECURITY  SUPPORT  CONTRIBUTING  LICENSE",
+          "tree_name": "SECURITY.md SUPPORT.md CONTRIBUTING.md CODE_OF_CONDUCT.md LICENSE LICENSE.md",
+          "desc": {
+            "en": "community and licence files",
+            "es": "comunidad y licencia",
+            "de": "Community und Lizenz",
+            "fr": "communauté et licence",
+            "it": "comunità e licenza",
+            "ja": "コミュニティとライセンス",
+            "zh": "社区与许可证",
+            "pt": "comunidade e licença"
+          },
+          "tree_desc": ""
+        }
+      ]
+    }
+  ]
+}

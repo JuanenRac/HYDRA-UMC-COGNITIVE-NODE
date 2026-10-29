@@ -1,0 +1,100 @@
+{
+  "repo": "HYDRA-UMC-COGNITIVE-NODE",
+  "ecosystem": "hydra",
+  "tagline": "Is the cognitive family of the cell present and answering? One honest check, with a versioned JSON.",
+  "description": "HYDRA-UMC-COGNITIVE-NODE is the integration point of the Hailo-10 cognitive family: VLA-ENGINE, VOICE-UI, SEMANTIC-PLANNER and DOCS-QA. Today its real job is to read the manifest of each child, check the shared model-weights folder and, when asked, probe each child over HTTP, and to report that as a versioned JSON on the command line and over a read-only HTTP surface.",
+  "columns": [
+    "WHO ASKS",
+    "THIS REPOSITORY",
+    "WHAT IT CHECKS"
+  ],
+  "nodes": [
+    {
+      "id": "ops",
+      "column": 0,
+      "level": "external",
+      "title": "Operator, dashboards",
+      "lines": [
+        "family-status on the command",
+        "line or GET /family-status"
+      ],
+      "title_size": 12
+    },
+    {
+      "id": "api",
+      "column": 1,
+      "level": "contract",
+      "title": "api.py, main.py",
+      "lines": [
+        "read-only HTTP on 127.0.0.1",
+        "and the CLI; versioned JSON"
+      ],
+      "code": [
+        "src/hydra_umc_cognitive_node/api.py",
+        "src/hydra_umc_cognitive_node/main.py"
+      ]
+    },
+    {
+      "id": "fam",
+      "column": 1,
+      "level": "tested",
+      "title": "family.py, manifest.py",
+      "lines": [
+        "manifests of the four children,",
+        "64 KiB cap each"
+      ],
+      "code": [
+        "src/hydra_umc_cognitive_node/family.py",
+        "src/hydra_umc_cognitive_node/manifest.py::MAX_MANIFEST_BYTES"
+      ]
+    },
+    {
+      "id": "probe",
+      "column": 1,
+      "level": "tested",
+      "title": "probe.py, models.py",
+      "lines": [
+        "HTTP probe with a time-out;",
+        "model-weights folder check"
+      ],
+      "code": [
+        "src/hydra_umc_cognitive_node/probe.py::PROBE_TIMEOUT_SECONDS",
+        "src/hydra_umc_cognitive_node/models.py"
+      ]
+    },
+    {
+      "id": "kids",
+      "column": 2,
+      "level": "external",
+      "title": "The four children",
+      "lines": [
+        "VLA-ENGINE, VOICE-UI,",
+        "SEMANTIC-PLANNER, DOCS-QA"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "ops",
+      "to": "api",
+      "level": "tested"
+    },
+    {
+      "from": "api",
+      "to": "fam",
+      "level": "tested"
+    },
+    {
+      "from": "fam",
+      "to": "probe",
+      "level": "tested"
+    },
+    {
+      "from": "fam",
+      "to": "kids",
+      "label": "manifests",
+      "level": "tested"
+    }
+  ],
+  "footer": "It is a readiness check, not a reasoning engine: no model runs in this repository."
+}
