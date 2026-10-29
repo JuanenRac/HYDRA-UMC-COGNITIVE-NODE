@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+- **The layout of the README is checked in the CI:** the validator runs `tools/universal_readme_check.py` and lists, as a warning, what differs from the universal layout of the README.
+
 ## [0.1.5] - `family-status --probe` asks the running children for their health
 
 - **`family-status --probe` asks the running children for their health.** `src/hydra_umc_cognitive_node/probe.py`: one GET to the health route each child's manifest declares (`/stats` otherwise) with a 2 s timeout; it reports whether the child answered, the status, the latency and the verdict in its answer, and exits non-zero when one is not well. `GET /family-status?probe=1` does the same. Where the children are is fixed at start (loopback ports, or `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS`, which docker-compose.yml sets for the stack). The compose images are tagged `HYDRA_UMC_<NAME>_VERSION` or `latest` instead of an invented `1.0.0` (`family-versions` prints the lines from the manifests), the vla-engine service mounts `models/` where the engine looks for it (it reported `no_model_weights` in a container whatever was provisioned), and a workflow runs `docker compose config`. Tried against stand-in services.
