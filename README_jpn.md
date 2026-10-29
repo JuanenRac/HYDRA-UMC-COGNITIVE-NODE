@@ -27,7 +27,7 @@ GPL-3.0-or-later - see LICENSE
 
 > **誠実性チェック - 今日実際に動くもの:** ファミリー準備状況チェックとそのバージョン管理された JSON スキーマ（`family.py`、`manifest.py`、`models.py`）、および標準ライブラリのみによる素の HTTP インターフェース（`api.py`）は本物であり、56件の通過するテストで検証されている（`pytest tests/` - `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。このノード自体はモデルを一切実行しない - 下記の主要機能にある「ローカル LLM 実行」「VLA 統合」「音声コマンド処理」は明示的に `(計画中)` と表示されており、本リポジトリには Hailo-10 のランタイムコードは存在しない。`docker-compose.yml` は現在、4つの子サービスすべてに対して本物の Dockerfile を参照しているが、この開発環境では一つのスタックとして実際に実行されたことは一度もない（ここには利用可能な Docker ランタイムがない）- 各 Dockerfile のコマンド/ポートのマッピングは、各子サービス自身の systemd unit が実際の CM5 上で既に実行している内容と手作業で照合されたものであり、ライブでは検証されていない。これまでに実際に出荷された内容は `CHANGELOG.md` を参照。
 
-> **安全性とセキュリティの現状:** このエコシステムは認証された安全システムではありません。ハードウェアの E-STOP 経路、ファームウェアが強制する制限やインターロック、検証済みの動作コマンドはまだありません。ファームウェアイメージは CRC32 と共有鍵の HMAC-SHA256 で検査しており、非対称署名ではありません。TLS と相互 TLS は任意で、既定では無効です。独自基板はまだ実装も試験もされていません。ここに書かれた内容を人の安全のために頼る前に、[セキュリティベースライン](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)と[脅威モデル](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)をお読みください。
+> **安全性とセキュリティの現状:** このエコシステムは認証された安全システムではありません。ハードウェアの E-STOP 経路、ファームウェアが強制する制限やインターロック、検証済みの動作コマンドはまだありません。ファームウェアイメージは CRC-32 と Ed25519 署名で検査し、リリースビルドは公開済みの開発用鍵を拒否します(リレーの先のツールヘッドと拡張ボードは引き続き URTC のブートローダーを使い、署名ではなく共有鍵の HMAC-SHA256 を使います)。TLS と相互 TLS は任意で、既定では無効です。独自基板はまだ実装も試験もされていません。ここに書かれた内容を人の安全のために頼る前に、[セキュリティベースライン](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)と[脅威モデル](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)をお読みください。
 
 ---
 
