@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.1.6] - The compose file checked by the tests without Docker and the universal README
+
 - **`docker-compose.yml` is checked by the tests without Docker:** it must parse, every service must say where its image comes from, a dependency must name a service of the file, a build context that exists must hold a Dockerfile, and healthchecks and published ports must be well formed (PyYAML joins the development extras).
 - **README in the universal layout:** the README and its seven translations follow the layout that the four families share (22 sections in a fixed order), with an architecture picture and a repository-structure picture drawn from `docs/architecture.json` and `docs/structure.json`; the CI validator checks both pictures and the file tree. Where the repository has a service or an MQTT transport, the README now says how to start it and which environment variables it reads.
 
