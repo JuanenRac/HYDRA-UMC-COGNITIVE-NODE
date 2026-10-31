@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
-  <img src="https://img.shields.io/badge/Tests-56%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-61%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.1.6-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **Vérification d'honnêteté - ce qui fonctionne réellement aujourd'hui :** la vérification de disponibilité de la famille et son schéma JSON versionné (`family.py`, `manifest.py`, `models.py`) ainsi que la surface HTTP simple de la stdlib (`api.py`) sont réels et couverts par 56 tests qui passent (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Ce nœud n'exécute lui-même aucun modèle : « Exécution locale de LLM », « Intégration VLA » et « Traitement des commandes vocales » dans les fonctionnalités clés ci-dessous sont explicitement marquées `(planifié)` - il n'y a aucun code de runtime Hailo-10 dans ce dépôt. `docker-compose.yml` référence désormais un vrai Dockerfile pour les 4 enfants, mais il n'a jamais réellement été exécuté comme une seule pile dans cet environnement de développement (aucun runtime Docker disponible ici) - le mappage commande/port de chaque Dockerfile a été vérifié à la main par rapport à ce que l'unité systemd propre de chaque enfant exécute déjà sur la vraie CM5, non vérifié en direct. Voir `CHANGELOG.md` pour ce qui a été exactement livré jusqu'à présent.
+> **Vérification d'honnêteté - ce qui fonctionne réellement aujourd'hui :** la vérification de disponibilité de la famille et son schéma JSON versionné (`family.py`, `manifest.py`, `models.py`) ainsi que la surface HTTP simple de la stdlib (`api.py`) sont réels et couverts par 61 tests qui passent (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Ce nœud n'exécute lui-même aucun modèle : « Exécution locale de LLM », « Intégration VLA » et « Traitement des commandes vocales » dans les fonctionnalités clés ci-dessous sont explicitement marquées `(planifié)` - il n'y a aucun code de runtime Hailo-10 dans ce dépôt. `docker-compose.yml` référence désormais un vrai Dockerfile pour les 4 enfants, mais il n'a jamais réellement été exécuté comme une seule pile dans cet environnement de développement (aucun runtime Docker disponible ici) - le mappage commande/port de chaque Dockerfile a été vérifié à la main par rapport à ce que l'unité systemd propre de chaque enfant exécute déjà sur la vraie CM5, non vérifié en direct. Voir `CHANGELOG.md` pour ce qui a été exactement livré jusqu'à présent.
 
 > **État de la sûreté et de la cybersécurité :** cet écosystème n'est pas un système de sécurité certifié. Il n'existe pas encore de chaîne d'E-STOP matérielle, ni de limites ou de verrouillages imposés par le firmware, ni de commande de mouvement vérifiée ; les images de firmware sont contrôlées par CRC-32 et une signature Ed25519, et une compilation de version refuse les clés de développement publiées (les têtes d'outil et les cartes d'extension derrière le relais utilisent encore les chargeurs d'URTC, qui prennent un HMAC-SHA256 à clé partagée au lieu d'une signature) ; TLS et TLS mutuel sont optionnels et désactivés par défaut ; aucune carte propre n'a encore été assemblée ni testée. Lisez la [base de sécurité](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md) et le [modèle de menaces](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md) avant de vous fier à une affirmation d'ici pour la sécurité d'une personne.
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | Version | `0.1.6` |
 | Maturité | Fonctionnel |
-| Tests | 56 (`python -m pytest -q tests`) |
+| Tests | 61 (`python -m pytest -q tests`) |
 | Technologie | Python / CM5 / Hailo-10 |
 | Cible | Le Raspberry Pi CM5 d'une cellule HYDRA-UMC |
 | Sur matériel réel | Pas encore : aucune exécution sur du matériel réel n'est consignée pour cette version |
@@ -53,7 +53,7 @@ Chaque ligne est une partie de ce dépôt et le feu dit où elle en est aujourd'
 | Domaine | État | Ce que cela veut dire ici |
 |---|---|---|
 | Logiciel | 🟡 | Fonctionne pour son usage principal ; la vérification d'honnêteté ci-dessus liste ce qui manque encore |
-| Tests | 🟢 | 56 tests automatiques, exécutés à chaque modification |
+| Tests | 🟢 | 61 tests automatiques, exécutés à chaque modification |
 | Matériel réel | 🔴 | Pas encore : aucune exécution sur du matériel réel n'est consignée pour cette version |
 | Documentation | 🟢 | README en huit langues, vérifié par rapport au manifeste à chaque modification |
 
@@ -291,7 +291,7 @@ les dépôts en frères sous un même dossier de workspace). Se termine avec
 
 ## 🧪 Tests
 
-56 tests automatiques s'exécutent avec `python -m pytest -q tests`. Ils vérifient les manifestes, le dossier de modèles, la sonde, la ligne de commande et l'interface HTTP avec des bancs locaux ; ni matériel ni réseau extérieur.
+61 tests automatiques s'exécutent avec `python -m pytest -q tests`. Ils vérifient les manifestes, le dossier de modèles, la sonde, la ligne de commande et l'interface HTTP avec des bancs locaux ; ni matériel ni réseau extérieur.
 
 La CI exécute `HYDRA_UMC_CI=1 python tools/ci_validate.py`, qui vérifie le manifeste, les documents, les huit README et les images.
 

@@ -25,3 +25,9 @@ hydra-umc-cognitive-node = "hydra_umc_cognitive_node.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.ruff.lint]
+select = ["F", "E9", "B"]
+
+[tool.mypy]
+ignore_missing_imports = true
