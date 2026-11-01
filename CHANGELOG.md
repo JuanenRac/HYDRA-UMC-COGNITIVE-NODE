@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **`GET /metrics` in the text format of Prometheus:** the version, the uptime, the responses by class of status (2xx to 5xx) and the health, the aggregate of the checks of the service; only numbers about the service, never a path, an address, a token or a body. Open like `/stats`. The code is the canonical `service_metrics.py` of HYDRA-UMC-SDK, copied byte for byte. 3 tests against a real server.
+
 ## [0.1.6] - The compose file checked by the tests without Docker and the universal README
 
 - **`docker-compose.yml` is checked by the tests without Docker:** it must parse, every service must say where its image comes from, a dependency must name a service of the file, a build context that exists must hold a Dockerfile, and healthchecks and published ports must be well formed (PyYAML joins the development extras).
