@@ -24,6 +24,7 @@ from . import __version__
 from .access import bind_warning, load_token
 from .api import CognitiveNodeServer
 from .family import check_family_status, env_versions, family_status_to_dict
+from .llm import Narrator, load_llm_config, make_backend
 from .models import check_shared_models
 from .probe import health_to_dict, probe_family
 
@@ -106,10 +107,15 @@ def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | Non
     return 0
 
 
-def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = None, token_file: str | None = None, max_threads: int = 32) -> int:
+def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = None, token_file: str | None = None, max_threads: int = 32, llm_config: str | None = None) -> int:
     try:
         token = load_token(token_file)
-        server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT, models_dir, token, max_threads)
+        narrator = None
+        if llm_config:
+            config = load_llm_config(llm_config)
+            if config.enabled:
+                narrator = Narrator(config, make_backend(config))
+        server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT, models_dir, token, max_threads, narrator)
     except ValueError as error:
         print(f"[cognitive-node] error: {error}", file=sys.stderr)
         return 2
@@ -117,7 +123,9 @@ def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = 
     if warning:
         print(f"[cognitive-node] warning: {warning}", file=sys.stderr)
     print(f"[cognitive-node] HTTP API listening on {addr}:{port} (workspace={workspace}; {'Bearer token required except on /stats' if token else 'no token'})")
-    print("[cognitive-node] GET /family-status, GET /stats")
+    print("[cognitive-node] GET /family-status, GET /stats" + (f", POST /narrative (language model: {narrator.backend.name})" if narrator is not None else ""))
+    if narrator is not None and narrator.backend.name == "simulator":
+        print("[cognitive-node] the language model is a SIMULATOR: the texts come from a template, not from a model")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -176,6 +184,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--port", type=int, default=8096, help="port for the HTTP API")
     serve_parser.add_argument("--token-file", default=None, help="File with the bearer token every route but GET /stats must present (or the HYDRA_UMC_COGNITIVE_NODE_TOKEN environment variable); off by default")
     serve_parser.add_argument("--max-threads", type=int, default=32, help="Requests handled at the same time, 1 to 1024; one more answers 503 at once (default: 32)")
+    serve_parser.add_argument("--llm-config", default=os.environ.get("HYDRA_UMC_COGNITIVE_NODE_LLM_CONFIG"), help="JSON file that switches on POST /narrative, the local language model for trend summaries (see docs/NARRATIVE.md); off by default (or the HYDRA_UMC_COGNITIVE_NODE_LLM_CONFIG environment variable)")
     serve_parser.add_argument(
         "--workspace",
         type=Path,
@@ -204,7 +213,7 @@ def main(argv: list[str] | None = None) -> int:
             print(line)
         return 0
     if args.command == "serve":
-        return _run_serve(args.addr, args.port, args.workspace, args.models_dir, args.token_file, args.max_threads)
+        return _run_serve(args.addr, args.port, args.workspace, args.models_dir, args.token_file, args.max_threads, args.llm_config)
 
     _print_identity()
     return 0

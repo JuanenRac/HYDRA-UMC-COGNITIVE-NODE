@@ -16,7 +16,8 @@ from urllib.parse import urlparse
 
 from . import __version__
 from .access import HEALTH_PATH
-from .http_common import DEFAULT_MAX_THREADS, SOCKET_TIMEOUT_SECONDS, BoundedThreadingHTTPServer, bearer_matches, query_params, reject_unauthorized, write_error, write_json
+from .http_common import DEFAULT_MAX_THREADS, SOCKET_TIMEOUT_SECONDS, BoundedThreadingHTTPServer, bearer_matches, query_params, read_json_object, reject_unauthorized, write_error, write_json
+from .llm import LlmBusy, LlmRequestError, LlmUnavailable, Narrator
 from .service_metrics import MetricsHandlerMixin
 from .family import check_family_status, family_status_to_dict
 from .probe import health_to_dict, probe_family
@@ -47,6 +48,34 @@ class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
 
     def log_message(self, format: str, *args: object) -> None:  # noqa: A002
         pass  # quiet by default, same reasoning as this family's other api.py files
+
+    def do_POST(self) -> None:  # noqa: N802
+        path = urlparse(self.path).path
+        if path != "/narrative" or self.server.narrator is None:
+            _write_error(self, 404, "not found")  # the route does not exist while the language model is off
+            return
+        if not bearer_matches(self, self.server.token):
+            reject_unauthorized(self)
+            return
+        try:
+            body = read_json_object(self, 8 * 1024)
+        except ValueError as error:
+            _write_error(self, 400, f"invalid request: {error}")
+            return
+        try:
+            _write_json(self, 200, self.server.narrator.narrate(body))
+        except LlmRequestError as error:
+            _write_error(self, 400, f"invalid request: {error}")
+        except LlmBusy as error:
+            self.send_response(503)
+            self.send_header("Retry-After", "2")
+            payload = ('{"error": "%s"}' % error).encode("utf-8")
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+        except LlmUnavailable as error:
+            _write_error(self, 503, f"the language model is not available: {error}")
 
     def do_GET(self) -> None:  # noqa: N802
         authorized = bearer_matches(self, self.server.token)
@@ -91,6 +120,7 @@ class CognitiveNodeServer(BoundedThreadingHTTPServer):
         models_dir: Path | None = None,
         token: str = "",
         max_threads: int = DEFAULT_MAX_THREADS,
+        narrator: Narrator | None = None,
     ) -> None:
         super().__init__(address, Handler, max_threads)
         # empty means no token (see access.py); with one, every route but the health path needs it
@@ -98,3 +128,5 @@ class CognitiveNodeServer(BoundedThreadingHTTPServer):
         self.workspace = workspace
         self.repo_root = repo_root
         self.models_dir = models_dir
+        # POST /narrative (llm.py) exists only with a narrator, which main.py builds when the language model is switched on
+        self.narrator = narrator
