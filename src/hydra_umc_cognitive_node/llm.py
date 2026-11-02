@@ -30,6 +30,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
+from .npu import NpuBusy, NpuScheduler
+
 LANGUAGES = ("en", "es", "de", "fr", "it", "ja", "zh", "pt")
 DIRECTIONS = ("up", "down", "flat")
 MAX_NARRATIVE_CHARS = 2000
@@ -279,6 +281,7 @@ def clean_narrative(text: str) -> str:
 class Narrator:
     config: LlmConfig
     backend: Backend
+    scheduler: NpuScheduler | None = None  # the budget of the accelerator (npu.py), when it is switched on
     _slots: threading.BoundedSemaphore = field(init=False)
 
     def __post_init__(self) -> None:
@@ -289,7 +292,14 @@ class Narrator:
         if not self._slots.acquire(blocking=False):
             raise LlmBusy("another narrative is being made")
         try:
-            text = clean_narrative(self.backend.generate(build_prompt(facts), self.config.max_tokens))
+            if self.scheduler is None:
+                text = clean_narrative(self.backend.generate(build_prompt(facts), self.config.max_tokens))
+            else:
+                try:
+                    with self.scheduler.lease("llm"):
+                        text = clean_narrative(self.backend.generate(build_prompt(facts), self.config.max_tokens))
+                except NpuBusy as error:
+                    raise LlmBusy(str(error)) from error
         finally:
             self._slots.release()
         return {"narrative": text, "backend": self.backend.name, "model": self.backend.model, "language": facts.language}

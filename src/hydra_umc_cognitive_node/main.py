@@ -19,10 +19,14 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from . import __version__
-from .access import bind_warning, load_token
+from .access import bind_warning, is_loopback, load_token
 from .api import CognitiveNodeServer
+from .autonomy import AutonomyPolicy, load_autonomy_config
+from .family_mqtt import FamilyPublisher, load_mqtt_config
+from .npu import NpuScheduler, load_npu_config
 from .family import check_family_status, env_versions, family_status_to_dict
 from .llm import Narrator, load_llm_config, make_backend
 from .models import check_shared_models
@@ -107,15 +111,39 @@ def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | Non
     return 0
 
 
-def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = None, token_file: str | None = None, max_threads: int = 32, llm_config: str | None = None) -> int:
+def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = None, token_file: str | None = None, max_threads: int = 32, llm_config: str | None = None,
+               autonomy_config: str | None = None, npu_config: str | None = None, mqtt_config: str | None = None) -> int:
     try:
         token = load_token(token_file)
         narrator = None
+        scheduler = None
+        autonomy = None
+        publisher = None
+        if npu_config:
+            npu = load_npu_config(npu_config)
+            if npu.enabled:
+                scheduler = NpuScheduler(npu)
         if llm_config:
             config = load_llm_config(llm_config)
             if config.enabled:
-                narrator = Narrator(config, make_backend(config))
-        server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT, models_dir, token, max_threads, narrator)
+                if scheduler is not None and "llm" not in scheduler.config.consumers:
+                    raise ValueError('the npu configuration has no consumer "llm", which the language model needs')
+                narrator = Narrator(config, make_backend(config), scheduler)
+        if autonomy_config:
+            policy_config = load_autonomy_config(autonomy_config)
+            if policy_config.enabled:
+                if not token and not is_loopback(addr):
+                    raise ValueError("the autonomy policy answers whether an AI output may move hardware: it needs a bearer token (--token-file) when the address is not loopback")
+                autonomy = AutonomyPolicy(policy_config)
+        if mqtt_config:
+            mqtt = load_mqtt_config(mqtt_config)
+            if mqtt.enabled:
+                def snapshot(probe: bool) -> dict[str, Any]:
+                    statuses = check_family_status(workspace)
+                    health = {h.name: health_to_dict(h) for h in probe_family(workspace)} if probe else None
+                    return family_status_to_dict(statuses, check_shared_models(_REPO_ROOT, models_dir), health)
+                publisher = FamilyPublisher(mqtt, snapshot)
+        server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT, models_dir, token, max_threads, narrator, autonomy, scheduler, publisher)
     except ValueError as error:
         print(f"[cognitive-node] error: {error}", file=sys.stderr)
         return 2
@@ -124,6 +152,13 @@ def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = 
         print(f"[cognitive-node] warning: {warning}", file=sys.stderr)
     print(f"[cognitive-node] HTTP API listening on {addr}:{port} (workspace={workspace}; {'Bearer token required except on /stats' if token else 'no token'})")
     print("[cognitive-node] GET /family-status, GET /stats" + (f", POST /narrative (language model: {narrator.backend.name})" if narrator is not None else ""))
+    if autonomy is not None:
+        print("[cognitive-node] POST /autonomy/evaluate, GET /autonomy/policy, GET /autonomy/audit (autonomy policy on)")
+    if scheduler is not None:
+        print(f"[cognitive-node] POST /npu/acquire, POST /npu/release, GET /npu (budget of the accelerator: {scheduler.config.slots} slot(s); no device is opened by this node for it)")
+    if publisher is not None:
+        print(f"[cognitive-node] the family goes to the retained topic {publisher.config.topic} on {publisher.config.broker}")
+        publisher.start()
     if narrator is not None and narrator.backend.name == "simulator":
         print("[cognitive-node] the language model is a SIMULATOR: the texts come from a template, not from a model")
     try:
@@ -131,6 +166,8 @@ def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = 
     except KeyboardInterrupt:
         pass
     finally:
+        if publisher is not None:
+            publisher.stop()
         server.server_close()
         print("[cognitive-node] shutting down")
     return 0
@@ -185,6 +222,9 @@ def build_parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--token-file", default=None, help="File with the bearer token every route but GET /stats must present (or the HYDRA_UMC_COGNITIVE_NODE_TOKEN environment variable); off by default")
     serve_parser.add_argument("--max-threads", type=int, default=32, help="Requests handled at the same time, 1 to 1024; one more answers 503 at once (default: 32)")
     serve_parser.add_argument("--llm-config", default=os.environ.get("HYDRA_UMC_COGNITIVE_NODE_LLM_CONFIG"), help="JSON file that switches on POST /narrative, the local language model for trend summaries (see docs/NARRATIVE.md); off by default (or the HYDRA_UMC_COGNITIVE_NODE_LLM_CONFIG environment variable)")
+    serve_parser.add_argument("--autonomy-config", default=os.environ.get("HYDRA_UMC_COGNITIVE_NODE_AUTONOMY_CONFIG"), help="JSON file that switches on the autonomy policy (POST /autonomy/evaluate, see docs/AUTONOMY.md); off by default (or the HYDRA_UMC_COGNITIVE_NODE_AUTONOMY_CONFIG environment variable)")
+    serve_parser.add_argument("--npu-config", default=os.environ.get("HYDRA_UMC_COGNITIVE_NODE_NPU_CONFIG"), help="JSON file that switches on the budget of the accelerator (POST /npu/acquire, see docs/NPU_BUDGET.md); off by default (or the HYDRA_UMC_COGNITIVE_NODE_NPU_CONFIG environment variable)")
+    serve_parser.add_argument("--mqtt-config", default=os.environ.get("HYDRA_UMC_COGNITIVE_NODE_MQTT_CONFIG"), help="JSON file that switches on the state of the family on a retained MQTT topic (see docs/FAMILY_MQTT.md); off by default (or the HYDRA_UMC_COGNITIVE_NODE_MQTT_CONFIG environment variable)")
     serve_parser.add_argument(
         "--workspace",
         type=Path,
@@ -213,7 +253,8 @@ def main(argv: list[str] | None = None) -> int:
             print(line)
         return 0
     if args.command == "serve":
-        return _run_serve(args.addr, args.port, args.workspace, args.models_dir, args.token_file, args.max_threads, args.llm_config)
+        return _run_serve(args.addr, args.port, args.workspace, args.models_dir, args.token_file, args.max_threads, args.llm_config,
+                          args.autonomy_config, args.npu_config, args.mqtt_config)
 
     _print_identity()
     return 0

@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
-  <img src="https://img.shields.io/badge/Tests-72%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-197%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.1.7-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **誠実性チェック - 今日実際に動くもの:** ファミリー準備状況チェックとそのバージョン管理された JSON スキーマ（`family.py`、`manifest.py`、`models.py`）、および標準ライブラリのみによる素の HTTP インターフェース（`api.py`）は本物であり、72件の通過するテストで検証されている（`pytest tests/` - `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。このノード自体はモデルを一切実行しない - 下記の主要機能にある「ローカル LLM 実行」「VLA 統合」「音声コマンド処理」は明示的に `(計画中)` と表示されており、本リポジトリには Hailo-10 のランタイムコードは存在しない。`docker-compose.yml` は現在、4つの子サービスすべてに対して本物の Dockerfile を参照しているが、この開発環境では一つのスタックとして実際に実行されたことは一度もない（ここには利用可能な Docker ランタイムがない）- 各 Dockerfile のコマンド/ポートのマッピングは、各子サービス自身の systemd unit が実際の CM5 上で既に実行している内容と手作業で照合されたものであり、ライブでは検証されていない。これまでに実際に出荷された内容は `CHANGELOG.md` を参照。
+> **誠実性チェック - 今日実際に動くもの:** ファミリー準備状況チェックとそのバージョン管理された JSON スキーマ（`family.py`、`manifest.py`、`models.py`）、および標準ライブラリのみによる素の HTTP インターフェース（`api.py`）は本物であり、197件の通過するテストで検証されている（`pytest tests/` - `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。このノード自体はモデルを一切実行しない - 下記の主要機能にある「ローカル LLM 実行」「VLA 統合」「音声コマンド処理」は明示的に `(計画中)` と表示されており、本リポジトリには Hailo-10 のランタイムコードは存在しない。`docker-compose.yml` は現在、4つの子サービスすべてに対して本物の Dockerfile を参照しているが、この開発環境では一つのスタックとして実際に実行されたことは一度もない（ここには利用可能な Docker ランタイムがない）- 各 Dockerfile のコマンド/ポートのマッピングは、各子サービス自身の systemd unit が実際の CM5 上で既に実行している内容と手作業で照合されたものであり、ライブでは検証されていない。これまでに実際に出荷された内容は `CHANGELOG.md` を参照。
 
 > **安全性とセキュリティの現状:** このエコシステムは認証された安全システムではありません。ハードウェアの E-STOP 経路、ファームウェアが強制する制限やインターロック、検証済みの動作コマンドはまだありません。ファームウェアイメージは CRC-32 と Ed25519 署名で検査し、リリースビルドは公開済みの開発用鍵を拒否します(リレーの先のツールヘッドと拡張ボードは引き続き URTC のブートローダーを使い、署名ではなく共有鍵の HMAC-SHA256 を使います)。TLS と相互 TLS は任意で、既定では無効です。独自基板はまだ実装も試験もされていません。ここに書かれた内容を人の安全のために頼る前に、[セキュリティベースライン](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)と[脅威モデル](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)をお読みください。
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | バージョン | `0.1.7` |
 | 成熟度 | 機能する |
-| テスト | 72 (`python -m pytest -q tests`) |
+| テスト | 197 (`python -m pytest -q tests`) |
 | 技術 | Python / CM5 / Hailo-10 |
 | 対象 | HYDRA-UMC セルの Raspberry Pi CM5 |
 | 実機での確認 | まだです：このバージョンについて実機での動作記録はありません |
@@ -53,7 +53,7 @@ GPL-3.0-or-later - see LICENSE
 | 領域 | 状態 | ここでの意味 |
 |---|---|---|
 | ソフトウェア | 🟡 | 主な目的では動作します。足りない点は上の正直さの確認に書かれています |
-| テスト | 🟢 | 自動テスト 72 件。変更のたびに実行されます |
+| テスト | 🟢 | 自動テスト 197 件。変更のたびに実行されます |
 | 実機 | 🔴 | まだです：このバージョンについて実機での動作記録はありません |
 | インターフェースとプロトコル | 🟡 | 提供するルートやメッセージは文書化され、クライアントで試験済みです。すべてのクライアントがまだ使ったわけではありません |
 | 連携 | 🟠 | CM5 のテストベンチで他のサービスと一緒に動作し、メッセージは SDK の共通契約に従います |
@@ -134,6 +134,9 @@ flowchart TB
 * 🩺 **稼働中の子の健全性、イメージタグ、エンジンのコンテナ内の重み:** `family-status --probe`(または `GET /family-status?probe=1`)は、稼働中の各子にも、その子自身のマニフェストが宣言するルート(なければ `/stats`)で健全性を尋ね、応答したか、どのステータスで、どれだけ速かったか、子が自分について何と言っているかを報告し、1 つでも良好でなければ 0 以外で終了します。子の場所はノードの起動時に固定されます(既定ではループバックのポート、または compose ファイルがスタック内で設定する `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS`)。compose ファイルのイメージは `HYDRA_UMC_<名前>_VERSION`(`.env` から。`family-versions` がマニフェストからその行を出力)または `latest` でタグ付けされ、作り上げた番号は使いません。vla-engine コンテナにはエンジンが探す場所に `models/` がマウントされ、別のワークフローが `docker compose config` が引き続き解決できることを確認します。*(代替サービスで試験済み、実際の子や Hailo-10 では未検証)*
 * 🪫 **共有モデル重みの縮退チェック：** `family-status` は、本ノード自身の `models/` ディレクトリに実際に重みが存在するかどうかを正直に報告します。兄弟リポジトリがチェックアウトされているかどうかだけではありません。*（実装済み）*
 * 📦 **明示的なバージョン引き上げ：** `pyproject.toml` のバージョンを上げるのは明示的な `bump` コマンド（`python tools/hydra_project_tool.py bump`、内部で `bump_version.py` を実行）だけです - ビルドがバージョンを変更することはありません。
+* 🧭 **自律性ポリシー（既定ではオフ）：** `serve --autonomy-config FILE` で、AI サービスはこのノードに出力がどこまで進めてよいか（通知、提案、担当者の確認つきの実行）を問い合わせます。ファイルにないソースは通知のみ、すべての判断は SHA-256 で連鎖した監査ログに書かれ、監査を書けないときは判断を返しません。ループバック以外のアドレスではベアラートークンが必要です。*（模擬サービスのリクエストで試験）*
+* ⏱️ **アクセラレーターの予算（既定ではオフ）：** `serve --npu-config FILE` は Hailo-10 を VLA エンジン、音声認識、言語モデルに、期限つきのリース、優先度順のキュー、消費者ごとの最大待ち時間で割り当てます（`POST /npu/acquire` と `POST /npu/release`）。*（サービスの代わりのスレッドで試験。Hailo-10 は無かったためデバイスは開きません）*
+* 📡 **保持された MQTT トピックのファミリー状態（既定ではオフ）：** `serve --mqtt-config FILE` は子サービスの準備状況が変わったとき（および時々）`hydra/cognitive/family` に公開し、ノード停止時には `{"online": false}` を公開します。Studio やスマートフォンは問い合わせる必要がありません。ペイロードにパスは含まれません。このマシン外のブローカーには TLS か、意図した平文の選択が必要です。*（模擬ブローカーで試験）*
 
 ## 🔒 セキュリティと安全
 
@@ -249,7 +252,7 @@ $ ./run.sh family-status --json
 
 ## 🧪 テスト
 
-`python -m pytest -q tests` で自動テスト 72 件を実行します。マニフェスト、モデルフォルダー、プローブ、コマンドライン、HTTP の窓口をローカルのフィクスチャで検査し、ハードウェアも外部ネットワークも不要です。
+`python -m pytest -q tests` で自動テスト 197 件を実行します。マニフェスト、モデルフォルダー、プローブ、コマンドライン、HTTP の窓口をローカルのフィクスチャで検査し、ハードウェアも外部ネットワークも不要です。
 
 CI は `HYDRA_UMC_CI=1 python tools/ci_validate.py` を実行し、マニフェスト、文書、8 つの README、図を検査します。
 
@@ -281,6 +284,9 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── manifest.py                              兄弟リポジトリのマニフェストを読む
 │   ├── models.py                                共有モデル重みフォルダーを検査
 │   ├── probe.py                                 各子サービスが HTTP で応答するか
+│   ├── autonomy.py                              自律性ポリシーと監査チェーン
+│   ├── npu.py                                   アクセラレーターの予算
+│   ├── family_mqtt.py                           保持された MQTT トピックのファミリー状態
 │   └── api.py main.py                           HTTP の窓口とコマンドライン
 ├── tests/                                       56 件
 ├── docs/                                        コマンドラインのリファレンス

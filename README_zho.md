@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
-  <img src="https://img.shields.io/badge/Tests-72%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-197%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.1.7-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **诚实检查——今天真正可运行的部分：** 家族就绪检查及其带版本号的 JSON 模式（`family.py`、`manifest.py`、`models.py`），以及基于标准库的简单 HTTP 接口（`api.py`）都是真实的，并由 72 个通过的测试覆盖（`pytest tests/` —— `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。该节点本身不运行任何模型——下文"核心功能"中的"本地 LLM 执行"、"VLA 集成"和"语音命令处理"都明确标注为`(计划中)`——本仓库中没有任何 Hailo-10 运行时代码。`docker-compose.yml` 现在为全部 4 个子服务都引用了真实的 Dockerfile，但在这个开发环境中从未真正作为一个整体堆栈运行过（这里没有可用的 Docker 运行时）——每个 Dockerfile 的命令/端口映射都是人工核对的，对照的是每个子服务自身的 systemd unit 在真实 CM5 上已经在运行的配置，并未经过实际验证。目前具体已交付的内容见 `CHANGELOG.md`。
+> **诚实检查——今天真正可运行的部分：** 家族就绪检查及其带版本号的 JSON 模式（`family.py`、`manifest.py`、`models.py`），以及基于标准库的简单 HTTP 接口（`api.py`）都是真实的，并由 197 个通过的测试覆盖（`pytest tests/` —— `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。该节点本身不运行任何模型——下文"核心功能"中的"本地 LLM 执行"、"VLA 集成"和"语音命令处理"都明确标注为`(计划中)`——本仓库中没有任何 Hailo-10 运行时代码。`docker-compose.yml` 现在为全部 4 个子服务都引用了真实的 Dockerfile，但在这个开发环境中从未真正作为一个整体堆栈运行过（这里没有可用的 Docker 运行时）——每个 Dockerfile 的命令/端口映射都是人工核对的，对照的是每个子服务自身的 systemd unit 在真实 CM5 上已经在运行的配置，并未经过实际验证。目前具体已交付的内容见 `CHANGELOG.md`。
 
 > **安全与安防现状:**本生态系统不是经认证的安全系统。目前尚无硬件 E-STOP 通路,没有由固件强制执行的限位或联锁,也没有经过验证的运动指令;固件映像使用 CRC-32 和 Ed25519 签名校验,发布构建会拒绝已公开的开发密钥(中继之后的工具头和扩展板仍运行 URTC 的引导程序,它们使用共享密钥的 HMAC-SHA256 而不是签名);TLS 与双向 TLS 均为可选项,默认关闭;自制电路板尚未组装或测试。在依赖此处任何说法来保障人身安全之前,请先阅读[安全基线](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)和[威胁模型](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)。
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | 版本 | `0.1.7` |
 | 成熟度 | 可用 |
-| 测试 | 72 (`python -m pytest -q tests`) |
+| 测试 | 197 (`python -m pytest -q tests`) |
 | 技术栈 | Python / CM5 / Hailo-10 |
 | 目标 | HYDRA-UMC 工作单元的 Raspberry Pi CM5 |
 | 真实硬件 | 尚未：此版本没有在真实硬件上运行的记录 |
@@ -53,7 +53,7 @@ GPL-3.0-or-later - see LICENSE
 | 领域 | 状态 | 在这里的含义 |
 |---|---|---|
 | 软件 | 🟡 | 主要用途可用；上面的诚实性检查列出了仍然缺少的内容 |
-| 测试 | 🟢 | 72 项自动测试，每次变更都会运行 |
+| 测试 | 🟢 | 197 项自动测试，每次变更都会运行 |
 | 真实硬件 | 🔴 | 尚未：此版本没有在真实硬件上运行的记录 |
 | 接口与协议 | 🟡 | 提供的路由或消息已有文档，并用客户端测试过；尚未被所有客户端使用 |
 | 集成 | 🟠 | 在 CM5 测试台上与其他服务一起运行，其消息遵循 SDK 的共享契约 |
@@ -131,6 +131,9 @@ flowchart TB
 * 🩺 **运行中子服务的健康状况、镜像标签以及引擎容器中的权重:** `family-status --probe`(或 `GET /family-status?probe=1`)还会向每个运行中的子服务询问其健康状况,使用其自身清单声明的路由(没有则用 `/stats`),并报告它是否应答、状态码和速度,以及该子服务对自身的判断;只要有一个状况不好就以非零码退出。子服务的位置在节点启动时固定:默认是它们的回环端口,或 `HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS`(compose 文件在栈内如此设置)。compose 文件中的镜像用 `HYDRA_UMC_<名称>_VERSION`(来自 `.env`;`family-versions` 根据清单打印这些行)或 `latest` 打标签,不再使用编造的数字;vla-engine 容器现在把 `models/` 挂载在引擎查找的位置;另有一个工作流检查 `docker compose config` 仍能解析。*(已用替代服务测试,未用真实子服务或 Hailo-10)*
 * 🪫 **共享模型权重降级检查：** `family-status` 会诚实地报告本节点自身的 `models/` 目录中是否真的存在真实权重，而不仅仅是兄弟仓库是否已被检出。*（已实现）*
 * 📦 **显式的版本提升：** `pyproject.toml` 中的版本只由显式的 `bump` 命令提升（`python tools/hydra_project_tool.py bump`，它会运行 `bump_version.py`）- 构建绝不会更改它。
+* 🧭 **自主性策略（默认关闭）：** 使用 `serve --autonomy-config 文件`，AI 服务可向本节点询问某个输出能走多远：仅通知、提出建议，或在人员确认后执行。文件中没有的来源只能通知，每个决定都写入以 SHA-256 链接的审计日志，审计无法写入时不给出决定。地址不是回环地址时需要 bearer 令牌。*（用模拟服务的请求测试）*
+* ⏱️ **加速器预算（默认关闭）：** 使用 `serve --npu-config 文件`，把 Hailo-10 分配给 VLA 引擎、语音识别和语言模型：租约会过期，队列按优先级排序，每个使用者有最长等待时间，通过 `POST /npu/acquire` 和 `POST /npu/release` 使用。*（用代替服务的线程测试；没有 Hailo-10，因此不会打开任何设备）*
+* 📡 **保留的 MQTT 主题上的家族状态（默认关闭）：** 使用 `serve --mqtt-config 文件`，节点在子服务就绪状态变化时（以及偶尔）发布到 `hydra/cognitive/family`，节点停止时发布 `{"online": false}`，Studio 和手机无需轮询。载荷不含任何路径。不在本机上的 broker 需要 TLS 或有意选择明文。*（用模拟 broker 测试）*
 
 ## 🔒 安全与防护
 
@@ -238,7 +241,7 @@ $ ./run.sh family-status --json
 
 ## 🧪 测试
 
-运行 `python -m pytest -q tests` 会执行 72 个自动测试，用本地夹具检查清单、模型文件夹、探测、命令行和 HTTP 接口；不需要硬件和外部网络。
+运行 `python -m pytest -q tests` 会执行 197 个自动测试，用本地夹具检查清单、模型文件夹、探测、命令行和 HTTP 接口；不需要硬件和外部网络。
 
 CI 运行 `HYDRA_UMC_CI=1 python tools/ci_validate.py`，检查清单、文档、八个 README 和图片。
 
@@ -270,6 +273,9 @@ HYDRA-UMC-COGNITIVE-NODE/
 │   ├── manifest.py                              读取兄弟仓库的清单
 │   ├── models.py                                检查共享的模型权重文件夹
 │   ├── probe.py                                 每个子服务是否通过 HTTP 应答
+│   ├── autonomy.py                              自主性策略及其审计链
+│   ├── npu.py                                   加速器预算
+│   ├── family_mqtt.py                           保留 MQTT 主题上的家族状态
 │   └── api.py main.py                           HTTP 接口与命令行
 ├── tests/                                       56 项测试
 ├── docs/                                        命令行参考

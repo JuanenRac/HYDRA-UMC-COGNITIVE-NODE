@@ -71,6 +71,45 @@
           }
         },
         {
+          "name": "autonomy.py",
+          "desc": {
+            "en": "autonomy policy and its audit chain",
+            "es": "política de autonomía y su cadena de auditoría",
+            "de": "Autonomie-Richtlinie und Prüfkette",
+            "fr": "politique d'autonomie et sa chaîne d'audit",
+            "it": "politica di autonomia e catena di audit",
+            "ja": "自律性ポリシーと監査チェーン",
+            "zh": "自主性策略及其审计链",
+            "pt": "política de autonomia e a sua cadeia de auditoria"
+          }
+        },
+        {
+          "name": "npu.py",
+          "desc": {
+            "en": "budget of the accelerator",
+            "es": "presupuesto del acelerador",
+            "de": "Budget des Beschleunigers",
+            "fr": "budget de l'accélérateur",
+            "it": "budget dell'acceleratore",
+            "ja": "アクセラレーターの予算",
+            "zh": "加速器预算",
+            "pt": "orçamento do acelerador"
+          }
+        },
+        {
+          "name": "family_mqtt.py",
+          "desc": {
+            "en": "the family on a retained MQTT topic",
+            "es": "la familia en un tema MQTT retenido",
+            "de": "die Familie auf einem retained MQTT-Topic",
+            "fr": "la famille sur un sujet MQTT retenu",
+            "it": "la famiglia su un topic MQTT retained",
+            "ja": "保持された MQTT トピックのファミリー状態",
+            "zh": "保留 MQTT 主题上的家族状态",
+            "pt": "a família num tópico MQTT retido"
+          }
+        },
+        {
           "name": "api.py, main.py",
           "desc": {
             "en": "HTTP surface and command line",

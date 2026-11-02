@@ -17,7 +17,10 @@ from urllib.parse import urlparse
 from . import __version__
 from .access import HEALTH_PATH
 from .http_common import DEFAULT_MAX_THREADS, SOCKET_TIMEOUT_SECONDS, BoundedThreadingHTTPServer, bearer_matches, query_params, read_json_object, reject_unauthorized, write_error, write_json
+from .autonomy import AutonomyPolicy, AutonomyRequestError
+from .family_mqtt import FamilyPublisher
 from .llm import LlmBusy, LlmRequestError, LlmUnavailable, Narrator
+from .npu import NpuBusy, NpuRequestError, NpuScheduler
 from .service_metrics import MetricsHandlerMixin
 from .family import check_family_status, family_status_to_dict
 from .probe import health_to_dict, probe_family
@@ -51,8 +54,11 @@ class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
-        if path != "/narrative" or self.server.narrator is None:
-            _write_error(self, 404, "not found")  # the route does not exist while the language model is off
+        server = self.server
+        routes = {"/narrative": server.narrator is not None, "/autonomy/evaluate": server.autonomy is not None,
+                  "/npu/acquire": server.scheduler is not None, "/npu/release": server.scheduler is not None}
+        if not routes.get(path):
+            _write_error(self, 404, "not found")  # a route does not exist while the feature behind it is off
             return
         if not bearer_matches(self, self.server.token):
             reject_unauthorized(self)
@@ -62,6 +68,13 @@ class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
         except ValueError as error:
             _write_error(self, 400, f"invalid request: {error}")
             return
+        if path == "/autonomy/evaluate":
+            self._autonomy(body)
+            return
+        if path in ("/npu/acquire", "/npu/release"):
+            self._npu(path, body)
+            return
+        assert self.server.narrator is not None
         try:
             _write_json(self, 200, self.server.narrator.narrate(body))
         except LlmRequestError as error:
@@ -76,6 +89,43 @@ class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
             self.wfile.write(payload)
         except LlmUnavailable as error:
             _write_error(self, 503, f"the language model is not available: {error}")
+
+    def _autonomy(self, body: dict[str, object]) -> None:
+        assert self.server.autonomy is not None
+        try:
+            _write_json(self, 200, self.server.autonomy.evaluate(body))
+        except AutonomyRequestError as error:
+            _write_error(self, 400, f"invalid request: {error}")
+        except OSError as error:
+            # a decision that cannot be written to the audit log is not given: the caller must treat it as a refusal
+            _write_error(self, 503, f"the audit log cannot be written, no decision was given: {error}")
+
+    def _npu(self, path: str, body: dict[str, object]) -> None:
+        scheduler = self.server.scheduler
+        assert scheduler is not None
+        try:
+            if path == "/npu/release":
+                lease = body.get("lease")
+                if set(body) != {"lease"} or not isinstance(lease, str):
+                    raise NpuRequestError('the body must be {"lease": "<id>"}')
+                _write_json(self, 200, {"released": scheduler.release(lease)})
+                return
+            consumer, wait = body.get("consumer"), body.get("waitSeconds")
+            if set(body) - {"consumer", "waitSeconds"} or not isinstance(consumer, str):
+                raise NpuRequestError('the body must be {"consumer": "<name>", "waitSeconds": <optional>}')
+            if wait is not None and (isinstance(wait, bool) or not isinstance(wait, (int, float))):
+                raise NpuRequestError('"waitSeconds" must be a number')
+            _write_json(self, 200, {"lease": scheduler.acquire(consumer, None if wait is None else float(wait))})
+        except NpuRequestError as error:
+            _write_error(self, 400, f"invalid request: {error}")
+        except NpuBusy as error:
+            self.send_response(503)
+            self.send_header("Retry-After", "1")
+            payload = ('{"error": "%s"}' % str(error).replace('"', "'")).encode("utf-8")
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
 
     def do_GET(self) -> None:  # noqa: N802
         authorized = bearer_matches(self, self.server.token)
@@ -107,6 +157,18 @@ class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
             _write_json(self, 200, family_status_to_dict(statuses, shared_models, health))
         elif path == "/stats":
             _write_json(self, 200, {"status": "ok"})
+        elif path == "/autonomy/policy" and self.server.autonomy is not None:
+            _write_json(self, 200, self.server.autonomy.describe())
+        elif path == "/autonomy/audit" and self.server.autonomy is not None:
+            limit = params.get("limit", "50")
+            if not limit.isdigit() or not 1 <= int(limit) <= 500:
+                _write_error(self, 400, "limit must be a whole number from 1 to 500")
+                return
+            _write_json(self, 200, {"entries": self.server.autonomy.audit.recent(int(limit))})
+        elif path == "/npu" and self.server.scheduler is not None:
+            _write_json(self, 200, self.server.scheduler.stats())
+        elif path == "/family-mqtt" and self.server.publisher is not None:
+            _write_json(self, 200, self.server.publisher.stats())
         else:
             _write_error(self, 404, "not found")
 
@@ -121,6 +183,9 @@ class CognitiveNodeServer(BoundedThreadingHTTPServer):
         token: str = "",
         max_threads: int = DEFAULT_MAX_THREADS,
         narrator: Narrator | None = None,
+        autonomy: AutonomyPolicy | None = None,
+        scheduler: NpuScheduler | None = None,
+        publisher: FamilyPublisher | None = None,
     ) -> None:
         super().__init__(address, Handler, max_threads)
         # empty means no token (see access.py); with one, every route but the health path needs it
@@ -130,3 +195,7 @@ class CognitiveNodeServer(BoundedThreadingHTTPServer):
         self.models_dir = models_dir
         # POST /narrative (llm.py) exists only with a narrator, which main.py builds when the language model is switched on
         self.narrator = narrator
+        # the autonomy policy (autonomy.py), the budget of the accelerator (npu.py) and the MQTT publisher (family_mqtt.py) exist only when switched on
+        self.autonomy = autonomy
+        self.scheduler = scheduler
+        self.publisher = publisher
