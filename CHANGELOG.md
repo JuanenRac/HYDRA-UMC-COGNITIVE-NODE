@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **An optional bearer token and a limit on simultaneous requests, from the HTTP helpers shared with the other Python services:** `serve --token-file FILE` (or `HYDRA_UMC_COGNITIVE_NODE_TOKEN`, at least 16 characters; off by default) makes every route but `GET /stats` (the health path of the container health check and the service registry) need `Authorization: Bearer <token>`, compared in constant time, including `GET /metrics`. Without a token the API answers anyone who can reach it as before, and binding an address that is not loopback without one is reported on the standard error each time (the container image does it on purpose). `--max-threads` (1 to 1024, 32 by default) bounds the requests handled at the same time and one more is answered `503` with `Retry-After` at once. `http_common.py` is the canonical copy of HYDRA-UMC-SDK, kept identical by its sync script; a test compares it when the SDK checkout is next to this repository.
 - **`GET /metrics` in the text format of Prometheus:** the version, the uptime, the responses by class of status (2xx to 5xx) and the health, the aggregate of the checks of the service; only numbers about the service, never a path, an address, a token or a body. Open like `/stats`. The code is the canonical `service_metrics.py` of HYDRA-UMC-SDK, copied byte for byte. 3 tests against a real server.
 
 ## [0.1.6] - The compose file checked by the tests without Docker and the universal README

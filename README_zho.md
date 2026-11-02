@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
-  <img src="https://img.shields.io/badge/Tests-61%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-72%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.1.6-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **诚实检查——今天真正可运行的部分：** 家族就绪检查及其带版本号的 JSON 模式（`family.py`、`manifest.py`、`models.py`），以及基于标准库的简单 HTTP 接口（`api.py`）都是真实的，并由 61 个通过的测试覆盖（`pytest tests/` —— `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。该节点本身不运行任何模型——下文"核心功能"中的"本地 LLM 执行"、"VLA 集成"和"语音命令处理"都明确标注为`(计划中)`——本仓库中没有任何 Hailo-10 运行时代码。`docker-compose.yml` 现在为全部 4 个子服务都引用了真实的 Dockerfile，但在这个开发环境中从未真正作为一个整体堆栈运行过（这里没有可用的 Docker 运行时）——每个 Dockerfile 的命令/端口映射都是人工核对的，对照的是每个子服务自身的 systemd unit 在真实 CM5 上已经在运行的配置，并未经过实际验证。目前具体已交付的内容见 `CHANGELOG.md`。
+> **诚实检查——今天真正可运行的部分：** 家族就绪检查及其带版本号的 JSON 模式（`family.py`、`manifest.py`、`models.py`），以及基于标准库的简单 HTTP 接口（`api.py`）都是真实的，并由 72 个通过的测试覆盖（`pytest tests/` —— `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。该节点本身不运行任何模型——下文"核心功能"中的"本地 LLM 执行"、"VLA 集成"和"语音命令处理"都明确标注为`(计划中)`——本仓库中没有任何 Hailo-10 运行时代码。`docker-compose.yml` 现在为全部 4 个子服务都引用了真实的 Dockerfile，但在这个开发环境中从未真正作为一个整体堆栈运行过（这里没有可用的 Docker 运行时）——每个 Dockerfile 的命令/端口映射都是人工核对的，对照的是每个子服务自身的 systemd unit 在真实 CM5 上已经在运行的配置，并未经过实际验证。目前具体已交付的内容见 `CHANGELOG.md`。
 
 > **安全与安防现状:**本生态系统不是经认证的安全系统。目前尚无硬件 E-STOP 通路,没有由固件强制执行的限位或联锁,也没有经过验证的运动指令;固件映像使用 CRC-32 和 Ed25519 签名校验,发布构建会拒绝已公开的开发密钥(中继之后的工具头和扩展板仍运行 URTC 的引导程序,它们使用共享密钥的 HMAC-SHA256 而不是签名);TLS 与双向 TLS 均为可选项,默认关闭;自制电路板尚未组装或测试。在依赖此处任何说法来保障人身安全之前,请先阅读[安全基线](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)和[威胁模型](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)。
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | 版本 | `0.1.6` |
 | 成熟度 | 可用 |
-| 测试 | 61 (`python -m pytest -q tests`) |
+| 测试 | 72 (`python -m pytest -q tests`) |
 | 技术栈 | Python / CM5 / Hailo-10 |
 | 目标 | HYDRA-UMC 工作单元的 Raspberry Pi CM5 |
 | 真实硬件 | 尚未：此版本没有在真实硬件上运行的记录 |
@@ -53,7 +53,7 @@ GPL-3.0-or-later - see LICENSE
 | 领域 | 状态 | 在这里的含义 |
 |---|---|---|
 | 软件 | 🟡 | 主要用途可用；上面的诚实性检查列出了仍然缺少的内容 |
-| 测试 | 🟢 | 61 项自动测试，每次变更都会运行 |
+| 测试 | 🟢 | 72 项自动测试，每次变更都会运行 |
 | 真实硬件 | 🔴 | 尚未：此版本没有在真实硬件上运行的记录 |
 | 接口与协议 | 🟡 | 提供的路由或消息已有文档，并用客户端测试过；尚未被所有客户端使用 |
 | 集成 | 🟠 | 在 CM5 测试台上与其他服务一起运行，其消息遵循 SDK 的共享契约 |
@@ -122,6 +122,7 @@ flowchart TB
 * 🎙️ **语音指令处理：** 用于人机交互的实时 STT/TTS。*（计划中）*
 * 🛡️ **隐私优先：** 所有认知任务 100% 离线处理。*（一旦上述功能存在即天然成立——目前这里没有任何代码会调用网络）*
 * 🧩 **集成中枢（v0）：** 拥有共享的 HydraOS 镜像和被其 4 个子项目消费的量化
+* 🔑 **可选的 Bearer 令牌和同时请求上限：** `serve --token-file` 让除健康路径 `GET /stats` 之外的所有路由都需要令牌（默认关闭；在非回环地址上无令牌监听会给出提示），`--max-threads` 限制同时处理的请求数，多出的一个立即得到 `503`。代码是 SDK 的规范 `http_common.py`，与其他 Python 服务共用。
   模型权重，并通过单一的 `docker-compose.yml` 将它们作为同级服务连接在
   一起。真实的 `family-status` 检查会读取每个子项目自身的真实清单，报告
   其是否存在/版本/成熟度。*（已实现为真实的就绪检查——见下方"构建与
@@ -237,7 +238,7 @@ $ ./run.sh family-status --json
 
 ## 🧪 测试
 
-运行 `python -m pytest -q tests` 会执行 61 个自动测试，用本地夹具检查清单、模型文件夹、探测、命令行和 HTTP 接口；不需要硬件和外部网络。
+运行 `python -m pytest -q tests` 会执行 72 个自动测试，用本地夹具检查清单、模型文件夹、探测、命令行和 HTTP 接口；不需要硬件和外部网络。
 
 CI 运行 `HYDRA_UMC_CI=1 python tools/ci_validate.py`，检查清单、文档、八个 README 和图片。
 

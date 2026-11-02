@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
-  <img src="https://img.shields.io/badge/Tests-61%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-72%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.1.6-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **Honesty check - what actually runs today:** the family-readiness check and its versioned JSON schema (`family.py`, `manifest.py`, `models.py`) and the plain stdlib HTTP surface (`api.py`) are real and covered by 61 passing tests (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). This node runs no model itself: "Local LLM Execution", "VLA Integration" and "Voice Command Processing" in the Key Features below are explicitly marked `(planned)` - there is no Hailo-10 runtime code in this repo. `docker-compose.yml` now references a real Dockerfile for all 4 children, but it has never actually been run as one stack in this dev environment (no Docker runtime available here) - each Dockerfile's command/port mapping was checked by hand against what each child's own systemd unit already runs on the real CM5, not verified live. See `CHANGELOG.md` for exactly what has shipped so far.
+> **Honesty check - what actually runs today:** the family-readiness check and its versioned JSON schema (`family.py`, `manifest.py`, `models.py`) and the plain stdlib HTTP surface (`api.py`) are real and covered by 72 passing tests (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). This node runs no model itself: "Local LLM Execution", "VLA Integration" and "Voice Command Processing" in the Key Features below are explicitly marked `(planned)` - there is no Hailo-10 runtime code in this repo. `docker-compose.yml` now references a real Dockerfile for all 4 children, but it has never actually been run as one stack in this dev environment (no Docker runtime available here) - each Dockerfile's command/port mapping was checked by hand against what each child's own systemd unit already runs on the real CM5, not verified live. See `CHANGELOG.md` for exactly what has shipped so far.
 
 > **Safety and security status:** this ecosystem is not a certified safety system. There is no hardware E-STOP path, no firmware-enforced limits or interlocks and no verified motion command yet; firmware images are checked with CRC-32 and an Ed25519 signature, and a release build refuses the published development keys (the tool heads and expansion boards behind the relay still run URTC bootloaders, which take a shared-key HMAC-SHA256 instead of a signature); TLS and mutual TLS are optional and off by default; no custom board has been populated or tested yet. Read the [security baseline](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md) and the [threat model](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md) before relying on any statement here for the safety of a person.
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | Version | `0.1.6` |
 | Maturity | Functional |
-| Tests | 61 (`python -m pytest -q tests`) |
+| Tests | 72 (`python -m pytest -q tests`) |
 | Stack | Python / CM5 / Hailo-10 |
 | Target | The Raspberry Pi CM5 of a HYDRA-UMC cell |
 | On real hardware | Not yet: no run on real hardware is recorded for this version |
@@ -53,7 +53,7 @@ Each line is one part of this repository and the light says how far it is today.
 | Area | State | What it means here |
 |---|---|---|
 | Software | 🟡 | Works for its main purpose; the honesty check above lists what is still missing |
-| Tests | 🟢 | 61 automated tests, run on every change |
+| Tests | 🟢 | 72 automated tests, run on every change |
 | Real hardware | 🔴 | Not yet: no run on real hardware is recorded for this version |
 | Interface and protocols | 🟡 | The routes or messages it offers are documented and tested with a client; not every client has used them yet |
 | Integration | 🟠 | It runs together with the other services on the CM5 test bench and its messages follow the shared contracts of the SDK |
@@ -164,6 +164,7 @@ unit on the same physical board:
 * 🎙️ **Voice Command Processing:** Real-time STT/TTS for human-robot interaction. *(planned)*
 * 🛡️ **Privacy First:** 100% offline processing of all cognitive tasks. *(true by design once the above exist - nothing here calls out to a network today)*
 * 🧩 **Integration Hub (v0):** Owns the shared HydraOS image and quantized model
+* 🔑 **Optional bearer token and a limit on simultaneous requests:** `serve --token-file` makes every route but the health path `GET /stats` need the token (off by default; binding an address that is not loopback without one is reported), and `--max-threads` bounds the requests handled at the same time, a further one getting `503` at once. The code is the canonical `http_common.py` of the SDK, shared with the other Python services.
   weights consumed by its four children, and wires them together as
   sibling services in a single `docker-compose.yml`. Real `family-status`
   check reads each real child's own manifest to report presence/version/
@@ -286,7 +287,7 @@ workspace folder). Exits `1` if any real child is missing.
 
 ## 🧪 Testing
 
-61 automated tests run with `python -m pytest -q tests`. They check the manifests, the model folder, the probe, the command line and the HTTP surface against local fixtures; no hardware and no outside network.
+72 automated tests run with `python -m pytest -q tests`. They check the manifests, the model folder, the probe, the command line and the HTTP surface against local fixtures; no hardware and no outside network.
 
 The CI runs `HYDRA_UMC_CI=1 python tools/ci_validate.py`, which checks the manifest, the documents, the eight READMEs and the pictures.
 

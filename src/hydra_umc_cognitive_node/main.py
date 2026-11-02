@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from .access import bind_warning, load_token
 from .api import CognitiveNodeServer
 from .family import check_family_status, env_versions, family_status_to_dict
 from .models import check_shared_models
@@ -105,9 +106,17 @@ def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | Non
     return 0
 
 
-def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = None) -> int:
-    server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT, models_dir)
-    print(f"[cognitive-node] HTTP API listening on {addr}:{port} (workspace={workspace})")
+def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = None, token_file: str | None = None, max_threads: int = 32) -> int:
+    try:
+        token = load_token(token_file)
+        server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT, models_dir, token, max_threads)
+    except ValueError as error:
+        print(f"[cognitive-node] error: {error}", file=sys.stderr)
+        return 2
+    warning = bind_warning(addr, token)
+    if warning:
+        print(f"[cognitive-node] warning: {warning}", file=sys.stderr)
+    print(f"[cognitive-node] HTTP API listening on {addr}:{port} (workspace={workspace}; {'Bearer token required except on /stats' if token else 'no token'})")
     print("[cognitive-node] GET /family-status, GET /stats")
     try:
         server.serve_forever()
@@ -165,6 +174,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     serve_parser.add_argument("--addr", default="127.0.0.1", help="address to bind the HTTP API to")
     serve_parser.add_argument("--port", type=int, default=8096, help="port for the HTTP API")
+    serve_parser.add_argument("--token-file", default=None, help="File with the bearer token every route but GET /stats must present (or the HYDRA_UMC_COGNITIVE_NODE_TOKEN environment variable); off by default")
+    serve_parser.add_argument("--max-threads", type=int, default=32, help="Requests handled at the same time, 1 to 1024; one more answers 503 at once (default: 32)")
     serve_parser.add_argument(
         "--workspace",
         type=Path,
@@ -193,7 +204,7 @@ def main(argv: list[str] | None = None) -> int:
             print(line)
         return 0
     if args.command == "serve":
-        return _run_serve(args.addr, args.port, args.workspace, args.models_dir)
+        return _run_serve(args.addr, args.port, args.workspace, args.models_dir, args.token_file, args.max_threads)
 
     _print_identity()
     return 0

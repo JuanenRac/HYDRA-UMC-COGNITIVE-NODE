@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
-  <img src="https://img.shields.io/badge/Tests-61%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-72%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.1.6-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **誠実性チェック - 今日実際に動くもの:** ファミリー準備状況チェックとそのバージョン管理された JSON スキーマ（`family.py`、`manifest.py`、`models.py`）、および標準ライブラリのみによる素の HTTP インターフェース（`api.py`）は本物であり、61件の通過するテストで検証されている（`pytest tests/` - `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。このノード自体はモデルを一切実行しない - 下記の主要機能にある「ローカル LLM 実行」「VLA 統合」「音声コマンド処理」は明示的に `(計画中)` と表示されており、本リポジトリには Hailo-10 のランタイムコードは存在しない。`docker-compose.yml` は現在、4つの子サービスすべてに対して本物の Dockerfile を参照しているが、この開発環境では一つのスタックとして実際に実行されたことは一度もない（ここには利用可能な Docker ランタイムがない）- 各 Dockerfile のコマンド/ポートのマッピングは、各子サービス自身の systemd unit が実際の CM5 上で既に実行している内容と手作業で照合されたものであり、ライブでは検証されていない。これまでに実際に出荷された内容は `CHANGELOG.md` を参照。
+> **誠実性チェック - 今日実際に動くもの:** ファミリー準備状況チェックとそのバージョン管理された JSON スキーマ（`family.py`、`manifest.py`、`models.py`）、および標準ライブラリのみによる素の HTTP インターフェース（`api.py`）は本物であり、72件の通過するテストで検証されている（`pytest tests/` - `test_manifest.py`、`test_models.py`、`test_family.py`、`test_api.py`、`test_cli.py`）。このノード自体はモデルを一切実行しない - 下記の主要機能にある「ローカル LLM 実行」「VLA 統合」「音声コマンド処理」は明示的に `(計画中)` と表示されており、本リポジトリには Hailo-10 のランタイムコードは存在しない。`docker-compose.yml` は現在、4つの子サービスすべてに対して本物の Dockerfile を参照しているが、この開発環境では一つのスタックとして実際に実行されたことは一度もない（ここには利用可能な Docker ランタイムがない）- 各 Dockerfile のコマンド/ポートのマッピングは、各子サービス自身の systemd unit が実際の CM5 上で既に実行している内容と手作業で照合されたものであり、ライブでは検証されていない。これまでに実際に出荷された内容は `CHANGELOG.md` を参照。
 
 > **安全性とセキュリティの現状:** このエコシステムは認証された安全システムではありません。ハードウェアの E-STOP 経路、ファームウェアが強制する制限やインターロック、検証済みの動作コマンドはまだありません。ファームウェアイメージは CRC-32 と Ed25519 署名で検査し、リリースビルドは公開済みの開発用鍵を拒否します(リレーの先のツールヘッドと拡張ボードは引き続き URTC のブートローダーを使い、署名ではなく共有鍵の HMAC-SHA256 を使います)。TLS と相互 TLS は任意で、既定では無効です。独自基板はまだ実装も試験もされていません。ここに書かれた内容を人の安全のために頼る前に、[セキュリティベースライン](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)と[脅威モデル](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)をお読みください。
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | バージョン | `0.1.6` |
 | 成熟度 | 機能する |
-| テスト | 61 (`python -m pytest -q tests`) |
+| テスト | 72 (`python -m pytest -q tests`) |
 | 技術 | Python / CM5 / Hailo-10 |
 | 対象 | HYDRA-UMC セルの Raspberry Pi CM5 |
 | 実機での確認 | まだです：このバージョンについて実機での動作記録はありません |
@@ -53,7 +53,7 @@ GPL-3.0-or-later - see LICENSE
 | 領域 | 状態 | ここでの意味 |
 |---|---|---|
 | ソフトウェア | 🟡 | 主な目的では動作します。足りない点は上の正直さの確認に書かれています |
-| テスト | 🟢 | 自動テスト 61 件。変更のたびに実行されます |
+| テスト | 🟢 | 自動テスト 72 件。変更のたびに実行されます |
 | 実機 | 🔴 | まだです：このバージョンについて実機での動作記録はありません |
 | インターフェースとプロトコル | 🟡 | 提供するルートやメッセージは文書化され、クライアントで試験済みです。すべてのクライアントがまだ使ったわけではありません |
 | 連携 | 🟠 | CM5 のテストベンチで他のサービスと一緒に動作し、メッセージは SDK の共通契約に従います |
@@ -124,6 +124,7 @@ flowchart TB
 * 🎙️ **音声コマンド処理：** 人間とロボットのインタラクション向けのリアルタイム STT/TTS。*（計画中）*
 * 🛡️ **プライバシー第一：** すべての認知タスクを 100% オフラインで処理。*（上記が実現すれば設計上当然にそうなります——現時点ではここから外部ネットワークを呼び出す処理は一切ありません）*
 * 🧩 **統合ハブ（v0）：** 4 つの子プロジェクトが消費する共有 HydraOS イメージと
+* 🔑 **任意の Bearer トークンと同時リクエストの上限：** `serve --token-file` を指定すると、ヘルスパス `GET /stats` 以外のすべてのルートでトークンが必要になります（既定でオフ。ループバック以外のアドレスでトークンなしに待ち受けると警告します）。`--max-threads` は同時に処理するリクエスト数を制限し、超過分には即座に `503` を返します。コードは SDK の正規の `http_common.py` で、他の Python サービスと共有しています。
   量子化モデルの重みを保持し、単一の `docker-compose.yml` で兄弟サービス
   として結び付けます。実際の `family-status` チェックは各子プロジェクト
   自身の実際のマニフェストを読み取り、存在/バージョン/成熟度を報告します。
@@ -248,7 +249,7 @@ $ ./run.sh family-status --json
 
 ## 🧪 テスト
 
-`python -m pytest -q tests` で自動テスト 61 件を実行します。マニフェスト、モデルフォルダー、プローブ、コマンドライン、HTTP の窓口をローカルのフィクスチャで検査し、ハードウェアも外部ネットワークも不要です。
+`python -m pytest -q tests` で自動テスト 72 件を実行します。マニフェスト、モデルフォルダー、プローブ、コマンドライン、HTTP の窓口をローカルのフィクスチャで検査し、ハードウェアも外部ネットワークも不要です。
 
 CI は `HYDRA_UMC_CI=1 python tools/ci_validate.py` を実行し、マニフェスト、文書、8 つの README、図を検査します。
 

@@ -163,7 +163,7 @@ $ echo $?
 `--json` still exits `1` when `all_children_present` is `false`, exactly
 like the human-readable table.
 
-### `serve [--addr ADDR] [--port PORT] [--workspace PATH]`
+### `serve [--addr ADDR] [--port PORT] [--workspace PATH] [--token-file FILE] [--max-threads N]`
 
 ```
 $ hydra-umc-cognitive-node serve -h
@@ -214,6 +214,12 @@ query parameter. `GET /stats` only answers `{"status": "ok"}` - it does not
 itself run the family-status check. Any other path returns `404`. The handler is quiet
 by default (no per-request access log line), matching this family's
 other `api.py` modules.
+
+`--token-file FILE` (or the `HYDRA_UMC_COGNITIVE_NODE_TOKEN` environment variable; the token has at least 16 characters; off by default) makes every route but `GET /stats` need
+`Authorization: Bearer <token>` (`401` otherwise), `GET /metrics` included; `GET /stats` stays open because it is the health path that the health check of the container and the service registry read, and it says nothing
+about the node. Without a token the API answers anyone who can reach it, so an address that is not loopback with no token is reported on the standard error when the service starts (the container
+image binds `0.0.0.0` on purpose). `--max-threads N` (1 to 1024, 32 by default) limits the requests handled at the same time: one more is answered `503` with `Retry-After: 1` and the connection is closed.
+The body, answer and server code is `http_common.py`, the canonical copy of the one in HYDRA-UMC-SDK.
 
 ## Exit codes
 

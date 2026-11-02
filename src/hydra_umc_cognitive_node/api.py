@@ -10,12 +10,13 @@ check_family_status()/family_status_to_dict() the CLI's own `family-status
 reuses the one main.py's own --json flag already produces."""
 from __future__ import annotations
 
-import json
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 from . import __version__
+from .access import HEALTH_PATH
+from .http_common import DEFAULT_MAX_THREADS, SOCKET_TIMEOUT_SECONDS, BoundedThreadingHTTPServer, bearer_matches, query_params, reject_unauthorized, write_error, write_json
 from .service_metrics import MetricsHandlerMixin
 from .family import check_family_status, family_status_to_dict
 from .probe import health_to_dict, probe_family
@@ -23,25 +24,15 @@ from .models import check_shared_models
 
 
 def _write_json(handler: BaseHTTPRequestHandler, status: int, payload: object) -> None:
-    body = json.dumps(payload).encode("utf-8")
-    handler.send_response(status)
-    handler.send_header("Content-Type", "application/json")
-    handler.send_header("Content-Length", str(len(body)))
-    handler.end_headers()
-    handler.wfile.write(body)
+    write_json(handler, status, payload)
 
 
 def _write_error(handler: BaseHTTPRequestHandler, status: int, message: str) -> None:
-    _write_json(handler, status, {"error": message})
+    write_error(handler, status, message)
 
 
 def _query_params(handler: BaseHTTPRequestHandler) -> dict[str, str]:
-    parsed = urlparse(handler.path)
-    values = parse_qs(parsed.query, keep_blank_values=True)
-    repeated = sorted(key for key, value in values.items() if len(value) != 1)
-    if repeated:
-        raise ValueError(f"query parameters must occur exactly once: {repeated}")
-    return {key: value[0] for key, value in values.items()}
+    return query_params(handler)  # a name that occurs twice is refused
 
 
 class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
@@ -52,15 +43,20 @@ class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
     # Seconds a client may stay silent on its connection before the server
     # drops it, so a client that connects and sends nothing cannot hold a
     # handler thread forever. Socket I/O only; never the time a check takes.
-    timeout = 15.0
+    timeout = SOCKET_TIMEOUT_SECONDS
 
     def log_message(self, format: str, *args: object) -> None:  # noqa: A002
         pass  # quiet by default, same reasoning as this family's other api.py files
 
     def do_GET(self) -> None:  # noqa: N802
-        if self.serve_metrics():
+        authorized = bearer_matches(self, self.server.token)
+        if self.serve_metrics(authorized=authorized):
             return
         path = urlparse(self.path).path
+        # the health path stays open so the container health check and the service registry can read it without the token; everything else needs it when one is set
+        if path != HEALTH_PATH and not authorized:
+            reject_unauthorized(self)
+            return
         try:
             params = _query_params(self)
         except ValueError as error:
@@ -86,15 +82,19 @@ class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
             _write_error(self, 404, "not found")
 
 
-class CognitiveNodeServer(ThreadingHTTPServer):
+class CognitiveNodeServer(BoundedThreadingHTTPServer):
     def __init__(
         self,
         address: tuple[str, int],
         workspace: Path,
         repo_root: Path,
         models_dir: Path | None = None,
+        token: str = "",
+        max_threads: int = DEFAULT_MAX_THREADS,
     ) -> None:
-        super().__init__(address, Handler)
+        super().__init__(address, Handler, max_threads)
+        # empty means no token (see access.py); with one, every route but the health path needs it
+        self.token = token
         self.workspace = workspace
         self.repo_root = repo_root
         self.models_dir = models_dir
