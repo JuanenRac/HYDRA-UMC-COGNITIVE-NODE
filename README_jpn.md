@@ -19,7 +19,7 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
   <img src="https://img.shields.io/badge/Tests-72%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.1.6-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.1.7-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
@@ -35,7 +35,7 @@ GPL-3.0-or-later - see LICENSE
 
 | | |
 |---|---|
-| バージョン | `0.1.6` |
+| バージョン | `0.1.7` |
 | 成熟度 | 機能する |
 | テスト | 72 (`python -m pytest -q tests`) |
 | 技術 | Python / CM5 / Hailo-10 |
@@ -191,7 +191,7 @@ run.bat
 出力：
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.6
+HYDRA-UMC-COGNITIVE-NODE v0.1.7
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
