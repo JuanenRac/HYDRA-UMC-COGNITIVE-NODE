@@ -134,6 +134,7 @@ flowchart TB
 * 🧭 **自主性策略（默认关闭）：** 使用 `serve --autonomy-config 文件`，AI 服务可向本节点询问某个输出能走多远：仅通知、提出建议，或在人员确认后执行。文件中没有的来源只能通知，每个决定都写入以 SHA-256 链接的审计日志，审计无法写入时不给出决定。地址不是回环地址时需要 bearer 令牌。*（用模拟服务的请求测试）*
 * ⏱️ **加速器预算（默认关闭）：** 使用 `serve --npu-config 文件`，把 Hailo-10 分配给 VLA 引擎、语音识别和语言模型：租约会过期，队列按优先级排序，每个使用者有最长等待时间，通过 `POST /npu/acquire` 和 `POST /npu/release` 使用。*（用代替服务的线程测试；没有 Hailo-10，因此不会打开任何设备）*
 * 📡 **保留的 MQTT 主题上的家族状态（默认关闭）：** 使用 `serve --mqtt-config 文件`，节点在子服务就绪状态变化时（以及偶尔）发布到 `hydra/cognitive/family`，节点停止时发布 `{"online": false}`，Studio 和手机无需轮询。载荷不含任何路径。不在本机上的 broker 需要 TLS 或有意选择明文。*（用模拟 broker 测试）*
+* 🩺 **统一的 `GET /health`，默认关闭：** `serve --health-open`（或 `HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1`）使服务以 `{"status": "ok", "service": ..., "version": ...}` 响应 `GET /health`，家族中每个服务的响应体相同；没有该开关时，该路由像不存在的路由一样返回 `404`。非回环地址的调用方必须出示服务的 bearer 令牌，响应体不含路径、配置或密钥。
 
 ## 🔒 安全与防护
 
