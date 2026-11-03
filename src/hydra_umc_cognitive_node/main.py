@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from . import __version__
+from .health_route import health_open_requested
 from .access import bind_warning, is_loopback, load_token
 from .api import CognitiveNodeServer
 from .autonomy import AutonomyPolicy, load_autonomy_config
@@ -162,6 +163,7 @@ def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = 
     if narrator is not None and narrator.backend.name == "simulator":
         print("[cognitive-node] the language model is a SIMULATOR: the texts come from a template, not from a model")
     try:
+        server.health_open = health_open_requested(args.health_open)
         server.serve_forever()
     except KeyboardInterrupt:
         pass
@@ -218,6 +220,7 @@ def build_parser() -> argparse.ArgumentParser:
              "same function 'family-status --json' already runs.",
     )
     serve_parser.add_argument("--addr", default="127.0.0.1", help="address to bind the HTTP API to")
+    serve_parser.add_argument("--health-open", action="store_true", help="answer GET /health (open to loopback, to other callers only with the bearer token); closed by default, or set HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1")
     serve_parser.add_argument("--port", type=int, default=8096, help="port for the HTTP API")
     serve_parser.add_argument("--token-file", default=None, help="File with the bearer token every route but GET /stats must present (or the HYDRA_UMC_COGNITIVE_NODE_TOKEN environment variable); off by default")
     serve_parser.add_argument("--max-threads", type=int, default=32, help="Requests handled at the same time, 1 to 1024; one more answers 503 at once (default: 32)")

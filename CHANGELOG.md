@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **A uniform `GET /health`, closed by default:** `serve --health-open` (or `HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1`) makes the service answer `GET /health` with `{"status": "ok", "service": ..., "version": ...}`, the same body in every service of the family, so a watchdog reads the health of any of them the same way. Without the switch the route answers `404` like a route that does not exist. A caller that is not on loopback must present the bearer token of the service (a service started without a token never answers one). The body carries no path, configuration or secret; the health path the manifest declares does not change.
+
 ## [0.1.8] - A central autonomy policy with a chained audit log, a budget of the accelerator shared between the consumers and the state of the family published over MQTT
 
 - **An autonomy policy, off by default (`serve --autonomy-config FILE`, `docs/AUTONOMY.md`):** the node is the one place that says how far an output of the AI services may go: inform, propose, or execute with the confirmation of a person. A source that is not in the file may only inform, a request above the level granted is denied, the messages come in the eight languages, and every decision goes to an audit log chained by SHA-256 (`POST /autonomy/evaluate`, `GET /autonomy/policy`, `GET /autonomy/audit`). An audit that cannot be written gives no decision, and the policy refuses to start on an address that is not loopback without the bearer token. New `autonomy.py` and `tests/test_autonomy.py`.

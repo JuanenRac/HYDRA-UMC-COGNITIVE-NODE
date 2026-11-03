@@ -250,3 +250,10 @@ documentation, tokenizers, and configuration-only trees remain `false`.
 Symlinks are ignored so a local readiness check cannot escape this repository's
 models tree. This is an inventory signal only: a real Hailo-10 runtime still
 has to validate artifact compatibility on the physical target.
+
+
+## `GET /health` (off by default)
+
+A uniform health route, the same in every service of the family. It is closed unless the operator opens it with `serve --health-open` or `HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1`: closed, it answers `404 {"error": "not found"}` like any route that does not exist.
+
+Open, it answers `200` with `{"status": "ok", "service": "hydra-umc-cognitive-node", "version": "<version>"}` to a caller on loopback. A caller that is not on loopback must present the bearer token of the service (a service started without a token never answers one). The body never carries a path, a setting or a secret. The health path of the project manifest (`health_path`) is unchanged.

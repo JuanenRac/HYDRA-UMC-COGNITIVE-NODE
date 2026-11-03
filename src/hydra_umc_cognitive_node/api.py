@@ -21,6 +21,7 @@ from .autonomy import AutonomyPolicy, AutonomyRequestError
 from .family_mqtt import FamilyPublisher
 from .llm import LlmBusy, LlmRequestError, LlmUnavailable, Narrator
 from .npu import NpuBusy, NpuRequestError, NpuScheduler
+from .health_route import HealthRouteMixin
 from .service_metrics import MetricsHandlerMixin
 from .family import check_family_status, family_status_to_dict
 from .probe import health_to_dict, probe_family
@@ -39,7 +40,7 @@ def _query_params(handler: BaseHTTPRequestHandler) -> dict[str, str]:
     return query_params(handler)  # a name that occurs twice is refused
 
 
-class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
+class Handler(HealthRouteMixin, MetricsHandlerMixin, BaseHTTPRequestHandler):
     server: "CognitiveNodeServer"
     metrics_service = "hydra-umc-cognitive-node"
     metrics_version = __version__
@@ -128,6 +129,8 @@ class Handler(MetricsHandlerMixin, BaseHTTPRequestHandler):
             self.wfile.write(payload)
 
     def do_GET(self) -> None:  # noqa: N802
+        if self.serve_health(self.server.token):
+            return
         authorized = bearer_matches(self, self.server.token)
         if self.serve_metrics(authorized=authorized):
             return
