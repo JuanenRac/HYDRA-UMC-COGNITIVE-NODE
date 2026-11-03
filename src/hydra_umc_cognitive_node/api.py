@@ -177,6 +177,7 @@ class Handler(HealthRouteMixin, MetricsHandlerMixin, BaseHTTPRequestHandler):
 
 
 class CognitiveNodeServer(BoundedThreadingHTTPServer):
+    health_open: bool = False  # GET /health answers only when the operator opens it (health_route.py)
     def __init__(
         self,
         address: tuple[str, int],

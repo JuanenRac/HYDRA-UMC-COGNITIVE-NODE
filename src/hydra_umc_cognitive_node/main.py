@@ -113,7 +113,7 @@ def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | Non
 
 
 def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = None, token_file: str | None = None, max_threads: int = 32, llm_config: str | None = None,
-               autonomy_config: str | None = None, npu_config: str | None = None, mqtt_config: str | None = None) -> int:
+               autonomy_config: str | None = None, npu_config: str | None = None, mqtt_config: str | None = None, health_open: bool = False) -> int:
     try:
         token = load_token(token_file)
         narrator = None
@@ -163,7 +163,7 @@ def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = 
     if narrator is not None and narrator.backend.name == "simulator":
         print("[cognitive-node] the language model is a SIMULATOR: the texts come from a template, not from a model")
     try:
-        server.health_open = health_open_requested(args.health_open)
+        server.health_open = health_open_requested(health_open)
         server.serve_forever()
     except KeyboardInterrupt:
         pass
@@ -257,7 +257,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "serve":
         return _run_serve(args.addr, args.port, args.workspace, args.models_dir, args.token_file, args.max_threads, args.llm_config,
-                          args.autonomy_config, args.npu_config, args.mqtt_config)
+                          args.autonomy_config, args.npu_config, args.mqtt_config, health_open=args.health_open)
 
     _print_identity()
     return 0
