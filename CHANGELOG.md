@@ -4,11 +4,9 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
-<<<<<<< Updated upstream
 - **The manifest declares the uniform `GET /health` route and the probe falls back to `/stats`:** `service.health_path` is `/health` now. A service keeps that route closed (404) until its own switch opens it, so the probe of the children asks `/stats` after a 404 on `/health`; any other answer stands as it is.
-=======
+
 - **The check for model weights uses the probe the family shares:** `model_weights.py` (vendored byte for byte from the shared SDK, kept identical by its sync) replaces the walk that this node and VLA-ENGINE each had; the node still accepts any weight format it can provision. Nothing changes in what `family-status` reports: the same tests (a `.gitkeep`, an empty file, a symbolic link or a tokenizer is not a model) pass against the shared walk.
->>>>>>> Stashed changes
 
 ## [0.1.9] - The service answers a uniform GET /health that is closed by default and opens only with an explicit switch
 
