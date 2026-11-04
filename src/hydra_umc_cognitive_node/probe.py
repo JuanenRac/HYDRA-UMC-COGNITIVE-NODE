@@ -35,6 +35,8 @@ DEFAULT_CHILD_PORTS: dict[str, int] = {
     "HYDRA-UMC-DOCS-QA": 8110,
 }
 DEFAULT_HEALTH_PATH = "/stats"
+# The uniform route stays closed (404) on a service until its own switch opens it: the probe then asks `/stats`.
+UNIFORM_HEALTH_PATH = "/health"
 CHILD_URLS_ENV = "HYDRA_UMC_COGNITIVE_NODE_CHILD_URLS"
 PROBE_TIMEOUT_SECONDS = 2.0
 MAX_ANSWER_BYTES = 64 * 1024
@@ -99,6 +101,14 @@ def _verdict(body: bytes) -> bool | None:
 
 
 def probe_child(name: str, base_url: str, health_path: str, *, timeout: float = PROBE_TIMEOUT_SECONDS, opener=urllib.request.urlopen) -> ChildHealth:
+    """Asks the health route; `/health` answering 404 (switch closed) is asked again on `/stats`, any other answer stands."""
+    result = _probe_once(name, base_url, health_path, timeout, opener)
+    if health_path == UNIFORM_HEALTH_PATH and result.http_status == 404:
+        return _probe_once(name, base_url, DEFAULT_HEALTH_PATH, timeout, opener)
+    return result
+
+
+def _probe_once(name: str, base_url: str, health_path: str, timeout: float, opener) -> ChildHealth:
     url = base_url + health_path
     started = time.monotonic()
     try:

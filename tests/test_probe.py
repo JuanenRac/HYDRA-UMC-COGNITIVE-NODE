@@ -140,6 +140,19 @@ def test_a_child_that_answers_with_an_error_status_is_reachable_but_not_healthy(
         child.close()
 
 
+def test_a_closed_uniform_health_route_is_asked_again_on_stats_but_a_real_error_is_not() -> None:
+    child = Child(path="/stats")
+    broken = Child(status=503, body={"healthy": False}, path="/health")
+    try:
+        result = probe_child("x", child.url, "/health")
+        assert (result.reachable, result.http_status, result.healthy, result.url.endswith("/stats")) == (True, 200, True, True)
+        assert probe_child("x", child.url, "/other").http_status == 404
+        assert probe_child("x", broken.url, "/health").http_status == 503
+    finally:
+        child.close()
+        broken.close()
+
+
 def test_a_child_that_does_not_answer_is_not_reachable_and_the_reason_is_kept() -> None:
     result = probe_child("x", "http://127.0.0.1:1", "/stats", timeout=1.0)
     assert (result.reachable, result.http_status, result.healthy) == (False, None, None)

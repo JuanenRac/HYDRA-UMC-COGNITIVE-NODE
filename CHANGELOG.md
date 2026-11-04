@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The manifest declares the uniform `GET /health` route and the probe falls back to `/stats`:** `service.health_path` is `/health` now. A service keeps that route closed (404) until its own switch opens it, so the probe of the children asks `/stats` after a 404 on `/health`; any other answer stands as it is.
+
 ## [0.1.9] - The service answers a uniform GET /health that is closed by default and opens only with an explicit switch
 
 - **A uniform `GET /health`, closed by default:** `serve --health-open` (or `HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1`) makes the service answer `GET /health` with `{"status": "ok", "service": ..., "version": ...}`, the same body in every service of the family, so a watchdog reads the health of any of them the same way. Without the switch the route answers `404` like a route that does not exist. A caller that is not on loopback must present the bearer token of the service (a service started without a token never answers one). The body carries no path, configuration or secret; the health path the manifest declares does not change.
