@@ -215,6 +215,8 @@ itself run the family-status check. Any other path returns `404`. The handler is
 by default (no per-request access log line), matching this family's
 other `api.py` modules.
 
+`--identity-key-file FILE` (or `HYDRA_UMC_COGNITIVE_NODE_IDENTITY_KEY_FILE`; off by default) accepts the signed token of HYDRA-UMC-SERVER next to the token of the node: a viewer may read but not change, and a request with no credential is refused even on loopback.
+
 `--token-file FILE` (or the `HYDRA_UMC_COGNITIVE_NODE_TOKEN` environment variable; the token has at least 16 characters; off by default) makes every route but `GET /stats` need
 `Authorization: Bearer <token>` (`401` otherwise), `GET /metrics` included; `GET /stats` stays open because it is the health path that the health check of the container and the service registry read, and it says nothing
 about the node. Without a token the API answers anyone who can reach it, so an address that is not loopback with no token is reported on the standard error when the service starts (the container

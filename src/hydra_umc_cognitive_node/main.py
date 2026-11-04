@@ -24,6 +24,7 @@ from typing import Any
 from . import __version__
 from .health_route import health_open_requested
 from .access import bind_warning, is_loopback, load_token
+from .server_identity import identity_key_from
 from .api import CognitiveNodeServer
 from .autonomy import AutonomyPolicy, load_autonomy_config
 from .family_mqtt import FamilyPublisher, load_mqtt_config
@@ -113,9 +114,10 @@ def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | Non
 
 
 def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = None, token_file: str | None = None, max_threads: int = 32, llm_config: str | None = None,
-               autonomy_config: str | None = None, npu_config: str | None = None, mqtt_config: str | None = None, health_open: bool = False) -> int:
+               autonomy_config: str | None = None, npu_config: str | None = None, mqtt_config: str | None = None, health_open: bool = False, identity_key_file: str | None = None) -> int:
     try:
         token = load_token(token_file)
+        identity_key = identity_key_from(identity_key_file)
         narrator = None
         scheduler = None
         autonomy = None
@@ -133,7 +135,7 @@ def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = 
         if autonomy_config:
             policy_config = load_autonomy_config(autonomy_config)
             if policy_config.enabled:
-                if not token and not is_loopback(addr):
+                if not token and identity_key is None and not is_loopback(addr):
                     raise ValueError("the autonomy policy answers whether an AI output may move hardware: it needs a bearer token (--token-file) when the address is not loopback")
                 autonomy = AutonomyPolicy(policy_config)
         if mqtt_config:
@@ -145,13 +147,14 @@ def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = 
                     return family_status_to_dict(statuses, check_shared_models(_REPO_ROOT, models_dir), health)
                 publisher = FamilyPublisher(mqtt, snapshot)
         server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT, models_dir, token, max_threads, narrator, autonomy, scheduler, publisher)
+        server.identity_key = identity_key
     except ValueError as error:
         print(f"[cognitive-node] error: {error}", file=sys.stderr)
         return 2
-    warning = bind_warning(addr, token)
+    warning = None if identity_key is not None else bind_warning(addr, token)
     if warning:
         print(f"[cognitive-node] warning: {warning}", file=sys.stderr)
-    print(f"[cognitive-node] HTTP API listening on {addr}:{port} (workspace={workspace}; {'Bearer token required except on /stats' if token else 'no token'})")
+    print(f"[cognitive-node] HTTP API listening on {addr}:{port} (workspace={workspace}; {'Bearer token required except on /stats' if token else 'no token'}{'; tokens of HYDRA-UMC-SERVER accepted, no request is open' if identity_key is not None else ''})")
     print("[cognitive-node] GET /family-status, GET /stats" + (f", POST /narrative (language model: {narrator.backend.name})" if narrator is not None else ""))
     if autonomy is not None:
         print("[cognitive-node] POST /autonomy/evaluate, GET /autonomy/policy, GET /autonomy/audit (autonomy policy on)")
@@ -222,6 +225,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--addr", default="127.0.0.1", help="address to bind the HTTP API to")
     serve_parser.add_argument("--health-open", action="store_true", help="answer GET /health (open to loopback, to other callers only with the bearer token); closed by default, or set HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1")
     serve_parser.add_argument("--port", type=int, default=8096, help="port for the HTTP API")
+    serve_parser.add_argument("--identity-key-file", default=None, help="file with the signing key of HYDRA-UMC-SERVER (its JWT_SECRET): a valid token of the SERVER is then accepted, and a request with no credential is refused even on loopback (off by default; or set HYDRA_UMC_COGNITIVE_NODE_IDENTITY_KEY_FILE)")
     serve_parser.add_argument("--token-file", default=None, help="File with the bearer token every route but GET /stats must present (or the HYDRA_UMC_COGNITIVE_NODE_TOKEN environment variable); off by default")
     serve_parser.add_argument("--max-threads", type=int, default=32, help="Requests handled at the same time, 1 to 1024; one more answers 503 at once (default: 32)")
     serve_parser.add_argument("--llm-config", default=os.environ.get("HYDRA_UMC_COGNITIVE_NODE_LLM_CONFIG"), help="JSON file that switches on POST /narrative, the local language model for trend summaries (see docs/NARRATIVE.md); off by default (or the HYDRA_UMC_COGNITIVE_NODE_LLM_CONFIG environment variable)")
@@ -257,7 +261,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "serve":
         return _run_serve(args.addr, args.port, args.workspace, args.models_dir, args.token_file, args.max_threads, args.llm_config,
-                          args.autonomy_config, args.npu_config, args.mqtt_config, health_open=args.health_open)
+                          args.autonomy_config, args.npu_config, args.mqtt_config, health_open=args.health_open, identity_key_file=args.identity_key_file)
 
     _print_identity()
     return 0

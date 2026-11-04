@@ -113,3 +113,45 @@ def test_the_copy_of_the_shared_module_is_the_canonical_one() -> None:
     if not canonical.is_file():
         pytest.skip("the SDK checkout is not next to this repository")
     assert Path(http_common.__file__).read_bytes().replace(b"\r\n", b"\n") == canonical.read_bytes().replace(b"\r\n", b"\n")
+
+
+# ---- the identity of HYDRA-UMC-SERVER (off by default; see server_identity.py)
+IDENTITY_KEY = b"a-signing-key-of-the-server-0123456789"
+
+
+def _signed_token(role: str = "operator", key: bytes = IDENTITY_KEY, exp_offset: int = 600) -> str:
+    import base64
+    import hashlib
+    import hmac
+    import time
+
+    def b64(data: bytes) -> str:
+        return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+    head = b64(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
+    body = b64(json.dumps({"username": "ana", "role": role, "exp": int(time.time()) + exp_offset}).encode())
+    return f"{head}.{body}.{b64(hmac.new(key, f'{head}.{body}'.encode(), hashlib.sha256).digest())}"
+
+
+def test_the_identity_of_the_server_is_off_by_default(tmp_path: Path) -> None:
+    assert CognitiveNodeServer.identity_key is None
+    for base, _ in _serve(tmp_path):
+        assert _get(base + "/family-status")[0] == 200
+        assert _get(base + "/family-status", _signed_token())[0] == 200  # nothing is asked while it is off
+    for base, _ in _serve(tmp_path, token=TOKEN):
+        assert _get(base + "/family-status", _signed_token())[0] == 401  # a token of the SERVER means nothing while it is off
+
+
+def test_with_the_identity_on_a_token_of_the_server_is_accepted_and_nothing_is_open(tmp_path: Path) -> None:
+    for base, server in _serve(tmp_path):
+        server.identity_key = IDENTITY_KEY
+        assert _get(base + "/family-status")[0] == 401  # no credential, even on loopback and without a token of the service
+        assert _get(base + "/metrics")[0] == 401
+        assert _get(base + "/family-status", "not-a-token")[0] == 401
+        assert _get(base + "/family-status", _signed_token("viewer"))[0] == 200
+        assert _get(base + "/family-status", _signed_token(key=b"another-key-of-more-than-32-characters!"))[0] == 401
+        assert _get(base + "/family-status", _signed_token(exp_offset=-5))[0] == 401
+    for base, server in _serve(tmp_path, token=TOKEN):
+        server.identity_key = IDENTITY_KEY
+        assert _get(base + "/family-status", TOKEN)[0] == 200  # the own token keeps working
+        assert _get(base + "/family-status", _signed_token("admin"))[0] == 200

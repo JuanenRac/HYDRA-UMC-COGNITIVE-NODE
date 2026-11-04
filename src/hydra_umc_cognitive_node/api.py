@@ -16,12 +16,13 @@ from urllib.parse import urlparse
 
 from . import __version__
 from .access import HEALTH_PATH
-from .http_common import DEFAULT_MAX_THREADS, SOCKET_TIMEOUT_SECONDS, BoundedThreadingHTTPServer, bearer_matches, query_params, read_json_object, reject_unauthorized, write_error, write_json
+from .http_common import DEFAULT_MAX_THREADS, SOCKET_TIMEOUT_SECONDS, BoundedThreadingHTTPServer, query_params, read_json_object, reject_unauthorized, write_error, write_json
 from .autonomy import AutonomyPolicy, AutonomyRequestError
 from .family_mqtt import FamilyPublisher
 from .llm import LlmBusy, LlmRequestError, LlmUnavailable, Narrator
 from .npu import NpuBusy, NpuRequestError, NpuScheduler
 from .health_route import HealthRouteMixin
+from .server_identity import accepts
 from .service_metrics import MetricsHandlerMixin
 from .family import check_family_status, family_status_to_dict
 from .probe import health_to_dict, probe_family
@@ -61,7 +62,7 @@ class Handler(HealthRouteMixin, MetricsHandlerMixin, BaseHTTPRequestHandler):
         if not routes.get(path):
             _write_error(self, 404, "not found")  # a route does not exist while the feature behind it is off
             return
-        if not bearer_matches(self, self.server.token):
+        if not accepts(self, self.server.token, self.server.identity_key):
             reject_unauthorized(self)
             return
         try:
@@ -131,7 +132,7 @@ class Handler(HealthRouteMixin, MetricsHandlerMixin, BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         if self.serve_health(self.server.token):
             return
-        authorized = bearer_matches(self, self.server.token)
+        authorized = accepts(self, self.server.token, self.server.identity_key)
         if self.serve_metrics(authorized=authorized):
             return
         path = urlparse(self.path).path
@@ -178,6 +179,7 @@ class Handler(HealthRouteMixin, MetricsHandlerMixin, BaseHTTPRequestHandler):
 
 class CognitiveNodeServer(BoundedThreadingHTTPServer):
     health_open: bool = False  # GET /health answers only when the operator opens it (health_route.py)
+    identity_key: bytes | None = None  # the signing key of HYDRA-UMC-SERVER, when the operator turned the identity of the server on (server_identity.py)
     def __init__(
         self,
         address: tuple[str, int],
