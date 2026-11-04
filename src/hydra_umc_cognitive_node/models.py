@@ -18,10 +18,11 @@ sibling repositories are checked out.
 """
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
+
+from .model_weights import ANY_WEIGHT_SUFFIXES, contains_model_artifact
 
 MODELS_DIR_NAME = "models"
 
@@ -34,9 +35,7 @@ MAX_FILES_INSPECTED = 20_000
 # family's model-readiness signal green. This is intentionally an inventory
 # check, not a claim that the artifact is compatible with the real Hailo-10
 # runtime (that requires the physical runtime and model validation).
-MODEL_ARTIFACT_SUFFIXES: Final[frozenset[str]] = frozenset(
-    {".bin", ".gguf", ".har", ".hef", ".onnx", ".safetensors", ".tflite"}
-)
+MODEL_ARTIFACT_SUFFIXES: Final[frozenset[str]] = ANY_WEIGHT_SUFFIXES
 
 
 @dataclass(frozen=True)
@@ -70,35 +69,9 @@ def check_shared_models(repo_root: Path, models_dir: Path | None = None) -> Shar
 def _contains_candidate_model_artifact(models_dir: Path) -> bool:
     """Return whether ``models_dir`` contains a non-empty local candidate.
 
-    Traversal does not follow symlinked directories or accept symlinked files:
-    a readiness probe of this repository must not escape its own models tree.
-    Any filesystem error degrades to ``False`` rather than making
+    The walk is the one the family shares (``model_weights.py``, vendored byte for byte from the shared SDK): it does not follow
+    symlinked directories or accept symlinked files, so a readiness probe of this repository cannot escape its own models tree,
+    it stops after ``MAX_FILES_INSPECTED`` files, and any filesystem error degrades to ``False`` rather than making
     ``family-status`` crash.
     """
-    if not models_dir.is_dir() or models_dir.is_symlink():
-        return False
-
-    try:
-        # os.walk(..., followlinks=False) - not Path.rglob("*") - is the
-        # real, version-independent way to keep this walk inside the
-        # models/ tree. pathlib's own recursive "**" traversal only grew a
-        # way to refuse symlinked directories in Python 3.13's
-        # recurse_symlinks parameter; on every earlier 3.x release this
-        # project actually declares support for (requires-python >=3.10),
-        # Path.rglob("*") has no such option and always follows a
-        # symlinked subdirectory, silently defeating this exact guarantee.
-        visited = 0
-        for root, _dirnames, filenames in os.walk(models_dir, followlinks=False):
-            for filename in filenames:
-                # a huge snapshot tree must not make every status probe walk it all
-                visited += 1
-                if visited > MAX_FILES_INSPECTED:
-                    return False
-                path = Path(root, filename)
-                if path.is_symlink() or not path.is_file():
-                    continue
-                if path.suffix.lower() in MODEL_ARTIFACT_SUFFIXES and path.stat().st_size > 0:
-                    return True
-    except OSError:
-        return False
-    return False
+    return contains_model_artifact(models_dir, MODEL_ARTIFACT_SUFFIXES, MAX_FILES_INSPECTED)
