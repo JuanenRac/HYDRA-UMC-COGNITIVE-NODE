@@ -19,7 +19,7 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
   <img src="https://img.shields.io/badge/Tests-202%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.1.9-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.2.0-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
@@ -35,7 +35,7 @@ GPL-3.0-or-later - see LICENSE
 
 | | |
 |---|---|
-| Version | `0.1.9` |
+| Version | `0.2.0` |
 | Maturity | Functional |
 | Tests | 202 (`python -m pytest -q tests`) |
 | Stack | Python / CM5 / Hailo-10 |
@@ -178,7 +178,6 @@ unit on the same physical board:
 * ⏱️ **Budget of the accelerator, off by default:** `serve --npu-config FILE` hands the Hailo-10 out to the VLA engine, the speech-to-text and the language model with leases that expire, a queue ordered by priority and a longest wait per consumer, over `POST /npu/acquire` and `POST /npu/release`. *(tried with threads that stand in for the services; no Hailo-10 was available, so no device is opened)*
 * 📡 **The family on a retained MQTT topic, off by default:** `serve --mqtt-config FILE` publishes the readiness of the children to `hydra/cognitive/family` when it changes (and once in a while), and `{"online": false}` when the node stops, so the Studio and the phones need not ask. The payload names no path. A broker that is not on this machine needs TLS or a plaintext choice made on purpose. *(tried against a stand-in broker)*
 * 🩺 **A uniform `GET /health`, closed by default:** `serve --health-open` (or `HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1`) makes the service answer `GET /health` with `{"status": "ok", "service": ..., "version": ...}`, the same body in every service of the family; without the switch the route answers `404` like a route that does not exist. A caller that is not on loopback must present the bearer token of the service, and the body carries no path, configuration or secret.
-* 🪪 **The identity of HYDRA-UMC-SERVER, off by default:** `serve --identity-key-file FILE` (or `HYDRA_UMC_COGNITIVE_NODE_IDENTITY_KEY_FILE=FILE`) makes the service accept the signed token that the server issues at login, next to its own token: a viewer may read but not change, and a request with no credential is refused even on loopback. Without the switch nothing changes.
 
 ## 🔒 Security & Safety
 
@@ -236,7 +235,7 @@ run.bat
 (`pytest tests/`). Expected output of a bare `run.sh`:
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.9
+HYDRA-UMC-COGNITIVE-NODE v0.2.0
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 

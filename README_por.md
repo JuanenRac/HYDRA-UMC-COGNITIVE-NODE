@@ -19,7 +19,7 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
   <img src="https://img.shields.io/badge/Tests-202%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.1.9-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.2.0-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
@@ -35,7 +35,7 @@ GPL-3.0-or-later - see LICENSE
 
 | | |
 |---|---|
-| Versão | `0.1.9` |
+| Versão | `0.2.0` |
 | Maturidade | Funcional |
 | Testes | 202 (`python -m pytest -q tests`) |
 | Tecnologia | Python / CM5 / Hailo-10 |
@@ -176,7 +176,6 @@ na mesma placa física:
 * ⏱️ **Orçamento do acelerador, desligado por omissão:** `serve --npu-config FICHEIRO` reparte o Hailo-10 entre o motor VLA, o reconhecimento de voz e o modelo de linguagem com concessões que expiram, uma fila ordenada por prioridade e uma espera máxima por consumidor, através de `POST /npu/acquire` e `POST /npu/release`. *(experimentado com threads que fazem de serviços; não havia Hailo-10, por isso nenhum dispositivo é aberto)*
 * 📡 **A família num tópico MQTT retido, desligado por omissão:** `serve --mqtt-config FICHEIRO` publica a prontidão dos filhos em `hydra/cognitive/family` quando muda (e de vez em quando), e `{"online": false}` quando o nó pára, para que o Studio e os telemóveis não precisem de perguntar. A carga não refere nenhum caminho. Um broker que não esteja nesta máquina exige TLS ou uma escolha deliberada de texto simples. *(experimentado contra um broker de substituição)*
 * 🩺 **Um `GET /health` uniforme, fechado por predefinição:** `serve --health-open` (ou `HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1`) faz o serviço responder a `GET /health` com `{"status": "ok", "service": ..., "version": ...}`, o mesmo corpo em todos os serviços da família; sem o interruptor a rota responde `404` como uma rota que não existe. Quem não estiver em loopback tem de apresentar o token bearer do serviço, e o corpo não contém caminhos, configuração nem segredos.
-* 🪪 **A identidade do HYDRA-UMC-SERVER, desligada por predefinição:** `serve --identity-key-file FICHEIRO` (ou `HYDRA_UMC_COGNITIVE_NODE_IDENTITY_KEY_FILE=FICHEIRO`) faz o serviço aceitar o token assinado que o servidor emite no início de sessão, a par do seu próprio token: um visualizador pode ler mas não alterar, e um pedido sem credencial é recusado mesmo em loopback. Sem o interruptor nada muda.
 
 ## 🔒 Segurança e proteção
 
@@ -234,7 +233,7 @@ run.bat
 (`pytest tests/`). Saída esperada de um `run.sh` simples:
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.9
+HYDRA-UMC-COGNITIVE-NODE v0.2.0
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 

@@ -19,7 +19,7 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
   <img src="https://img.shields.io/badge/Tests-202%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.1.9-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.2.0-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
@@ -35,7 +35,7 @@ GPL-3.0-or-later - see LICENSE
 
 | | |
 |---|---|
-| 版本 | `0.1.9` |
+| 版本 | `0.2.0` |
 | 成熟度 | 可用 |
 | 测试 | 202 (`python -m pytest -q tests`) |
 | 技术栈 | Python / CM5 / Hailo-10 |
@@ -135,7 +135,6 @@ flowchart TB
 * ⏱️ **加速器预算（默认关闭）：** 使用 `serve --npu-config 文件`，把 Hailo-10 分配给 VLA 引擎、语音识别和语言模型：租约会过期，队列按优先级排序，每个使用者有最长等待时间，通过 `POST /npu/acquire` 和 `POST /npu/release` 使用。*（用代替服务的线程测试；没有 Hailo-10，因此不会打开任何设备）*
 * 📡 **保留的 MQTT 主题上的家族状态（默认关闭）：** 使用 `serve --mqtt-config 文件`，节点在子服务就绪状态变化时（以及偶尔）发布到 `hydra/cognitive/family`，节点停止时发布 `{"online": false}`，Studio 和手机无需轮询。载荷不含任何路径。不在本机上的 broker 需要 TLS 或有意选择明文。*（用模拟 broker 测试）*
 * 🩺 **统一的 `GET /health`，默认关闭：** `serve --health-open`（或 `HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1`）使服务以 `{"status": "ok", "service": ..., "version": ...}` 响应 `GET /health`，家族中每个服务的响应体相同；没有该开关时，该路由像不存在的路由一样返回 `404`。非回环地址的调用方必须出示服务的 bearer 令牌，响应体不含路径、配置或密钥。
-* 🪪 **HYDRA-UMC-SERVER 的身份（默认关闭）：** `serve --identity-key-file 文件`（或 `HYDRA_UMC_COGNITIVE_NODE_IDENTITY_KEY_FILE=文件`）会让服务在自己的令牌之外，也接受服务器在登录时签发的已签名令牌：查看者只能读取而不能更改，没有凭据的请求即使在环回地址上也会被拒绝。不开启该开关时一切照旧。
 
 ## 🔒 安全与防护
 
@@ -191,7 +190,7 @@ run.bat
 `run.sh` 的预期输出：
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.9
+HYDRA-UMC-COGNITIVE-NODE v0.2.0
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 

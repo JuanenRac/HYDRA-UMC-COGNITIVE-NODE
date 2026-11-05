@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.2.0] - The identity of HYDRA-UMC-SERVER, off by default (serve --identity-key-file FILE, or HYDRAUMCCOGNITIVENODEIDENTITYKEYFILE): the service verifies the signed token (HS256 JWT with exp, username and role) that the server issues... (and 2 more changes)
+
 - **The identity of HYDRA-UMC-SERVER, off by default (`serve --identity-key-file FILE`, or `HYDRA_UMC_COGNITIVE_NODE_IDENTITY_KEY_FILE`):** the service verifies the signed token (HS256 JWT with `exp`, `username` and `role`) that the server issues at login and accepts it next to its own token. A viewer may read but not change, a request with no credential is refused even on loopback, and an address that is not loopback no longer needs a token of the service. The key is the signing key of the server, read from a file that only the group of the service may read, at least 32 characters; without the switch nothing changes. `server_identity.py` is the canonical copy of the SDK. 2 tests.
 
 - **The manifest declares the uniform `GET /health` route and the probe falls back to `/stats`:** `service.health_path` is `/health` now. A service keeps that route closed (404) until its own switch opens it, so the probe of the children asks `/stats` after a 404 on `/health`; any other answer stands as it is.

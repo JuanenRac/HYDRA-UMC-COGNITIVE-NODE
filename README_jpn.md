@@ -19,7 +19,7 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
   <img src="https://img.shields.io/badge/Tests-202%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.1.9-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.2.0-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
@@ -35,7 +35,7 @@ GPL-3.0-or-later - see LICENSE
 
 | | |
 |---|---|
-| バージョン | `0.1.9` |
+| バージョン | `0.2.0` |
 | 成熟度 | 機能する |
 | テスト | 202 (`python -m pytest -q tests`) |
 | 技術 | Python / CM5 / Hailo-10 |
@@ -138,7 +138,6 @@ flowchart TB
 * ⏱️ **アクセラレーターの予算（既定ではオフ）：** `serve --npu-config FILE` は Hailo-10 を VLA エンジン、音声認識、言語モデルに、期限つきのリース、優先度順のキュー、消費者ごとの最大待ち時間で割り当てます（`POST /npu/acquire` と `POST /npu/release`）。*（サービスの代わりのスレッドで試験。Hailo-10 は無かったためデバイスは開きません）*
 * 📡 **保持された MQTT トピックのファミリー状態（既定ではオフ）：** `serve --mqtt-config FILE` は子サービスの準備状況が変わったとき（および時々）`hydra/cognitive/family` に公開し、ノード停止時には `{"online": false}` を公開します。Studio やスマートフォンは問い合わせる必要がありません。ペイロードにパスは含まれません。このマシン外のブローカーには TLS か、意図した平文の選択が必要です。*（模擬ブローカーで試験）*
 * 🩺 **統一された `GET /health`（既定では閉じています）：** `serve --health-open`（または `HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1`）を指定すると、サービスは `GET /health` に `{"status": "ok", "service": ..., "version": ...}` で応答します。ファミリーのすべてのサービスで同じ本文です。スイッチがなければ、ルートは存在しないルートと同じく `404` を返します。ループバック以外の呼び出し元はサービスのベアラートークンが必要で、本文にはパス・設定・秘密情報は含まれません。
-* 🪪 **HYDRA-UMC-SERVER の ID（既定ではオフ）:** `serve --identity-key-file FILE`（または `HYDRA_UMC_COGNITIVE_NODE_IDENTITY_KEY_FILE=FILE`）を指定すると、サービスは自身のトークンに加えて、サーバーがログイン時に発行する署名付きトークンを受け付けます。閲覧者は読み取りだけで変更はできず、資格情報のないリクエストはループバックでも拒否されます。スイッチがなければ何も変わりません。
 
 ## 🔒 セキュリティと安全
 
@@ -196,7 +195,7 @@ run.bat
 出力：
 
 ```text
-HYDRA-UMC-COGNITIVE-NODE v0.1.9
+HYDRA-UMC-COGNITIVE-NODE v0.2.0
 Semantic reasoning & GenAI edge node (Hailo-10) - integrates VLA-Engine, Voice-UI, Semantic-Planner and Docs-QA into one cognitive node.
 ```
 
