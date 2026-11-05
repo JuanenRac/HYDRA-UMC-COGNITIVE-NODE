@@ -137,7 +137,7 @@ class Handler(HealthRouteMixin, MetricsHandlerMixin, BaseHTTPRequestHandler):
             return
         path = urlparse(self.path).path
         # the health path stays open so the container health check and the service registry can read it without the token; everything else needs it when one is set
-        if path != HEALTH_PATH and not authorized:
+        if (path != HEALTH_PATH or self.server.identity_key is not None) and not authorized:  # with the identity of the SERVER on, not even the health path is open
             reject_unauthorized(self)
             return
         try:

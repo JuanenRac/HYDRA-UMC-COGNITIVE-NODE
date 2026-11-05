@@ -155,3 +155,11 @@ def test_with_the_identity_on_a_token_of_the_server_is_accepted_and_nothing_is_o
         server.identity_key = IDENTITY_KEY
         assert _get(base + "/family-status", TOKEN)[0] == 200  # the own token keeps working
         assert _get(base + "/family-status", _signed_token("admin"))[0] == 200
+
+
+def test_with_the_identity_on_not_even_the_health_path_is_open(tmp_path: Path) -> None:
+    for base, server in _serve(tmp_path):
+        assert _get(base + "/stats")[0] == 200  # open while the identity is off
+        server.identity_key = IDENTITY_KEY
+        assert _get(base + "/stats")[0] == 401
+        assert _get(base + "/stats", _signed_token("viewer"))[0] == 200
