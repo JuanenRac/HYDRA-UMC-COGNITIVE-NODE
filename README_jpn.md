@@ -18,7 +18,7 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
-  <img src="https://img.shields.io/badge/Tests-202%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-206%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.2.0-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | バージョン | `0.2.0` |
 | 成熟度 | 機能する |
-| テスト | 202 (`python -m pytest -q tests`) |
+| テスト | 206 (`python -m pytest -q tests`) |
 | 技術 | Python / CM5 / Hailo-10 |
 | 対象 | HYDRA-UMC セルの Raspberry Pi CM5 |
 | 実機での確認 | まだです：このバージョンについて実機での動作記録はありません |
@@ -53,7 +53,7 @@ GPL-3.0-or-later - see LICENSE
 | 領域 | 状態 | ここでの意味 |
 |---|---|---|
 | ソフトウェア | 🟡 | 主な目的では動作します。足りない点は上の正直さの確認に書かれています |
-| テスト | 🟢 | 自動テスト 202 件。変更のたびに実行されます |
+| テスト | 🟢 | 自動テスト 206 件。変更のたびに実行されます |
 | 実機 | 🔴 | まだです：このバージョンについて実機での動作記録はありません |
 | インターフェースとプロトコル | 🟡 | 提供するルートやメッセージは文書化され、クライアントで試験済みです。すべてのクライアントがまだ使ったわけではありません |
 | 連携 | 🟠 | CM5 のテストベンチで他のサービスと一緒に動作し、メッセージは SDK の共通契約に従います |
@@ -254,7 +254,7 @@ $ ./run.sh family-status --json
 
 ## 🧪 テスト
 
-`python -m pytest -q tests` で自動テスト 202 件を実行します。マニフェスト、モデルフォルダー、プローブ、コマンドライン、HTTP の窓口をローカルのフィクスチャで検査し、ハードウェアも外部ネットワークも不要です。
+`python -m pytest -q tests` で自動テスト 206 件を実行します。マニフェスト、モデルフォルダー、プローブ、コマンドライン、HTTP の窓口をローカルのフィクスチャで検査し、ハードウェアも外部ネットワークも不要です。
 
 CI は `HYDRA_UMC_CI=1 python tools/ci_validate.py` を実行し、マニフェスト、文書、8 つの README、図を検査します。
 
