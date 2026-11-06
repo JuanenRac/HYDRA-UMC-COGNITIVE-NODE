@@ -14,3 +14,5 @@ dist/
 models/*
 !models/.gitkeep
 .vscode/
+# Coverage data written by the test runs
+.coverage
