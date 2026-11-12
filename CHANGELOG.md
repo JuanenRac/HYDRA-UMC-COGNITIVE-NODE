@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The start of the service is tested with stand-ins for the server and the optional parts:** `tests/test_main_serve.py` (17 tests) checks what `serve` builds from each configuration file, that a bad key file, a language model without its place in the accelerator budget and the autonomy policy on an open address without a credential stop it with exit 2 before it listens, what it announces, that a configuration that is switched off builds nothing, that the family snapshot of the publisher reads the family, and that the publisher is stopped and the server closed even when serving fails. Line coverage of `main.py` goes from 69 % to 97 %.
+
 - **The identity of the server is tested at its edges:** `tests/test_server_identity_edges.py` (60 tests) checks every reason a token is refused (shape, header, algorithm, signature, expiry, claims), the key files, the choice of key by flag or environment, the decision of `accepts` for each method and role, and the probe and its command line against a small local service. Line coverage of `server_identity.py` goes from 63 % to 98 %.
 
 ## [0.2.1] - The build test of the repository compiles only on CI or when allowed: for the stacks that compile (rust, go, android, flutter, firmware-c), tools/buildtest.py prints BUILDTEST=SKIPPED with exit status 2 on a plain PC, never a... (and 1 more changes)
