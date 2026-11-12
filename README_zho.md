@@ -76,6 +76,8 @@ NPU（40 TOPS）驱动，它能直接在边缘端实现复杂的语义推理、�
 
 **HYDRA-UMC-COGNITIVE-NODE** 是 Hailo-10 认知家族的集成点。目前它的真实工作是就绪检查：读取四个子项目（VLA-ENGINE、VOICE-UI、SEMANTIC-PLANNER、DOCS-QA）的清单，查看共享的模型权重文件夹，并在需要时通过 HTTP 探测每个子服务。它不是推理引擎。
 
+> **平台：** 本 README 中的 CM5 指的是目前正在运行的试验台；HYDRA-UMC 的目标平台是 NVIDIA Jetson Orin NX 16 GB，这是尚未制造或测试的设计。
+
 ## 🏛️ 架构
 
 <p align="center">

@@ -77,6 +77,8 @@ GPL-3.0-or-later - see LICENSE
 
 **HYDRA-UMC-COGNITIVE-NODE** は Hailo-10 の認知ファミリーの統合点です。現時点の実際の仕事は準備状況の確認で、4 つの子（VLA-ENGINE、VOICE-UI、SEMANTIC-PLANNER、DOCS-QA）のマニフェストを読み、共有モデル重みフォルダーを調べ、求められれば各子を HTTP で問い合わせます。推論エンジンではありません。
 
+> **プラットフォーム：** この README の「CM5」は、現在動作している試験用ベンチを指します。HYDRA-UMC の目標プラットフォームは NVIDIA Jetson Orin NX 16 GB ですが、これは製作も試験もされていない設計です。
+
 ## 🏛️ アーキテクチャ
 
 <p align="center">

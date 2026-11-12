@@ -73,6 +73,8 @@ Trasforma le istruzioni umane di alto livello in sequenze robotiche logiche, ges
 
 **HYDRA-UMC-COGNITIVE-NODE** è il punto di integrazione della famiglia cognitiva Hailo-10. Oggi il suo lavoro reale è un controllo di prontezza: legge il manifesto dei quattro figli (VLA-ENGINE, VOICE-UI, SEMANTIC-PLANNER, DOCS-QA), guarda la cartella condivisa dei pesi dei modelli e, su richiesta, interroga ogni figlio via HTTP. Non è un motore di ragionamento.
 
+> **Piattaforma:** dove questo README dice CM5, intende il banco pilota che funziona oggi; la piattaforma di destinazione di HYDRA-UMC è un NVIDIA Jetson Orin NX da 16 GB, un progetto non costruito né provato.
+
 ## 🏛️ Architettura
 
 <p align="center">

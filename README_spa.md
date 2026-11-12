@@ -73,6 +73,8 @@ Transforma instrucciones humanas de alto nivel en secuencias robóticas lógicas
 
 **HYDRA-UMC-COGNITIVE-NODE** es el punto de integración de la familia cognitiva Hailo-10. Hoy su trabajo real es una comprobación de preparación: lee el manifiesto de los cuatro hijos (VLA-ENGINE, VOICE-UI, SEMANTIC-PLANNER, DOCS-QA), mira la carpeta de pesos de modelos compartida y, si se le pide, sondea cada hijo por HTTP. No es un motor de razonamiento.
 
+> **Plataforma:** donde este README dice CM5, se refiere al banco piloto que funciona hoy; la plataforma objetivo de HYDRA-UMC es una NVIDIA Jetson Orin NX de 16 GB, un diseño que no se ha construido ni probado.
+
 ## 🏛️ Arquitectura
 
 <p align="center">
