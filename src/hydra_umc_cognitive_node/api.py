@@ -24,7 +24,7 @@ from .npu import NpuBusy, NpuRequestError, NpuScheduler
 from .health_route import HealthRouteMixin
 from .server_identity import accepts
 from .service_metrics import MetricsHandlerMixin
-from .family import check_family_status, family_status_to_dict
+from .family import check_family_status, family_status_to_dict, load_minimum_versions
 from .probe import health_to_dict, probe_family
 from .models import check_shared_models
 
@@ -158,7 +158,7 @@ class Handler(HealthRouteMixin, MetricsHandlerMixin, BaseHTTPRequestHandler):
             if params.get("probe") in ("1", "true"):
                 # where the children are is fixed when the node starts (see probe.py); a request only says whether to ask them
                 health = {h.name: health_to_dict(h) for h in probe_family(self.server.workspace)}
-            _write_json(self, 200, family_status_to_dict(statuses, shared_models, health))
+            _write_json(self, 200, family_status_to_dict(statuses, shared_models, health, load_minimum_versions()))
         elif path == "/stats":
             _write_json(self, 200, {"status": "ok"})
         elif path == "/autonomy/policy" and self.server.autonomy is not None:

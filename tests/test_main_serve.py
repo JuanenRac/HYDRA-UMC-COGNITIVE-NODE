@@ -173,7 +173,7 @@ def test_the_publisher_snapshot_reads_the_family(monkeypatch) -> None:
     monkeypatch.setattr(cognitive_main, "load_mqtt_config", lambda path: SimpleNamespace(enabled=True, topic="t", broker="b"))
     monkeypatch.setattr(cognitive_main, "check_family_status", lambda workspace: [])
     monkeypatch.setattr(cognitive_main, "check_shared_models", lambda root, models: SimpleNamespace(present=True, path="models", to_dict=lambda: {}))
-    monkeypatch.setattr(cognitive_main, "family_status_to_dict", lambda statuses, models, health: {"children": len(statuses), "health": health})
+    monkeypatch.setattr(cognitive_main, "family_status_to_dict", lambda statuses, models, health, minimums=None: {"children": len(statuses), "health": health})
     monkeypatch.setattr(cognitive_main, "probe_family", lambda workspace: [])
     serve(mqtt_config="mqtt.json")
     snapshot = created[0].snapshot

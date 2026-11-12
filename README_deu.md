@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Hardware-CM5%20%2B%20Hailo--10-orange.svg" alt="Hardware">
   <img src="https://img.shields.io/badge/GenAI-Local%20LLM%20%2F%20VLA-blueviolet.svg" alt="GenAI">
-  <img src="https://img.shields.io/badge/Tests-283%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-289%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.2.1-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **Ehrlichkeitscheck - was heute wirklich läuft:** die Familien-Bereitschaftsprüfung mit ihrem versionierten JSON-Schema (`family.py`, `manifest.py`, `models.py`) und die einfache stdlib-HTTP-Oberfläche (`api.py`) sind real und durch 283 bestehende Tests abgedeckt (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Dieser Knoten führt selbst kein Modell aus: „Lokale LLM-Ausführung", „VLA-Integration" und „Sprachbefehlsverarbeitung" in den Kernfunktionen weiter unten sind ausdrücklich als `(geplant)` markiert - es gibt in diesem Repository keinen Hailo-10-Laufzeitcode. `docker-compose.yml` referenziert inzwischen ein echtes Dockerfile für alle 4 Kinder, wurde aber in dieser Entwicklungsumgebung nie tatsächlich als ein Stack ausgeführt (hier ist keine Docker-Laufzeit verfügbar) - die Befehls-/Port-Zuordnung jedes Dockerfiles wurde von Hand mit dem abgeglichen, was die eigene systemd-Unit jedes Kindes bereits auf der echten CM5 ausführt, nicht live verifiziert. Siehe `CHANGELOG.md` für das, was bisher genau ausgeliefert wurde.
+> **Ehrlichkeitscheck - was heute wirklich läuft:** die Familien-Bereitschaftsprüfung mit ihrem versionierten JSON-Schema (`family.py`, `manifest.py`, `models.py`) und die einfache stdlib-HTTP-Oberfläche (`api.py`) sind real und durch 289 bestehende Tests abgedeckt (`pytest tests/` - `test_manifest.py`, `test_models.py`, `test_family.py`, `test_api.py`, `test_cli.py`). Dieser Knoten führt selbst kein Modell aus: „Lokale LLM-Ausführung", „VLA-Integration" und „Sprachbefehlsverarbeitung" in den Kernfunktionen weiter unten sind ausdrücklich als `(geplant)` markiert - es gibt in diesem Repository keinen Hailo-10-Laufzeitcode. `docker-compose.yml` referenziert inzwischen ein echtes Dockerfile für alle 4 Kinder, wurde aber in dieser Entwicklungsumgebung nie tatsächlich als ein Stack ausgeführt (hier ist keine Docker-Laufzeit verfügbar) - die Befehls-/Port-Zuordnung jedes Dockerfiles wurde von Hand mit dem abgeglichen, was die eigene systemd-Unit jedes Kindes bereits auf der echten CM5 ausführt, nicht live verifiziert. Siehe `CHANGELOG.md` für das, was bisher genau ausgeliefert wurde.
 
 > **Stand von Sicherheit (Safety) und Security:** Dieses Ökosystem ist kein zertifiziertes Sicherheitssystem. Es gibt noch keinen Hardware-E-STOP-Pfad, keine von der Firmware durchgesetzten Grenzen oder Verriegelungen und keinen verifizierten Bewegungsbefehl; Firmware-Images werden mit CRC-32 und einer Ed25519-Signatur geprüft, und ein Release-Build verweigert die veröffentlichten Entwicklungsschlüssel (die Werkzeugköpfe und Erweiterungsplatinen hinter dem Relais laufen noch mit URTC-Bootloadern, die statt einer Signatur ein HMAC-SHA256 mit gemeinsamem Schlüssel verwenden); TLS und gegenseitiges TLS sind optional und standardmäßig aus; noch keine eigene Platine wurde bestückt oder getestet. Lesen Sie die [Sicherheitsbasis](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md) und das [Bedrohungsmodell](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md), bevor Sie sich für die Sicherheit einer Person auf eine Aussage hier verlassen.
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | Version | `0.2.1` |
 | Reifegrad | Funktionsfähig |
-| Tests | 283 (`python -m pytest -q tests`) |
+| Tests | 289 (`python -m pytest -q tests`) |
 | Technik | Python / CM5 / Hailo-10 |
 | Ziel | Der Raspberry Pi CM5 einer HYDRA-UMC-Zelle |
 | Auf echter Hardware | Noch nicht: für diese Version ist kein Lauf auf echter Hardware vermerkt |
@@ -53,7 +53,7 @@ Jede Zeile ist ein Teil dieses Repositorys, und die Ampel sagt, wie weit er heut
 | Bereich | Stand | Was das hier bedeutet |
 |---|---|---|
 | Software | 🟡 | Funktioniert für seinen Hauptzweck; die Ehrlichkeitsprüfung oben nennt, was noch fehlt |
-| Tests | 🟢 | 283 automatische Tests, bei jeder Änderung ausgeführt |
+| Tests | 🟢 | 289 automatische Tests, bei jeder Änderung ausgeführt |
 | Echte Hardware | 🔴 | Noch nicht: für diese Version ist kein Lauf auf echter Hardware vermerkt |
 | Schnittstelle und Protokolle | 🟡 | Die angebotenen Routen oder Nachrichten sind dokumentiert und mit einem Client getestet; noch nicht jeder Client hat sie benutzt |
 | Integration | 🟠 | Es läuft zusammen mit den anderen Diensten auf dem CM5-Prüfstand, und seine Nachrichten folgen den gemeinsamen Verträgen des SDK |
@@ -190,6 +190,7 @@ zu agieren:
 * 📡 **Die Familie auf einem retained MQTT-Topic, standardmäßig aus:** Mit `serve --mqtt-config DATEI` veröffentlicht der Knoten die Bereitschaft der Kinder auf `hydra/cognitive/family`, wenn sie sich ändert (und gelegentlich), und `{"online": false}`, wenn er stoppt; Studio und Telefone müssen nicht fragen. Die Nutzlast nennt keinen Pfad. Ein Broker außerhalb dieses Rechners braucht TLS oder eine bewusst gewählte Klartext-Einstellung. *(gegen einen simulierten Broker getestet)*
 * 🩺 **Ein einheitliches `GET /health`, standardmäßig geschlossen:** `serve --health-open` (oder `HYDRA_UMC_COGNITIVE_NODE_HEALTH_OPEN=1`) lässt den Dienst auf `GET /health` mit `{"status": "ok", "service": ..., "version": ...}` antworten, derselbe Inhalt in jedem Dienst der Familie; ohne den Schalter antwortet die Route mit `404` wie eine nicht vorhandene Route. Ein Aufrufer außerhalb von Loopback muss das Bearer-Token des Dienstes vorlegen, und der Inhalt enthält keinen Pfad, keine Konfiguration und kein Geheimnis.
 * 🪪 **Die Identität von HYDRA-UMC-SERVER, standardmäßig aus:** `serve --identity-key-file DATEI` (oder `HYDRA_UMC_COGNITIVE_NODE_IDENTITY_KEY_FILE=DATEI`) lässt den Dienst das signierte Token akzeptieren, das der Server bei der Anmeldung ausstellt, neben dem eigenen Token: Ein Betrachter darf lesen, aber nichts ändern, und eine Anfrage ohne Berechtigungsnachweis wird selbst auf Loopback abgelehnt. Ohne den Schalter ändert sich nichts.
+* 🧮 **Mindestversionen der Kinder, standardmäßig aus:** `HYDRA_UMC_FAMILY_MINIMUMS=DATEI` nennt eine JSON-Datei mit Paaren wie `"HYDRA-UMC-VOICE-UI": "0.2.0"`; `family-status` ergänzt dann `minimum_version` und `compatible` bei jedem Kind und `all_children_compatible` in der Antwort, und ein Kind, das älter als sein Minimum ist, wird als nicht kompatibel gemeldet. Ohne Datei wird nichts bewertet. *(umgesetzt)*
 
 ## 🔒 Sicherheit und Schutz
 
@@ -306,7 +307,7 @@ Workspace-Ordner). Beendet sich mit `1`, wenn ein echtes Kind fehlt.
 
 ## 🧪 Tests
 
-283 automatische Tests laufen mit `python -m pytest -q tests`. Sie prüfen die Manifeste, den Modellordner, die Sonde, die Kommandozeile und die HTTP-Schnittstelle gegen lokale Fixtures; keine Hardware, kein äußeres Netz.
+289 automatische Tests laufen mit `python -m pytest -q tests`. Sie prüfen die Manifeste, den Modellordner, die Sonde, die Kommandozeile und die HTTP-Schnittstelle gegen lokale Fixtures; keine Hardware, kein äußeres Netz.
 
 Die CI führt `HYDRA_UMC_CI=1 python tools/ci_validate.py` aus; das prüft das Manifest, die Dokumente, die acht READMEs und die Bilder.
 

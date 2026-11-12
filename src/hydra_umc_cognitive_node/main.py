@@ -29,7 +29,7 @@ from .api import CognitiveNodeServer
 from .autonomy import AutonomyPolicy, load_autonomy_config
 from .family_mqtt import FamilyPublisher, load_mqtt_config
 from .npu import NpuScheduler, load_npu_config
-from .family import check_family_status, env_versions, family_status_to_dict
+from .family import check_family_status, env_versions, family_status_to_dict, load_minimum_versions
 from .llm import Narrator, load_llm_config, make_backend
 from .models import check_shared_models
 from .probe import health_to_dict, probe_family
@@ -68,7 +68,7 @@ def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | Non
             return 2
 
     if as_json:
-        print(json.dumps(family_status_to_dict(statuses, shared_models, health), indent=2))
+        print(json.dumps(family_status_to_dict(statuses, shared_models, health, load_minimum_versions()), indent=2))
         if health is not None and not all((health.get(s.name) or {}).get("healthy") is True for s in statuses):
             return 1
         return 0 if all(status.present for status in statuses) else 1
@@ -144,7 +144,7 @@ def _run_serve(addr: str, port: int, workspace: Path, models_dir: Path | None = 
                 def snapshot(probe: bool) -> dict[str, Any]:
                     statuses = check_family_status(workspace)
                     health = {h.name: health_to_dict(h) for h in probe_family(workspace)} if probe else None
-                    return family_status_to_dict(statuses, check_shared_models(_REPO_ROOT, models_dir), health)
+                    return family_status_to_dict(statuses, check_shared_models(_REPO_ROOT, models_dir), health, load_minimum_versions())
                 publisher = FamilyPublisher(mqtt, snapshot)
         server = CognitiveNodeServer((addr, port), workspace, _REPO_ROOT, models_dir, token, max_threads, narrator, autonomy, scheduler, publisher)
         server.identity_key = identity_key
