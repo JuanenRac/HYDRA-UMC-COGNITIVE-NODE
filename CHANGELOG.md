@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The identity of the server is tested at its edges:** `tests/test_server_identity_edges.py` (60 tests) checks every reason a token is refused (shape, header, algorithm, signature, expiry, claims), the key files, the choice of key by flag or environment, the decision of `accepts` for each method and role, and the probe and its command line against a small local service. Line coverage of `server_identity.py` goes from 63 % to 98 %.
+
 ## [0.2.1] - The build test of the repository compiles only on CI or when allowed: for the stacks that compile (rust, go, android, flutter, firmware-c), tools/buildtest.py prints BUILDTEST=SKIPPED with exit status 2 on a plain PC, never a... (and 1 more changes)
 
 - **The build test of the repository compiles only on CI or when allowed:** for the stacks that compile (`rust`, `go`, `android`, `flutter`, `firmware-c`), `tools/build_test.py` prints `BUILD_TEST=SKIPPED` with exit status 2 on a plain PC, never a pass; `ALLOW_LOCAL_BUILD=1` allows it and a CI runner always may. The `python` and `node` stacks are not locked.
