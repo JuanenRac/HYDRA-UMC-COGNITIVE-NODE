@@ -33,6 +33,7 @@ from .family import check_family_status, env_versions, family_status_to_dict, lo
 from .llm import Narrator, load_llm_config, make_backend
 from .models import check_shared_models
 from .probe import health_to_dict, probe_family
+from .remote import DEFAULT_REF, check_remote_family_status
 
 PROJECT_NAME = "HYDRA-UMC-COGNITIVE-NODE"
 ROLE = (
@@ -56,8 +57,18 @@ def _print_identity() -> None:
     print(ROLE)
 
 
-def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | None = None, probe: bool = False) -> int:
-    statuses = check_family_status(workspace)
+def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | None = None, probe: bool = False, remote: bool = False, remote_ref: str = DEFAULT_REF) -> int:
+    if remote and probe:
+        print("error: --remote reads published manifests; --probe asks running services, so the two cannot be mixed", file=sys.stderr)
+        return 2
+    if remote:
+        try:
+            statuses = check_remote_family_status(remote_ref)
+        except ValueError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 2
+    else:
+        statuses = check_family_status(workspace)
     shared_models = check_shared_models(_REPO_ROOT, models_dir)
     health = None
     if probe:
@@ -73,7 +84,7 @@ def _run_family_status(workspace: Path, *, as_json: bool, models_dir: Path | Non
             return 1
         return 0 if all(status.present for status in statuses) else 1
 
-    print(f"Cognitive AI Node family status (workspace: {workspace}):")
+    print(f"Cognitive AI Node family status ({'published manifests at ' + remote_ref if remote else 'workspace: ' + str(workspace)}):")
     for status in statuses:
         if not status.present or status.manifest is None:
             print(f"  {status.name}: NOT FOUND")
@@ -206,6 +217,17 @@ def build_parser() -> argparse.ArgumentParser:
              "Without it only the manifests are read.",
     )
     family_parser.add_argument(
+        "--remote",
+        action="store_true",
+        help="Read the manifests of the children from their published repositories (raw.githubusercontent.com/JuanenRac) instead of the workspace. "
+             "Off by default; cannot be used with --probe.",
+    )
+    family_parser.add_argument(
+        "--remote-ref",
+        default=DEFAULT_REF,
+        help="Branch or tag the --remote manifests are read at (default: main).",
+    )
+    family_parser.add_argument(
         "--json",
         action="store_true",
         help="Print a real, versioned machine-readable result instead of the human-readable table.",
@@ -254,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "family-status":
-        return _run_family_status(args.workspace, as_json=args.json, models_dir=args.models_dir, probe=args.probe)
+        return _run_family_status(args.workspace, as_json=args.json, models_dir=args.models_dir, probe=args.probe, remote=args.remote, remote_ref=args.remote_ref)
     if args.command == "family-versions":
         for line in env_versions(check_family_status(args.workspace)):
             print(line)

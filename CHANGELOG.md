@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **`family-status --remote` reads the manifests of the children from their published repositories (off by default):** with a workspace that has no checkouts, `--remote` (and `--remote-ref`, a plain branch or tag name, `main` by default) fetches `hydra-umc.project.json` of each expected child from `raw.githubusercontent.com/JuanenRac` and gives the same result as the local check. Only that one address shape is ever requested, redirects are not followed, an answer larger than a local manifest is dropped, and any failure is "not found" like a missing checkout; it cannot be combined with `--probe`. `manifest.parse_child_manifest` is the shared parser. `tests/test_family_remote.py` (18 tests, no network).
+
 - **README: the platform statement:** a note says that where the README speaks of the CM5 it means the pilot bench that runs today, and that the target platform of HYDRA-UMC, an NVIDIA Jetson Orin NX 16 GB, is a design that has not been built or tested.
 - **`family-status` can judge the versions of the children against minimums:** `HYDRA_UMC_FAMILY_MINIMUMS=FILE` names a JSON file of `"HYDRA-UMC-VOICE-UI": "0.2.0"` pairs (three or four numbers; a pair that cannot be read is dropped, a file that is missing, too large or not an object gives no minimums). With minimums, each child of the answer carries `minimum_version` and `compatible` (`false` for a child older than its minimum, compared as numbers and not as text; `null` when the child is missing or has no minimum) and the answer carries `all_children_compatible`. Without them the answer is the one it was. Off by default. Tested with generated manifests and files.
 

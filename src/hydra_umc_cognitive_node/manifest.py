@@ -52,17 +52,21 @@ def read_child_manifest(repo_path: Path) -> ChildManifest | None:
     try:
         if manifest_path.stat().st_size > MAX_MANIFEST_BYTES:
             return None
-        data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            return None
-        required = ("name", "version", "maturity", "role")
-        if any(not isinstance(data.get(field), str) or not data[field].strip() for field in required):
-            return None
-        return ChildManifest(
-            name=data["name"],
-            version=data["version"],
-            maturity=data["maturity"],
-            role=data["role"],
-        )
-    except (OSError, json.JSONDecodeError, KeyError, TypeError):
+        return parse_child_manifest(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
         return None
+
+
+def parse_child_manifest(text: str) -> ChildManifest | None:
+    """The manifest in [text] (the content of a hydra-umc.project.json, wherever it was read from), or None when it is not JSON, not an
+    object or lacks one of the four fields as a non-empty string."""
+    try:
+        data = json.loads(text)
+    except (ValueError, TypeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    required = ("name", "version", "maturity", "role")
+    if any(not isinstance(data.get(field), str) or not data[field].strip() for field in required):
+        return None
+    return ChildManifest(name=data["name"], version=data["version"], maturity=data["maturity"], role=data["role"])
