@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The SDK pin and the shared tools are up to date:** the SDK dependency names the newest release tag, and the shared tools are the canonical copies again.
 - **A simulation bench for the hub:** `tests/test_simulation_bench.py` runs the real probe and the real narrator against stand-ins of the children of the family (healthy, sick, closed route, slow, garbled, oversized, not there) and against a simulated language model with a fixed seed, a lost accelerator, a busy accelerator and a model that answers with control characters or nothing. The workflow "Simulation bench" runs it on every change and `docs/SIMULATION.md` describes it. The manifest now declares the evidence level `simulator`.
 - **The coverage of the tests is measured on every change:** the workflow "Coverage floor" runs the whole suite under line and branch coverage and fails when it falls under 92 %.
 - **The family publisher, the shared HTTP helpers and the metrics text are tested at their edges:** `tests/test_family_mqtt_edges.py` (configuration keys that are refused, packets over the size of the standard, credential files, a broker that is not there, refused or half-answered connections, a publisher whose snapshot or broker fails), `tests/test_http_common_edges.py` (bodies that are too long, not a number, not JSON or not an object, repeated query names, the bearer token, the limit of simultaneous requests) and `tests/test_service_metrics_edges.py` (labels, escaping, the health of the service when a check fails).
