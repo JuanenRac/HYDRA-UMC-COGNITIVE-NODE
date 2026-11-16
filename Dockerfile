@@ -22,7 +22,7 @@
 # /workspace and the weights under /opt/hydra/models). On bare metal the
 # install script of HYDRA-UMC-OS provisions the same files for the systemd unit.
 
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 WORKDIR /app
 COPY pyproject.toml README.md LICENSE.md ./
