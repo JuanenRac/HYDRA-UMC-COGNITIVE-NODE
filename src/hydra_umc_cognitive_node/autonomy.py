@@ -22,6 +22,7 @@ the network, and who may call it is the operator's decision (see docs/AUTONOMY.m
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import re
 import threading
@@ -88,6 +89,16 @@ REASONS: dict[str, dict[str, str]] = {
         "zh": "此来源不在策略中：只能提供信息。",
         "pt": "Esta fonte não consta da política: só pode informar.",
     },
+    "source_credential": {
+        "en": "This source must present its own credential and did not.",
+        "es": "Esta fuente debe presentar su propia credencial y no lo hizo.",
+        "de": "Diese Quelle muss ihre eigene Zugangsberechtigung vorlegen und hat das nicht getan.",
+        "fr": "Cette source doit présenter son propre justificatif et ne l'a pas fait.",
+        "it": "Questa fonte deve presentare la propria credenziale e non l'ha fatto.",
+        "ja": "このソースは独自の認証情報を提示する必要がありますが、提示されませんでした。",
+        "zh": "此来源必须出示自己的凭据，但未出示。",
+        "pt": "Esta fonte tem de apresentar a sua própria credencial e não o fez.",
+    },
     "denied": {
         "en": "Not allowed by the policy.",
         "es": "No permitido por la política.",
@@ -114,6 +125,7 @@ class AutonomyConfig:
     enabled: bool = False
     default_level: str = "inform"
     sources: dict[str, str] = field(default_factory=dict)
+    source_token_files: dict[str, str] = field(default_factory=dict)   # source -> file with the bearer token that source must present
     audit_file: str | None = None
     audit_max_bytes: int = 10 * 1024 * 1024
     audit_memory: int = 200
@@ -137,9 +149,20 @@ def parse_autonomy_config(raw: object) -> AutonomyConfig:
     if len(sources_raw) > 256:
         raise AutonomyConfigError("sources has more than 256 entries")
     sources: dict[str, str] = {}
+    token_files: dict[str, str] = {}
     for name, level in sources_raw.items():
         if not _IDENTIFIER.match(name):
             raise AutonomyConfigError(f"source {name[:40]!r} is not an identifier of letters, digits and _ - . :")
+        if isinstance(level, dict):
+            # the long form: {"level": "propose", "tokenFile": "/path"}; the short form (just the level) stays valid
+            if set(level) - {"level", "tokenFile"}:
+                raise AutonomyConfigError(f"source {name}: the keys are level and tokenFile")
+            token_file = level.get("tokenFile")
+            if token_file is not None:
+                if not isinstance(token_file, str) or not token_file:
+                    raise AutonomyConfigError(f"source {name}: tokenFile must be the path of a file")
+                token_files[name] = token_file
+            level = level.get("level")
         if level not in LEVELS:
             raise AutonomyConfigError(f"source {name}: the level must be one of {', '.join(LEVELS)}")
         sources[name] = level
@@ -152,7 +175,7 @@ def parse_autonomy_config(raw: object) -> AutonomyConfig:
         if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
             raise AutonomyConfigError(f"{key} must be a whole number from {low} to {high}")
         sizes[key] = value
-    return AutonomyConfig(enabled, default_level, sources, audit_file, sizes["auditMaxBytes"], sizes["auditMemory"])
+    return AutonomyConfig(enabled, default_level, sources, token_files, audit_file, sizes["auditMaxBytes"], sizes["auditMemory"])
 
 
 def load_autonomy_config(path: str) -> AutonomyConfig:
@@ -262,10 +285,27 @@ def parse_question(body: object) -> Question:
     return Question(ids[0], ids[1], ids[2], str(level), confirmed, str(language))
 
 
+MIN_SOURCE_TOKEN_LENGTH = 16
+
+
+def _read_source_tokens(files: dict[str, str]) -> dict[str, bytes]:
+    tokens: dict[str, bytes] = {}
+    for name, path in files.items():
+        try:
+            token = Path(path).read_text(encoding="utf-8").strip()
+        except (OSError, UnicodeDecodeError) as error:
+            raise AutonomyConfigError(f"source {name}: cannot read the token file: {error}") from error
+        if len(token) < MIN_SOURCE_TOKEN_LENGTH:
+            raise AutonomyConfigError(f"source {name}: the token must have at least {MIN_SOURCE_TOKEN_LENGTH} characters")
+        tokens[name] = token.encode("utf-8")
+    return tokens
+
+
 class AutonomyPolicy:
     def __init__(self, config: AutonomyConfig) -> None:
         self.config = config
         self.audit = AuditLog(config.audit_file, config.audit_max_bytes, config.audit_memory)
+        self._source_tokens = _read_source_tokens(config.source_token_files)
 
     def granted_level(self, source: str) -> tuple[str, bool]:
         """The level the policy gives a source, and whether the source is in the policy."""
@@ -273,20 +313,30 @@ class AutonomyPolicy:
             return self.config.sources[source], True
         return self.config.default_level, False
 
-    def evaluate(self, body: object) -> dict[str, Any]:
+    def evaluate(self, body: object, presented: str = "") -> dict[str, Any]:
+        """The decision for one question. `presented` is the bearer token of the request: a source that has a token file in the policy can be used only with that token."""
         question = parse_question(body)
         granted, known = self.granted_level(question.source)
         requested_rank, granted_rank = LEVELS.index(question.level), LEVELS.index(granted)
-        if requested_rank > granted_rank:
+        expected = self._source_tokens.get(question.source)
+        if expected is not None and not (presented and hmac.compare_digest(presented.encode("utf-8"), expected)):
+            decision, reason = "deny", "source_credential"   # whatever level was asked: the name was used without the credential of that source
+        elif requested_rank > granted_rank:
             decision, reason = "deny", ("level_limited" if known else "unknown_source_inform_only")
         elif question.level == "execute_with_confirmation":
             decision, reason = ("allow", "confirmed") if question.confirmed else ("needs_confirmation", "needs_confirmation")
         else:
             decision, reason = "allow", "allowed"
-        entry = self.audit.record({"source": question.source, "kind": question.kind, "actionId": question.action_id, "requested": question.level,
-                                   "granted": granted, "humanConfirmed": question.confirmed, "decision": decision, "reason": reason})
+        record = {"source": question.source, "kind": question.kind, "actionId": question.action_id, "requested": question.level,
+                  "granted": granted, "humanConfirmed": question.confirmed, "decision": decision, "reason": reason}
+        if expected is not None:
+            record["credential"] = "required" if reason == "source_credential" else "proven"   # only for a source that has one: the log of the others keeps its shape
+        entry = self.audit.record(record)
         return {"decision": decision, "reason": reason, "message": REASONS[reason][question.language], "requestedLevel": question.level,
                 "grantedLevel": granted, "language": question.language, "auditHash": entry["hash"]}
 
     def describe(self) -> dict[str, Any]:
-        return {"defaultLevel": self.config.default_level, "sources": dict(self.config.sources), "levels": list(LEVELS)}
+        shown: dict[str, Any] = {"defaultLevel": self.config.default_level, "sources": dict(self.config.sources), "levels": list(LEVELS)}
+        if self._source_tokens:
+            shown["sourcesWithCredential"] = sorted(self._source_tokens)   # the names only, never a token or a path
+        return shown

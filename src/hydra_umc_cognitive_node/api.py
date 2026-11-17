@@ -22,7 +22,7 @@ from .family_mqtt import FamilyPublisher
 from .llm import LlmBusy, LlmRequestError, LlmUnavailable, Narrator
 from .npu import NpuBusy, NpuRequestError, NpuScheduler
 from .health_route import HealthRouteMixin
-from .server_identity import accepts
+from .server_identity import _presented, accepts
 from .service_metrics import MetricsHandlerMixin
 from .family import check_family_status, family_status_to_dict, load_minimum_versions
 from .probe import health_to_dict, probe_family
@@ -95,7 +95,7 @@ class Handler(HealthRouteMixin, MetricsHandlerMixin, BaseHTTPRequestHandler):
     def _autonomy(self, body: dict[str, object]) -> None:
         assert self.server.autonomy is not None
         try:
-            _write_json(self, 200, self.server.autonomy.evaluate(body))
+            _write_json(self, 200, self.server.autonomy.evaluate(body, _presented(self)))
         except AutonomyRequestError as error:
             _write_error(self, 400, f"invalid request: {error}")
         except OSError as error:

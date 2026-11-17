@@ -13,6 +13,7 @@ The node is the one place that says how far an output of the AI services may go 
 ## Decision
 
 * A source gets at most the level written for it in `sources`. A source that is not listed gets `defaultLevel`, `inform` unless the file says otherwise, so a new service can never move hardware before somebody wrote it down.
+* A source can also have a credential of its own: write it as `"vla-engine": {"level": "propose", "tokenFile": "/path/to/token"}` (the short form, just the level, stays valid). A request that names that source is answered `deny` with the reason `source_credential` unless its bearer token is the one in that file, so a caller that holds only the token of the node cannot speak in the name of another service. The token needs at least 16 characters, the policy does not start when the file cannot be read, and `GET /autonomy/policy` lists the names that have a credential, never the tokens or the paths. Without `tokenFile` nothing changes.
 * A request above the granted level is `deny`. A request for `execute_with_confirmation` within the granted level is `needs_confirmation` until the request carries `"humanConfirmed": true`, and then `allow`.
 * The node does not see the person: `humanConfirmed` is what the caller says. The routes need the bearer token whenever the node has one, and the node refuses to start the policy on an address that is not loopback without a token. Who may call the route is the decision of the operator.
 
