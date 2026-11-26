@@ -45,3 +45,7 @@ A misspelt key stops the start with a message.
 ## What has and has not been tried
 
 The policy and the routes run and are tested with requests that stand in for the services. Nothing in the family calls these routes yet: wiring the VLA engine, the voice interface and the semantic planner to ask before they hand anything to the server is work of those projects and of the server, and checking the signed confirmation that the voice interface already makes is open.
+
+## Confirmation proof (off by default)
+
+`"confirmationProof": {"required": true, "approvalKeyFile": "...", "voiceKeyFile": "..."}` makes `execute_with_confirmation` need more than `humanConfirmed`: the question carries `subjectId` (the robot or machine) and `confirmationProof`, the `ConfirmationProof` of HYDRA-UMC-SDK that the VLA engine (`kind` `approval`) or the voice interface (`kind` `voice`) signed with the key of that file. It must be genuine, current, for this `actionId` and `subjectId`, and it is accepted once (the memory of used proofs lives in the process). Otherwise the answer is `proof_required` or `proof_invalid`.
