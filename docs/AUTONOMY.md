@@ -44,7 +44,7 @@ A misspelt key stops the start with a message.
 
 ## What has and has not been tried
 
-The policy and the routes run and are tested with requests that stand in for the services. Nothing in the family calls these routes yet: wiring the VLA engine, the voice interface and the semantic planner to ask before they hand anything to the server is work of those projects and of the server, and checking the signed confirmation that the voice interface already makes is open.
+The policy and the routes run and are tested with requests that stand in for the services. The VLA engine (`serve --cognitive-node-url`) and the voice interface (`HYDRA_UMC_VOICE_UI_COGNITIVE_URL`) can ask before they hand out a confirmation, each with its `subjectId` and, with a proof key, the `confirmationProof`; both are off by default and treat anything but `allow` as a refusal. Wiring the semantic planner and the server is still open, and none of this has run against a real cell.
 
 ## Confirmation proof (off by default)
 
