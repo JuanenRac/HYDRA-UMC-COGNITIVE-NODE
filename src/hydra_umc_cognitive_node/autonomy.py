@@ -32,6 +32,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .confirmation_proof import load_proof_key, proof_identifier, verify_proof
+
 LEVELS = ("inform", "propose", "execute_with_confirmation")
 LANGUAGES = ("en", "es", "de", "fr", "it", "ja", "zh", "pt")
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
@@ -78,6 +80,26 @@ REASONS: dict[str, dict[str, str]] = {
         "ja": "担当者の確認のうえで実行できます。",
         "zh": "经人员确认后可执行。",
         "pt": "Execução com a confirmação de uma pessoa.",
+    },
+    "proof_required": {
+        "en": "A signed proof of the confirmation of this exact action is required and was not given.",
+        "es": "Se exige una prueba firmada de la confirmación de esta acción exacta y no se ha dado.",
+        "de": "Ein signierter Nachweis der Bestätigung genau dieser Aktion ist erforderlich und fehlt.",
+        "fr": "Une preuve signée de la confirmation de cette action précise est exigée et n'a pas été fournie.",
+        "it": "È richiesta una prova firmata della conferma di questa azione esatta e non è stata fornita.",
+        "ja": "この操作を確認した署名付きの証明が必要ですが、提示されていません。",
+        "zh": "必须提供对这一具体操作的签名确认证明，但未提供。",
+        "pt": "É exigida uma prova assinada da confirmação desta ação exata e não foi apresentada.",
+    },
+    "proof_invalid": {
+        "en": "The proof of the confirmation is not valid for this action.",
+        "es": "La prueba de la confirmación no vale para esta acción.",
+        "de": "Der Bestätigungsnachweis ist für diese Aktion nicht gültig.",
+        "fr": "La preuve de confirmation n'est pas valable pour cette action.",
+        "it": "La prova di conferma non è valida per questa azione.",
+        "ja": "確認の証明は、この操作には有効ではありません。",
+        "zh": "确认证明对此操作无效。",
+        "pt": "A prova de confirmação não é válida para esta ação.",
     },
     "unknown_source_inform_only": {
         "en": "This source is not in the policy: it may only inform.",
@@ -129,12 +151,14 @@ class AutonomyConfig:
     audit_file: str | None = None
     audit_max_bytes: int = 10 * 1024 * 1024
     audit_memory: int = 200
+    require_proof: bool = False                 # execute_with_confirmation needs a ConfirmationProof, not only the flag humanConfirmed
+    proof_key_files: dict[str, str] = field(default_factory=dict)   # kind -> key file
 
 
 def parse_autonomy_config(raw: object) -> AutonomyConfig:
     if not isinstance(raw, dict):
         raise AutonomyConfigError("the configuration must be a JSON object")
-    unknown = set(raw) - {"enabled", "defaultLevel", "sources", "auditFile", "auditMaxBytes", "auditMemory"}
+    unknown = set(raw) - {"enabled", "defaultLevel", "sources", "auditFile", "auditMaxBytes", "auditMemory", "confirmationProof"}
     if unknown:
         raise AutonomyConfigError(f"unknown key {sorted(unknown)[0]}")
     enabled = raw.get("enabled", False)
@@ -175,7 +199,22 @@ def parse_autonomy_config(raw: object) -> AutonomyConfig:
         if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
             raise AutonomyConfigError(f"{key} must be a whole number from {low} to {high}")
         sizes[key] = value
-    return AutonomyConfig(enabled, default_level, sources, token_files, audit_file, sizes["auditMaxBytes"], sizes["auditMemory"])
+    proof = raw.get("confirmationProof", {})
+    if not isinstance(proof, dict) or set(proof) - {"required", "approvalKeyFile", "voiceKeyFile"}:
+        raise AutonomyConfigError("confirmationProof must be an object with required, approvalKeyFile and voiceKeyFile")
+    required = proof.get("required", False)
+    if not isinstance(required, bool):
+        raise AutonomyConfigError("confirmationProof.required must be true or false")
+    key_files: dict[str, str] = {}
+    for key, kind in (("approvalKeyFile", "approval"), ("voiceKeyFile", "voice")):
+        path = proof.get(key)
+        if path is not None:
+            if not isinstance(path, str) or not path:
+                raise AutonomyConfigError(f"confirmationProof.{key} must be the path of a file")
+            key_files[kind] = path
+    if required and not key_files:
+        raise AutonomyConfigError("confirmationProof.required needs approvalKeyFile or voiceKeyFile")
+    return AutonomyConfig(enabled, default_level, sources, token_files, audit_file, sizes["auditMaxBytes"], sizes["auditMemory"], required, key_files)
 
 
 def load_autonomy_config(path: str) -> AutonomyConfig:
@@ -259,12 +298,14 @@ class Question:
     level: str
     confirmed: bool
     language: str
+    subject_id: str = ""
+    proof: object = None
 
 
 def parse_question(body: object) -> Question:
     if not isinstance(body, dict):
         raise AutonomyRequestError("the body must be a JSON object")
-    unknown = set(body) - {"source", "kind", "actionId", "level", "humanConfirmed", "language"}
+    unknown = set(body) - {"source", "kind", "actionId", "level", "humanConfirmed", "language", "subjectId", "confirmationProof"}
     if unknown:
         raise AutonomyRequestError(f"unknown field {sorted(unknown)[0]}")
     ids = []
@@ -282,7 +323,10 @@ def parse_question(body: object) -> Question:
     language = body.get("language", "en")
     if language not in LANGUAGES:
         raise AutonomyRequestError(f'"language" must be one of {", ".join(LANGUAGES)}')
-    return Question(ids[0], ids[1], ids[2], str(level), confirmed, str(language))
+    subject = body.get("subjectId", "")
+    if not isinstance(subject, str) or (subject and not _IDENTIFIER.match(subject)):
+        raise AutonomyRequestError('"subjectId" must be 1 to 128 characters of letters, digits, "_", "-", "." or ":"')
+    return Question(ids[0], ids[1], ids[2], str(level), confirmed, str(language), subject, body.get("confirmationProof"))
 
 
 MIN_SOURCE_TOKEN_LENGTH = 16
@@ -306,6 +350,35 @@ class AutonomyPolicy:
         self.config = config
         self.audit = AuditLog(config.audit_file, config.audit_max_bytes, config.audit_memory)
         self._source_tokens = _read_source_tokens(config.source_token_files)
+        self._proof_keys: dict[str, bytes] = {}
+        if config.require_proof:   # with the switch off no key is read
+            for kind, path in config.proof_key_files.items():
+                try:
+                    self._proof_keys[kind] = load_proof_key(path)
+                except ValueError as error:
+                    raise AutonomyConfigError(f"confirmationProof: {error}") from error
+        self._used_proofs: dict[str, int] = {}   # approval_id -> expiry; each proof is accepted once
+        self._used_lock = threading.Lock()
+
+    def _proof_decision(self, question: Question) -> tuple[str, str]:
+        """With the switch on only a genuine, current, unused proof of this action and subject lets it run; the flag humanConfirmed alone is not enough."""
+        proof = question.proof
+        if proof is None:
+            return "needs_confirmation", "proof_required"
+        key = self._proof_keys.get(proof.get("kind", "")) if isinstance(proof, dict) and isinstance(proof.get("kind"), str) else None
+        if key is None or not question.subject_id:
+            return "deny", "proof_invalid"
+        now = int(time.time() * 1000)
+        good, _why = verify_proof(key, proof, expected_action_id=proof_identifier(question.action_id), expected_subject_id=proof_identifier(question.subject_id), now_ms=now)
+        if not good:
+            return "deny", "proof_invalid"
+        assert isinstance(proof, dict)
+        with self._used_lock:
+            self._used_proofs = {i: until for i, until in self._used_proofs.items() if until > now}
+            if proof["approval_id"] in self._used_proofs or len(self._used_proofs) >= 4096:
+                return "deny", "proof_invalid"
+            self._used_proofs[proof["approval_id"]] = proof["expires_at_ms"]
+        return "allow", "confirmed"
 
     def granted_level(self, source: str) -> tuple[str, bool]:
         """The level the policy gives a source, and whether the source is in the policy."""
@@ -323,6 +396,8 @@ class AutonomyPolicy:
             decision, reason = "deny", "source_credential"   # whatever level was asked: the name was used without the credential of that source
         elif requested_rank > granted_rank:
             decision, reason = "deny", ("level_limited" if known else "unknown_source_inform_only")
+        elif question.level == "execute_with_confirmation" and self.config.require_proof:
+            decision, reason = self._proof_decision(question)
         elif question.level == "execute_with_confirmation":
             decision, reason = ("allow", "confirmed") if question.confirmed else ("needs_confirmation", "needs_confirmation")
         else:

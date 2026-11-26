@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The node can ask for the proof of a confirmation:** with `confirmationProof.required` in the autonomy file, `execute_with_confirmation` is allowed only with a genuine, current, unused `ConfirmationProof` (signed by the VLA engine or the voice interface) for that action and machine; `humanConfirmed` alone is not enough. Off by default.
 - **A source of the autonomy policy can have a credential of its own:** in the policy file a source may be written as `{"level": "propose", "tokenFile": "/path"}`; a request that names that source gets `deny` (reason `source_credential`, in the eight languages) unless its bearer token is the one in the file, so the name of a service can no longer be used by a caller that holds only the token of the node. The short form keeps working, a source without `tokenFile` behaves as before, the audit line of a source with a credential says `credential`, and the policy route lists only the names. Tests cover the right token, a missing one, the token of the node, the old form and a file that cannot be used.
 
 
