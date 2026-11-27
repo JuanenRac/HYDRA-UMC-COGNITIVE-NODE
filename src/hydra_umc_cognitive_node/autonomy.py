@@ -336,7 +336,7 @@ def _read_source_tokens(files: dict[str, str]) -> dict[str, bytes]:
     tokens: dict[str, bytes] = {}
     for name, path in files.items():
         try:
-            token = Path(path).read_text(encoding="utf-8").strip()
+            token = Path(path).read_text(encoding="utf-8-sig").strip()
         except (OSError, UnicodeDecodeError) as error:
             raise AutonomyConfigError(f"source {name}: cannot read the token file: {error}") from error
         if len(token) < MIN_SOURCE_TOKEN_LENGTH:

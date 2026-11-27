@@ -160,7 +160,7 @@ def _secret(path: str | None) -> str:
     if not path:
         return ""
     try:
-        return Path(path).read_text(encoding="utf-8").strip()
+        return Path(path).read_text(encoding="utf-8-sig").strip()
     except (OSError, UnicodeDecodeError) as error:
         raise MqttError(f"cannot read a credential file: {error}") from error
 
